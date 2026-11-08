@@ -449,7 +449,7 @@ function matchFound(){
   const db=$('#declineBtn');db.hidden=false;db.title=t('decline_free');
   ring(1);$('#ringNum').textContent=20;
   $('#found').classList.add('on');
-  beep(660,.15,0,'square',.035);beep(880,.15,.18,'square',.035);beep(1175,.3,.36,'square',.035);
+  TRMatchSound.play();
   flashTitle(true);
   mf.int=setInterval(()=>{mf.left-=.1;ring(Math.max(0,mf.left/20));$('#ringNum').textContent=Math.max(0,Math.ceil(mf.left));if(mf.left<=0)endFound('timeout')},100);
   const others=total-1,declineIdx=Math.random()<.12?rnd(0,others-1):-1;

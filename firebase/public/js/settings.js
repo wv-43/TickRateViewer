@@ -111,6 +111,7 @@ function renderSettings(){
       <div class="st-card st-danger-zone"><h3>${t('del_acc_t')}</h3><div class="st-row"><span><b>${t('del_acc_btn')}</b><small>${t('del_acc_d')}</small></span><button class="btn danger" data-st="delete-account">${t('del_acc_btn')}</button></div></div>`;
   }else if(stTab==='notif'){
     body=`<div class="st-card"><h3>${t('st_notif')}</h3>${tog('stSnd',SET.notif.sounds,t('st_sounds'),t('st_sounds_h'))}${tog('stDm',SET.notif.dm,t('st_dm'),t('st_dm_h'))}${tog('stDesk',SET.notif.desktop,t('st_desk'),t('st_desk_h'))}</div>`;
+    body+=TRMatchSound.card();
   }else if(stTab==='ui'){
     const curT=SET.ui.theme||'amber',curS=SET.ui.surface||'carbon';
     body=`<div class="st-card"><h3>${t('th_title_css')}</h3>
@@ -134,6 +135,7 @@ function renderSettings(){
   }
   el.innerHTML=`<div class="cp-head"><h1 class="h1">${t('nav_settings')}</h1></div>
     <div class="st-wrap"><nav class="st-nav">${tabs.map(([k,l])=>`<button class="${stTab===k?'on':''}" data-sttab="${k}">${t(l)}</button>`).join('')}</nav><div class="st-body">${body}</div></div>`;
+  TRMatchSound.draw();
 }
 // ----- interactions page Paramètres -----
 $('#settings').addEventListener('input',e=>{const id=e.target.id;
@@ -249,7 +251,7 @@ async function doDeleteAccount(){
       sessionStorage.removeItem(k);
     });
   }catch(e){}
-  try{await TRUserBg.clear()}catch(e){}
+  try{await TRUserBg.clear();TRMatchSound.clear();TRMusic.clear()}catch(e){}
   AUTH.session=null;
   return {ok:true};
 }

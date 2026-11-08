@@ -132,7 +132,7 @@ function rmFound(m){
     const ab=$('#acceptBtn');ab.disabled=RM.acc;ab.textContent=t(RM.acc?'accepted':'accept');
     const db=$('#declineBtn');db.hidden=RM.acc;db.title=t('decline_free');
     box.classList.add('on');
-    beep(660,.15,0,'square',.035);beep(880,.15,.18,'square',.035);beep(1175,.3,.36,'square',.035);
+    TRMatchSound.play();
     flashTitle(true);
     clearInterval(RM.ring);
     RM.ring=setInterval(()=>{
