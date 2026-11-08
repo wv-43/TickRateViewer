@@ -1,0 +1,28 @@
+/* pages légales (mentions légales, confidentialité) : noir et blanc, comme le site et les pages guides */
+:root{--bg:#0a0a0a;--panel:#121212;--line:#242424;--text:#ececec;--muted:#9a9a9a;--white:#f5f5f5}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--text);font:15px/1.7 -apple-system,BlinkMacSystemFont,'SF Pro Text','Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;-webkit-font-smoothing:antialiased}
+.lg{max-width:860px;margin:0 auto;padding:32px 20px 60px}
+.back{display:inline-block;color:var(--muted);text-decoration:none;font-size:14px}
+.back:hover{color:var(--white)}
+h1{margin:0 0 4px;font-size:clamp(28px,5vw,40px);line-height:1.15;letter-spacing:-.02em;color:var(--white)}
+h2{margin:36px 0 10px;font-size:19px;letter-spacing:-.01em;color:var(--white)}
+.upd{margin:0 0 22px;color:var(--muted);font-size:13px}
+p,li{color:#d2d2d2}
+b,strong{color:var(--white)}
+a{color:var(--white);text-decoration:underline;text-decoration-color:rgba(255,255,255,.35);text-underline-offset:3px}
+a:hover{text-decoration-color:var(--white)}
+ul{padding-left:20px}
+li{margin:5px 0}
+table{width:100%;border-collapse:collapse;margin:8px 0 14px;font-size:14px;display:block;overflow-x:auto}
+th,td{text-align:left;vertical-align:top;padding:10px 12px;border-bottom:1px solid var(--line)}
+th{color:var(--muted);font-weight:600;font-size:12px;text-transform:uppercase;letter-spacing:.06em;background:var(--panel)}
+.todo{background:rgba(255,255,255,.1);color:var(--white);padding:1px 6px;border-radius:4px;font-weight:600}
+.lg-header{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:26px;padding-bottom:16px;border-bottom:1px solid var(--line)}
+.lg-lang-bar{display:flex;gap:6px}
+.lg-lang-btn{background:var(--panel);border:1px solid var(--line);color:var(--muted);padding:6px 12px;border-radius:8px;cursor:pointer;font:700 12px/1 inherit;letter-spacing:.04em;transition:color .15s,border-color .15s,background .15s}
+.lg-lang-btn:hover{border-color:#3a3a3a;color:var(--white)}
+.lg-lang-btn.active{background:var(--white);border-color:var(--white);color:#0a0a0a}
+[data-lang-block]{display:none}
+[data-lang-block].active{display:block}
+footer{margin-top:40px;padding-top:16px;border-top:1px solid var(--line);color:var(--muted);font-size:13px}

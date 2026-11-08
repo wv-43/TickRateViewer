@@ -1,0 +1,614 @@
+// TICKRATE — messages en jeu (en, fr, ru), utilisés par tous les plugins tickrate_*
+// Couleurs : {w} blanc, {r} rouge, {g} vert, {l} vert clair, {gy} gris, {y} jaune, {b} bleu, {o} orange
+"Phrases"
+{
+	// ---------- accueil et aide ----------
+	"Welcome 1"
+	{
+		"en"	"{l}Hey! Welcome to the TICKRATE beta{w} — thanks for being one of the first to play with us."
+		"fr"	"{l}Hey ! Bienvenue sur la bêta de TICKRATE{w} — merci d'être parmi les premiers à jouer avec nous."
+		"ru"	"{l}Привет! Добро пожаловать на бету TICKRATE{w} — спасибо, что играешь с нами одним из первых."
+	}
+	"Welcome 2"
+	{
+		"en"	"Spotted a bug, lag or have an idea? Tell us with {l}!feedback <your message>{w}: we read everything."
+		"fr"	"Un bug, du lag, une idée ? Dis-le-nous avec {l}!feedback <ton message>{w} : on lit tout."
+		"ru"	"Нашёл баг, лаги или есть идея? Напиши {l}!feedback <сообщение>{w} — мы читаем всё."
+	}
+	"Welcome 3"
+	{
+		"en"	"Type {l}!help{w} to see all commands. GL HF!"
+		"fr"	"Tape {l}!help{w} pour voir toutes les commandes. GL HF !"
+		"ru"	"Введи {l}!help{w}, чтобы увидеть все команды. GL HF!"
+	}
+	"Help title"
+	{
+		"en"	"Commands:"
+		"fr"	"Commandes :"
+		"ru"	"Команды:"
+	}
+	"Help ready"
+	{
+		"en"	"{l}!r{w} / {l}!ur{w} — ready / not ready (warmup)"
+		"fr"	"{l}!r{w} / {l}!ur{w} — prêt / plus prêt (échauffement)"
+		"ru"	"{l}!r{w} / {l}!ur{w} — готов / не готов (разминка)"
+	}
+	"Help knife"
+	{
+		"en"	"{l}!stay{w} / {l}!switch{w} — knife round winners: keep or swap sides"
+		"fr"	"{l}!stay{w} / {l}!switch{w} — gagnants du knife : garder ou changer de côté"
+		"ru"	"{l}!stay{w} / {l}!switch{w} — победители ножевого раунда: остаться или сменить сторону"
+	}
+	"Help pause"
+	{
+		"en"	"{l}!pause{w} / {l}!unpause{w} — technical pause (to resume: one player from each team)"
+		"fr"	"{l}!pause{w} / {l}!unpause{w} — pause technique (reprise : un joueur de chaque équipe)"
+		"ru"	"{l}!pause{w} / {l}!unpause{w} — техническая пауза (снять: по игроку от каждой команды)"
+	}
+	"Help tac"
+	{
+		"en"	"{l}!tac{w} — tactical timeout (team vote, 3 per team)"
+		"fr"	"{l}!tac{w} — temps mort tactique (vote de l'équipe, 3 par équipe)"
+		"ru"	"{l}!tac{w} — тактический тайм-аут (голосование команды, 3 на команду)"
+	}
+	"Help ws"
+	{
+		"en"	"{l}!ws{w} — reload your skins from the site"
+		"fr"	"{l}!ws{w} — recharger tes skins depuis le site"
+		"ru"	"{l}!ws{w} — перезагрузить скины с сайта"
+	}
+	"Help feedback"
+	{
+		"en"	"{l}!feedback <message>{w} — report a bug or share an idea"
+		"fr"	"{l}!feedback <message>{w} — signaler un bug ou proposer une idée"
+		"ru"	"{l}!feedback <сообщение>{w} — сообщить о баге или предложить идею"
+	}
+	"Help admin"
+	{
+		"en"	"{gy}Admin: !forcestart · !forceunpause · !tr_status"
+		"fr"	"{gy}Admin : !forcestart · !forceunpause · !tr_status"
+		"ru"	"{gy}Админ: !forcestart · !forceunpause · !tr_status"
+	}
+	"Feedback usage"
+	{
+		"en"	"Type {l}!feedback <your message>{w} (bug, lag, idea…)."
+		"fr"	"Tape {l}!feedback <ton message>{w} (bug, lag, idée…)."
+		"ru"	"Напиши {l}!feedback <сообщение>{w} (баг, лаги, идея…)."
+	}
+	"Feedback sent"
+	{
+		"en"	"{l}Thanks!{w} Your message has been sent to the team."
+		"fr"	"{l}Merci !{w} Ton message a été envoyé à l'équipe."
+		"ru"	"{l}Спасибо!{w} Твоё сообщение отправлено команде."
+	}
+	"Feedback wait"
+	{
+		"en"	"Please wait a minute before sending another message."
+		"fr"	"Attends une minute avant d'envoyer un autre message."
+		"ru"	"Подожди минуту, прежде чем отправить ещё одно сообщение."
+	}
+	"Feedback failed"
+	{
+		"en"	"{r}Your message could not be sent.{w} Try again in a moment."
+		"fr"	"{r}Ton message n'a pas pu être envoyé.{w} Réessaie dans un instant."
+		"ru"	"{r}Не удалось отправить сообщение.{w} Попробуй чуть позже."
+	}
+
+	// ---------- match : arrivée des joueurs ----------
+	"Kick no match"
+	{
+		"en"	"No TICKRATE match on this server"
+		"fr"	"Aucun match TICKRATE en cours sur ce serveur"
+		"ru"	"На этом сервере нет матча TICKRATE"
+	}
+	"Kick no steamid"
+	{
+		"en"	"SteamID not found, please reconnect"
+		"fr"	"SteamID introuvable, reconnecte-toi"
+		"ru"	"SteamID не найден, переподключись"
+	}
+	"Kick not in match"
+	{
+		"en"	"You are not part of this TICKRATE match"
+		"fr"	"Tu ne fais pas partie de ce match TICKRATE"
+		"ru"	"Ты не участвуешь в этом матче TICKRATE"
+	}
+	"Waiting players"
+	{
+		"#format"	"{1:d},{2:d}"
+		"en"	"Waiting for players: {l}{1}/{2}{w} connected."
+		"fr"	"En attente des joueurs : {l}{1}/{2}{w} connectés."
+		"ru"	"Ожидание игроков: {l}{1}/{2}{w} подключено."
+	}
+	"Player connected"
+	{
+		"#format"	"{1:s},{2:d},{3:d}"
+		"en"	"{1} connected ({2}/{3})."
+		"fr"	"{1} est connecté ({2}/{3})."
+		"ru"	"{1} подключился ({2}/{3})."
+	}
+	"Player left"
+	{
+		"#format"	"{1:s}"
+		"en"	"{1} disconnected: 5 minutes to come back, otherwise it counts as an abandon."
+		"fr"	"{1} s'est déconnecté : il a 5 minutes pour revenir, sinon abandon."
+		"ru"	"{1} отключился: 5 минут на возвращение, иначе это засчитается как уход."
+	}
+	"Player back"
+	{
+		"#format"	"{1:s}"
+		"en"	"{1} is back and takes their place again."
+		"fr"	"{1} est revenu et reprend sa place."
+		"ru"	"{1} вернулся и снова занимает своё место."
+	}
+	"Bot replaces"
+	{
+		"#format"	"{1:s},{2:s}"
+		"en"	"{1} has been away for 2 rounds: {l}{2}{w} replaces them (take control with {l}E{w} when you're dead)."
+		"fr"	"{1} est absent depuis 2 rounds : {l}{2}{w} le remplace (prends-le en main avec {l}E{w} quand tu es mort)."
+		"ru"	"{1} отсутствует 2 раунда: его заменяет {l}{2}{w} (возьми управление на {l}E{w}, когда умрёшь)."
+	}
+
+	// ---------- match : prêt, knife, départ ----------
+	"Ready prompt"
+	{
+		"#format"	"{1:d},{2:d}"
+		"en"	"Type {l}!r{w} when you're ready · {l}{1}/{2}{w} ready"
+		"fr"	"Tape {l}!r{w} quand tu es prêt · {l}{1}/{2}{w} prêts"
+		"ru"	"Введи {l}!r{w}, когда будешь готов · готовы {l}{1}/{2}{w}"
+	}
+	"Ready prompt wait"
+	{
+		"#format"	"{1:d},{2:d},{3:s}"
+		"en"	"Type {l}!r{w} when you're ready · {l}{1}/{2}{w} ready · waiting for: {3}"
+		"fr"	"Tape {l}!r{w} quand tu es prêt · {l}{1}/{2}{w} prêts · en attente : {3}"
+		"ru"	"Введи {l}!r{w}, когда будешь готов · готовы {l}{1}/{2}{w} · ждём: {3}"
+	}
+	"Not in match"
+	{
+		"en"	"You are not playing this match."
+		"fr"	"Tu ne joues pas ce match."
+		"ru"	"Ты не играешь в этом матче."
+	}
+	"Is ready"
+	{
+		"#format"	"{1:s},{2:d},{3:d}"
+		"en"	"{1} is {l}ready{w} ({2}/{3})."
+		"fr"	"{1} est {l}prêt{w} ({2}/{3})."
+		"ru"	"{1} {l}готов{w} ({2}/{3})."
+	}
+	"Not ready"
+	{
+		"#format"	"{1:s},{2:d},{3:d}"
+		"en"	"{1} is no longer ready ({2}/{3})."
+		"fr"	"{1} n'est plus prêt ({2}/{3})."
+		"ru"	"{1} больше не готов ({2}/{3})."
+	}
+	"Auto ready"
+	{
+		"#format"	"{1:d}"
+		"en"	"Everyone is here: the match starts automatically in {l}{1} s{w}, even without every {l}!r{w}."
+		"fr"	"Tout le monde est là : le match démarre tout seul dans {l}{1} s{w}, même sans tous les {l}!r{w}."
+		"ru"	"Все на месте: матч начнётся автоматически через {l}{1} с{w}, даже без всех {l}!r{w}."
+	}
+	"Auto ready left"
+	{
+		"#format"	"{1:d}"
+		"en"	"Automatic start in {l}{1} s{w}."
+		"fr"	"Départ automatique dans {l}{1} s{w}."
+		"ru"	"Автоматический старт через {l}{1} с{w}."
+	}
+	"Auto start"
+	{
+		"en"	"Time is up: the match starts."
+		"fr"	"Temps écoulé : le match démarre."
+		"ru"	"Время вышло: матч начинается."
+	}
+	"Admin start"
+	{
+		"en"	"An admin starts the match."
+		"fr"	"Un admin lance le match."
+		"ru"	"Админ запускает матч."
+	}
+	"Match starts"
+	{
+		"en"	"Everyone is here: {l}the match begins!"
+		"fr"	"Tout le monde est là : {l}le match commence !"
+		"ru"	"Все на месте: {l}матч начинается!"
+	}
+	"Test match"
+	{
+		"#format"	"{1:d}"
+		"en"	"{l}Test match{w}: against bots, {1} rounds."
+		"fr"	"{l}Match de test{w} : contre des bots, {1} rounds."
+		"ru"	"{l}Тестовый матч{w}: против ботов, раундов: {1}."
+	}
+	"Private match"
+	{
+		"#format"	"{1:d}"
+		"en"	"{l}Private match{w}: {1} rounds. GL HF!"
+		"fr"	"{l}Match privé{w} : {1} rounds. GL HF !"
+		"ru"	"{l}Приватный матч{w}: раундов: {1}. GL HF!"
+	}
+	"Knife start"
+	{
+		"en"	"Everyone is here: {l}knife round{w}! The winning team picks its side."
+		"fr"	"Tout le monde est là : {l}knife round{w} ! L'équipe gagnante choisit son côté."
+		"ru"	"Все на месте: {l}ножевой раунд{w}! Победившая команда выбирает сторону."
+	}
+	"Knife won"
+	{
+		"#format"	"{1:s}"
+		"en"	"{l}{1}{w}'s team wins the knife: type {l}!stay{w} (keep this side) or {l}!switch{w} (swap). 20 s."
+		"fr"	"L'équipe de {l}{1}{w} gagne le knife : tape {l}!stay{w} (garder ce côté) ou {l}!switch{w} (changer). 20 s."
+		"ru"	"Команда {l}{1}{w} выиграла ножевой раунд: введи {l}!stay{w} (остаться) или {l}!switch{w} (сменить сторону). 20 с."
+	}
+	"Knife only winner"
+	{
+		"en"	"Only the team that won the knife round can choose."
+		"fr"	"Seule l'équipe qui a gagné le knife choisit."
+		"ru"	"Выбирать может только команда, выигравшая ножевой раунд."
+	}
+	"Knife chose stay"
+	{
+		"#format"	"{1:N}"
+		"en"	"{1} chooses to keep this side."
+		"fr"	"{1} choisit de garder ce côté."
+		"ru"	"{1} решает остаться на этой стороне."
+	}
+	"Knife chose switch"
+	{
+		"#format"	"{1:N}"
+		"en"	"{1} chooses to swap sides."
+		"fr"	"{1} choisit de changer de côté."
+		"ru"	"{1} решает сменить сторону."
+	}
+	"Live in 3"
+	{
+		"en"	"{l}The match starts in 3 s. GL HF!"
+		"fr"	"{l}Le match commence dans 3 s. GL HF !"
+		"ru"	"{l}Матч начнётся через 3 с. GL HF!"
+	}
+
+	// ---------- match : fin ----------
+	"Match over"
+	{
+		"#format"	"{1:d},{2:d}"
+		"en"	"Match over {l}{1} - {2}{w}. ELO and drops in a few seconds. The server empties in 30 s."
+		"fr"	"Match terminé {l}{1} - {2}{w}. ELO et drops dans quelques secondes. Le serveur se vide dans 30 s."
+		"ru"	"Матч окончен {l}{1} - {2}{w}. ELO и дропы через несколько секунд. Сервер очистится через 30 с."
+	}
+	"Result win"
+	{
+		"#format"	"{1:s},{2:d},{3:d},{4:d}"
+		"en"	"{g}Victory{w} · {l}{1} ELO{w} ({2} → {3}) · level {4}"
+		"fr"	"{g}Victoire{w} · {l}{1} ELO{w} ({2} → {3}) · niveau {4}"
+		"ru"	"{g}Победа{w} · {l}{1} ELO{w} ({2} → {3}) · уровень {4}"
+	}
+	"Result loss"
+	{
+		"#format"	"{1:s},{2:d},{3:d},{4:d}"
+		"en"	"{r}Defeat{w} · {l}{1} ELO{w} ({2} → {3}) · level {4}"
+		"fr"	"{r}Défaite{w} · {l}{1} ELO{w} ({2} → {3}) · niveau {4}"
+		"ru"	"{r}Поражение{w} · {l}{1} ELO{w} ({2} → {3}) · уровень {4}"
+	}
+	"Drop"
+	{
+		"#format"	"{1:s}"
+		"en"	"{y}Drop:{w} {1}"
+		"fr"	"{y}Drop :{w} {1}"
+		"ru"	"{y}Дроп:{w} {1}"
+	}
+	"Drop all"
+	{
+		"#format"	"{1:s},{2:s}"
+		"en"	"{l}{1}{w} got a drop: {y}{2}"
+		"fr"	"{l}{1}{w} a drop : {y}{2}"
+		"ru"	"{l}{1}{w} получает дроп: {y}{2}"
+	}
+	"No drop"
+	{
+		"en"	"No drop this match."
+		"fr"	"Pas de drop ce match."
+		"ru"	"В этом матче дропа нет."
+	}
+	"Hint win"
+	{
+		"en"	"VICTORY"
+		"fr"	"VICTOIRE"
+		"ru"	"ПОБЕДА"
+	}
+	"Hint loss"
+	{
+		"en"	"DEFEAT"
+		"fr"	"DÉFAITE"
+		"ru"	"ПОРАЖЕНИЕ"
+	}
+	"Hint drop"
+	{
+		"#format"	"{1:s}"
+		"en"	"Drop: {1}"
+		"fr"	"Drop : {1}"
+		"ru"	"Дроп: {1}"
+	}
+	"Kick match over"
+	{
+		"en"	"Match over, thanks for playing on TICKRATE!"
+		"fr"	"Match terminé, merci d'avoir joué sur TICKRATE !"
+		"ru"	"Матч окончен, спасибо за игру на TICKRATE!"
+	}
+	"Kick cancelled missing"
+	{
+		"en"	"Match cancelled by the site (a player didn't show up). You can queue again."
+		"fr"	"Match annulé par le site (joueur absent). Tu peux relancer une recherche."
+		"ru"	"Матч отменён сайтом (игрок не пришёл). Можно снова встать в поиск."
+	}
+	"Kick cancelled"
+	{
+		"en"	"Match cancelled by the site."
+		"fr"	"Match annulé par le site."
+		"ru"	"Матч отменён сайтом."
+	}
+	"Kick admin abort"
+	{
+		"en"	"Match aborted by an administrator"
+		"fr"	"Match abandonné par un administrateur"
+		"ru"	"Матч прерван администратором"
+	}
+
+	// ---------- règles : anti-triche, pause, dégâts ----------
+	"Kick cvar"
+	{
+		"#format"	"{1:s}"
+		"en"	"Forbidden setting detected ({1}). Restart CS:GO without third-party software."
+		"fr"	"Réglage interdit détecté ({1}). Relance CS:GO sans programme tiers."
+		"ru"	"Обнаружена запрещённая настройка ({1}). Перезапусти CS:GO без сторонних программ."
+	}
+	"Cvar kicked"
+	{
+		"#format"	"{1:N},{2:s}"
+		"en"	"{1} was disconnected: forbidden game setting ({2})."
+		"fr"	"{1} a été déconnecté : réglage de jeu interdit ({2})."
+		"ru"	"{1} отключён: запрещённая настройка игры ({2})."
+	}
+	"Kick spam"
+	{
+		"en"	"Too many commands sent"
+		"fr"	"Trop de commandes envoyées"
+		"ru"	"Слишком много команд"
+	}
+	"Pause warmup"
+	{
+		"en"	"No pause during warmup."
+		"fr"	"Pas de pause pendant l'échauffement."
+		"ru"	"Во время разминки пауза недоступна."
+	}
+	"Pause already"
+	{
+		"en"	"The game is already paused: {l}!unpause{w} to resume."
+		"fr"	"La partie est déjà en pause : {l}!unpause{w} pour reprendre."
+		"ru"	"Игра уже на паузе: {l}!unpause{w}, чтобы продолжить."
+	}
+	"Pause asked"
+	{
+		"#format"	"{1:N}"
+		"en"	"{1} calls a {l}technical pause{w}: it starts at the next freeze time. To resume: {l}!unpause{w} (one player from each team)."
+		"fr"	"{1} demande une {l}pause technique{w} : elle commence au prochain freeze time. Pour reprendre : {l}!unpause{w} (un joueur de chaque équipe)."
+		"ru"	"{1} берёт {l}техническую паузу{w}: она начнётся в следующий фризтайм. Чтобы продолжить: {l}!unpause{w} (по игроку от каждой команды)."
+	}
+	"Not paused"
+	{
+		"en"	"The game is not paused."
+		"fr"	"La partie n'est pas en pause."
+		"ru"	"Игра не на паузе."
+	}
+	"Unpause both"
+	{
+		"en"	"Both teams are ready: {l}resuming!"
+		"fr"	"Les deux équipes sont prêtes : {l}reprise !"
+		"ru"	"Обе команды готовы: {l}продолжаем!"
+	}
+	"Unpause wait"
+	{
+		"#format"	"{1:s}"
+		"en"	"The {1} are ready. Waiting for the other team ({l}!unpause{w})."
+		"fr"	"Les {1} sont prêts. En attente de l'autre équipe ({l}!unpause{w})."
+		"ru"	"{1} готовы. Ждём другую команду ({l}!unpause{w})."
+	}
+	"Admin unpause"
+	{
+		"en"	"An admin resumes the game."
+		"fr"	"Un admin relance la partie."
+		"ru"	"Админ возобновляет игру."
+	}
+	"Damage title"
+	{
+		"en"	"Round damage:"
+		"fr"	"Dégâts du round :"
+		"ru"	"Урон за раунд:"
+	}
+	"Damage line"
+	{
+		"#format"	"{1:d},{2:d},{3:d},{4:d},{5:N},{6:d}"
+		"en"	"  {g}→ {1}{w} ({2}) · {r}← {3}{w} ({4}) · {5} {gy}({6} HP)"
+		"fr"	"  {g}→ {1}{w} ({2}) · {r}← {3}{w} ({4}) · {5} {gy}({6} PV)"
+		"ru"	"  {g}→ {1}{w} ({2}) · {r}← {3}{w} ({4}) · {5} {gy}({6} HP)"
+	}
+
+	// ---------- vocal, skins, armes, vérification ----------
+	"Voice open"
+	{
+		"en"	"Voice chat open to both teams."
+		"fr"	"Vocal ouvert aux deux équipes."
+		"ru"	"Голосовой чат открыт для обеих команд."
+	}
+	"Voice team"
+	{
+		"en"	"Voice chat: your team only."
+		"fr"	"Vocal : ton équipe uniquement."
+		"ru"	"Голосовой чат: только твоя команда."
+	}
+	"Skins reloaded"
+	{
+		"en"	"Skins reloaded from the site: applied at your next spawn."
+		"fr"	"Skins rechargés depuis le site : appliqués à ta prochaine apparition."
+		"ru"	"Скины загружены с сайта: применятся при следующем появлении."
+	}
+	"Loadout reloaded"
+	{
+		"en"	"Weapons reloaded from the site."
+		"fr"	"Armes rechargées depuis le site."
+		"ru"	"Оружие загружено с сайта."
+	}
+	"No money"
+	{
+		"en"	"Not enough money"
+		"fr"	"Pas assez d'argent"
+		"ru"	"Недостаточно денег"
+	}
+	"Check ok"
+	{
+		"en"	"CS:GO is ready! You can go back to the site."
+		"fr"	"CS:GO est prêt ! Tu peux retourner sur le site."
+		"ru"	"CS:GO готов! Можешь вернуться на сайт."
+	}
+	"Check not linked"
+	{
+		"en"	"{r}Your Steam account isn't linked to a TICKRATE account."
+		"fr"	"{r}Ton compte Steam n'est pas lié à un compte TICKRATE."
+		"ru"	"{r}Твой аккаунт Steam не привязан к аккаунту TICKRATE."
+	}
+	"Kick check done"
+	{
+		"en"	"Check complete, head back to TICKRATE"
+		"fr"	"Vérification terminée, retourne sur TICKRATE"
+		"ru"	"Проверка завершена, возвращайся на TICKRATE"
+	}
+	"Rank 1"
+	{
+		"en"	"Silver I"
+		"fr"	"Argent I"
+		"ru"	"Серебро I"
+	}
+	"Rank 2"
+	{
+		"en"	"Silver II"
+		"fr"	"Argent II"
+		"ru"	"Серебро II"
+	}
+	"Rank 3"
+	{
+		"en"	"Silver III"
+		"fr"	"Argent III"
+		"ru"	"Серебро III"
+	}
+	"Rank 4"
+	{
+		"en"	"Silver IV"
+		"fr"	"Argent IV"
+		"ru"	"Серебро IV"
+	}
+	"Rank 5"
+	{
+		"en"	"Silver Elite"
+		"fr"	"Argent Élite"
+		"ru"	"Серебро – Элита"
+	}
+	"Rank 6"
+	{
+		"en"	"Silver Elite Master"
+		"fr"	"Argent Élite Master"
+		"ru"	"Серебро – Великий Магистр"
+	}
+	"Rank 7"
+	{
+		"en"	"Gold Nova I"
+		"fr"	"Nova d'or I"
+		"ru"	"Золотая Звезда I"
+	}
+	"Rank 8"
+	{
+		"en"	"Gold Nova II"
+		"fr"	"Nova d'or II"
+		"ru"	"Золотая Звезда II"
+	}
+	"Rank 9"
+	{
+		"en"	"Gold Nova III"
+		"fr"	"Nova d'or III"
+		"ru"	"Золотая Звезда III"
+	}
+	"Rank 10"
+	{
+		"en"	"Gold Nova Master"
+		"fr"	"Nova d'or Master"
+		"ru"	"Золотая Звезда – Магистр"
+	}
+	"Rank 11"
+	{
+		"en"	"Master Guardian I"
+		"fr"	"Maître gardien I"
+		"ru"	"Магистр-хранитель I"
+	}
+	"Rank 12"
+	{
+		"en"	"Master Guardian II"
+		"fr"	"Maître gardien II"
+		"ru"	"Магистр-хранитель II"
+	}
+	"Rank 13"
+	{
+		"en"	"Master Guardian Elite"
+		"fr"	"Maître gardien Élite"
+		"ru"	"Магистр-хранитель – Элита"
+	}
+	"Rank 14"
+	{
+		"en"	"Distinguished Master Guardian"
+		"fr"	"Maître gardien distingué"
+		"ru"	"Заслуженный Магистр-хранитель"
+	}
+	"Rank 15"
+	{
+		"en"	"Legendary Eagle"
+		"fr"	"Aigle légendaire"
+		"ru"	"Легендарный Беркут"
+	}
+	"Rank 16"
+	{
+		"en"	"Legendary Eagle Master"
+		"fr"	"Maître aigle légendaire"
+		"ru"	"Легендарный Беркут-магистр"
+	}
+	"Rank 17"
+	{
+		"en"	"Supreme Master First Class"
+		"fr"	"Maître suprême de première classe"
+		"ru"	"Великий Магистр Высшего Ранга"
+	}
+	"Rank 18"
+	{
+		"en"	"The Global Elite"
+		"fr"	"Élite mondiale"
+		"ru"	"Всемирная Элита"
+	}
+	"Rank up"
+	{
+		"en"	"PROMOTION"
+		"fr"	"PROMOTION"
+		"ru"	"ПОВЫШЕНИЕ"
+	}
+	"Rank down"
+	{
+		"en"	"RANK DOWN"
+		"fr"	"RÉTROGRADATION"
+		"ru"	"ПОНИЖЕНИЕ"
+	}
+	"Rank chat"
+	{
+		"#format"	"{1:s},{2:t}"
+		"en"	"{1} {l}{2}{w}"
+		"fr"	"{1} {l}{2}{w}"
+		"ru"	"{1} {l}{2}{w}"
+	}
+}

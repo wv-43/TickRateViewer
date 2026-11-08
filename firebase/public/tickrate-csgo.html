@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script src="/js/canon.js?v=3.6.0"></script>
+<script src="/js/user-bg.js?v=1"></script>
+<title>Tickrate CS GO : 64 ou 128 tick, ce que ça change · TICKRATE</title>
+<meta name="description" content="Le tickrate expliqué : ce qu'est un tick, 64 tick contre 128 tick dans CS GO, effet sur les tirs et les grenades, réglages rate et cl_updaterate.">
+<link rel="canonical" href="https://tickrate.eu/tickrate-csgo">
+<link rel="alternate" hreflang="fr" href="https://tickrate.eu/tickrate-csgo">
+<link rel="alternate" hreflang="en" href="https://tickrate.eu/en/tickrate">
+<meta name="robots" content="index,follow,max-snippet:-1,max-image-preview:large">
+<meta name="theme-color" content="#0a0a0a">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="TICKRATE">
+<meta property="og:locale" content="fr_FR">
+<meta property="og:title" content="Tickrate CS GO : 64 ou 128 tick, ce que ça change · TICKRATE">
+<meta property="og:description" content="Le tickrate expliqué : ce qu'est un tick, 64 tick contre 128 tick dans CS GO, effet sur les tirs et les grenades, réglages rate et cl_updaterate.">
+<meta property="og:url" content="https://tickrate.eu/tickrate-csgo">
+<meta property="og:image" content="https://tickrate.eu/og.jpg?v=2">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg?v=3">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png?v=3">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png?v=3">
+<link rel="stylesheet" href="/seo.css?v=3.6.0">
+<link rel="stylesheet" href="/footer.css?v=3.6.0">
+<script type="application/ld+json">[{"@context":"https://schema.org","@type":"WebPage","name":"Tickrate CS GO : 64 ou 128 tick, ce que ça change · TICKRATE","description":"Le tickrate expliqué : ce qu'est un tick, 64 tick contre 128 tick dans CS GO, effet sur les tirs et les grenades, réglages rate et cl_updaterate.","url":"https://tickrate.eu/tickrate-csgo","inLanguage":"fr-FR","dateModified":"2026-11-08","about":[{"@type":"Thing","name":"tickrate"},{"@type":"Thing","name":"tick rate"},{"@type":"Thing","name":"128 tick"}],"isPartOf":{"@type":"WebSite","name":"TICKRATE","url":"https://tickrate.eu/"},"publisher":{"@type":"Organization","name":"TICKRATE","url":"https://tickrate.eu/","logo":"https://tickrate.eu/logo.png","sameAs":["https://www.instagram.com/tickrate.eu/","https://www.tiktok.com/@tickrate.eu","https://discord.gg/KNXbGrTDj"]}},{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"TICKRATE","item":"https://tickrate.eu/"},{"@type":"ListItem","position":2,"name":"Guides","item":"https://tickrate.eu/guides"},{"@type":"ListItem","position":3,"name":"Tickrate","item":"https://tickrate.eu/tickrate-csgo"}]},{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[{"@type":"Question","name":"Le 128 tick est-il vraiment meilleur ?","acceptedAnswer":{"@type":"Answer","text":"Oui pour la précision des tirs et des grenades, à condition d'avoir un bon ping et assez de FPS. La différence est surtout sensible dans les duels serrés."}},{"@type":"Question","name":"Comment jouer en 128 tick sur CS:GO ?","acceptedAnswer":{"@type":"Answer","text":"Sur un serveur qui tourne en 128 tick, comme ceux de TICKRATE. Hors ligne, ajoute -tickrate 128 aux options de lancement."}},{"@type":"Question","name":"Faut-il changer cl_updaterate sur un serveur 64 tick ?","acceptedAnswer":{"@type":"Answer","text":"Non, laisser 128 ne pose pas de problème : le serveur envoie au maximum son propre tickrate."}},{"@type":"Question","name":"Combien de FPS pour le 128 tick ?","acceptedAnswer":{"@type":"Answer","text":"Plus que 128, idéalement bien plus. Si tu tombes souvent sous ce seuil, baisse les réglages graphiques."}}]}]</script>
+</head>
+<body>
+<header class="sx-top"><div class="sx-top-in">
+  <a class="sx-brand" href="/"><img src="/logo.png?v=3" alt="" width="30" height="30"><span>TICK<b>RATE</b></span></a>
+  <nav class="sx-nav" aria-label="Présentation"><a href="/serveur-csgo">Serveurs CS:GO</a><a href="/serveurs-csgo">Liste des serveurs</a><a href="/tickrate-csgo" aria-current="page">Tickrate</a><a href="/csgo-legacy">CS:GO legacy</a><a href="/matchmaking-csgo">Matchmaking</a><a href="/classement-csgo">Classement</a><a href="/guides">Guides</a></nav>
+  <a class="sx-cta" href="/">Jouer</a>
+</div></header>
+<main class="sx">
+  <p class="sx-crumb"><a href="/">TICKRATE</a> › <a href="/guides">Guides</a> › Tickrate</p>
+  <h1>Tickrate : 64 ou 128 tick, ce que ça change</h1>
+  <p class="sx-lead">Le tickrate (ou tick rate) est le nombre de fois par seconde où un serveur de jeu calcule la partie. Dans CS:GO, c'est 64 ou 128. Voici ce que ça change concrètement, et comment régler ton jeu.</p>
+  <div class="sx-actions"><a class="sx-cta" href="/">Créer mon compte gratuit</a><a class="sx-cta ghost" href="/#/play">Voir les modes de jeu</a></div>
+  <h2>C'est quoi un tick ?</h2>
+  <p>À chaque tick, le serveur lit les actions des joueurs (mouvements, tirs, grenades), calcule le nouvel état de la partie et l'envoie aux joueurs. Un serveur à 64 tick le fait 64 fois par seconde, soit toutes les 15,6 millisecondes. À 128 tick, c'est toutes les 7,8 millisecondes.</p>
+  <div class="sx-facts">
+    <div class="sx-fact"><b>64 tick</b><span>une mise à jour toutes les 15,6 ms</span></div>
+    <div class="sx-fact"><b>128 tick</b><span>une mise à jour toutes les 7,8 ms</span></div>
+  </div>
+  <h2>Ce que le 128 tick change en jeu</h2>
+  <ul>
+    <li><b>Les tirs :</b> ton clic est pris en compte plus tôt, et la position des adversaires est plus précise. Les échanges de tirs serrés sont plus justes.</li>
+    <li><b>Les grenades :</b> leurs trajectoires sont calculées plus finement. Certaines smokes se lancent différemment à 64 et à 128 tick : un lineup appris à 64 tick peut tomber à côté à 128.</li>
+    <li><b>Le mouvement :</b> les déplacements, les sauts et les air strafes paraissent plus fluides.</li>
+  </ul>
+  <h2>Ce que le tickrate ne change pas</h2>
+  <p>Le 128 tick ne compense pas un mauvais ping : si tes paquets mettent 80 ms à arriver, le serveur les reçoit 80 ms plus tard, quel que soit son tickrate. Il ne compense pas non plus un PC qui affiche peu d'images par seconde : vise nettement plus de FPS que de ticks.</p>
+  <h2>64 tick, 128 tick, et CS2</h2>
+  <p>Dans CS:GO, le matchmaking officiel de Valve tournait en 64 tick, alors que les plateformes compétitives tiers jouaient en 128 tick. C'est ce qui a rendu le « 128 tick » si recherché. CS2 a changé d'approche : ses serveurs restent à 64 tick, mais le jeu enregistre le moment exact de tes actions entre deux ticks (le « sub-tick »). Sur CS:GO legacy, le tickrate fait donc toujours la différence.</p>
+  <h2>Régler CS:GO pour un serveur 128 tick</h2>
+  <p>Ces commandes se tapent dans la console (ou dans ton autoexec.cfg) :</p>
+  <pre><code>rate 786432
+cl_cmdrate 128
+cl_updaterate 128
+cl_interp 0
+cl_interp_ratio 1</code></pre>
+  <ul>
+    <li><code>rate</code> : la quantité de données que ton jeu accepte de recevoir. 786432 est le maximum de CS:GO.</li>
+    <li><code>cl_cmdrate</code> et <code>cl_updaterate</code> : combien de mises à jour tu envoies et reçois par seconde. À 128, tu profites de tout le serveur ; le serveur limite de lui-même s'il tourne à 64.</li>
+    <li><code>cl_interp 0</code> avec <code>cl_interp_ratio 1</code> : l'interpolation la plus courte possible, calculée à partir de ton updaterate.</li>
+  </ul>
+  <h2>Vérifier le tickrate d'un serveur</h2>
+  <p>Tape <code>net_graph 1</code> dans la console : la ligne du bas indique le tick du serveur et le nombre de mises à jour reçues. Pour t'entraîner seul en 128 tick (bots, maps d'entraînement), ajoute <code>-tickrate 128</code> aux options de lancement de CS:GO dans Steam.</p>
+  <h2>Et le nom TICKRATE ?</h2>
+  <p>C'est de là que vient le nom du site : chaque match TICKRATE se joue sur un <a href="/serveur-csgo">serveur CS GO 128 tick</a> dédié.</p>
+  <h2>Questions fréquentes</h2>
+  <details><summary>Le 128 tick est-il vraiment meilleur ?</summary><p>Oui pour la précision des tirs et des grenades, à condition d'avoir un bon ping et assez de FPS. La différence est surtout sensible dans les duels serrés.</p></details>
+  <details><summary>Comment jouer en 128 tick sur CS:GO ?</summary><p>Sur un serveur qui tourne en 128 tick, comme ceux de TICKRATE. Hors ligne, ajoute -tickrate 128 aux options de lancement.</p></details>
+  <details><summary>Faut-il changer cl_updaterate sur un serveur 64 tick ?</summary><p>Non, laisser 128 ne pose pas de problème : le serveur envoie au maximum son propre tickrate.</p></details>
+  <details><summary>Combien de FPS pour le 128 tick ?</summary><p>Plus que 128, idéalement bien plus. Si tu tombes souvent sous ce seuil, baisse les réglages graphiques.</p></details>
+  <div class="sx-band"><p>Prêt à jouer en 128 tick ?</p><a class="sx-cta" href="/">Rejoindre TICKRATE</a></div>
+  <h2>À lire aussi</h2>
+  <div class="sx-more"><a href="/commandes-csgo"><b>Commandes</b><span>Console, réseau, entraînement et binds</span></a><a href="/creer-serveur-csgo"><b>Créer un serveur</b><span>Héberger un serveur CS:GO legacy : SteamCMD, jeton, config</span></a><a href="/serveur-csgo"><b>Serveurs CS:GO</b><span>Serveurs CS GO 128 tick dédiés en Europe</span></a><a href="/serveurs-csgo"><b>Liste des serveurs</b><span>Nos serveurs CS GO en direct : état, map, score</span></a></div>
+</main>
+<footer class="site-foot">
+  <div class="sf-in">
+    <div class="sf-brand">
+      <a class="sf-logo" href="/"><svg class="tr-mark" viewBox="9 9 46 46" aria-hidden="true"><path d="M50.61 37.34A19.36 19.36 0 0 1 37.34 50.61M26.66 50.61A19.36 19.36 0 0 1 13.39 37.34M13.39 26.66A19.36 19.36 0 0 1 26.66 13.39M37.34 13.39A19.36 19.36 0 0 1 50.61 26.66" fill="none" stroke="currentColor" stroke-width="3.52"/><rect x="21.12" y="22.4" width="21.76" height="4.48" rx="1.12" fill="currentColor"/><rect x="29.28" y="22.4" width="5.44" height="21.76" rx="1.36" fill="currentColor"/></svg><span>TICK<b>RATE</b></span></a>
+      <p>Matchmaking CS:GO legacy gratuit sur serveurs 128 tick, à Francfort.</p>
+    </div>
+    <nav class="sf-col" aria-label="Jouer"><h4>Jouer</h4><a href="/">Lancer un match</a><a href="/#/duel">Arène 1v1</a><a href="/#/mapvote">Vote des maps</a><a href="/#/clans">Clans</a><a href="/#/ranking">Classement</a><a href="/serveurs-csgo">Liste des serveurs</a></nav>
+    <nav class="sf-col" aria-label="Guides"><h4>Guides</h4><a href="/serveur-csgo">Serveur CS GO 128 tick</a><a href="/tickrate-csgo">Tickrate : 64 ou 128 tick</a><a href="/csgo-legacy">CS:GO legacy en 2026</a><a href="/commandes-csgo">Commandes CS GO</a><a href="/actualites">Actualités</a><a href="/guides">Tous les guides</a></nav>
+    <nav class="sf-col" aria-label="Communauté"><h4>Communauté</h4><a href="https://discord.gg/KNXbGrTDj" target="_blank" rel="noopener">Discord</a><a href="https://www.instagram.com/tickrate.eu/" target="_blank" rel="me noopener">Instagram</a><a href="https://www.tiktok.com/@tickrate.eu" target="_blank" rel="me noopener">TikTok</a><a href="/#/support">Support</a></nav>
+  </div>
+  <nav class="sf-pages" aria-label="Guides"><a href="/serveur-csgo">Serveurs CS:GO</a><a href="/serveurs-csgo">Liste des serveurs</a><a href="/creer-serveur-csgo">Créer un serveur</a><a href="/tickrate-csgo">Tickrate</a><a href="/csgo-legacy">CS:GO legacy</a><a href="/matchmaking-csgo">Matchmaking</a><a href="/classement-csgo">Classement</a><a href="/commandes-csgo">Commandes</a><a href="/wingman-csgo">Wingman</a><a href="/1v1-csgo">1v1</a><a href="/maps-csgo">Maps</a><a href="/actualites">Actualités</a></nav>
+  <div class="sf-bottom">
+    <span>© 2026 TICKRATE · tickrate.eu</span>
+    <a href="/mentions-legales">Mentions légales</a><a href="/confidentialite">Confidentialité</a><a href="/en/tickrate" hreflang="en" lang="en">English</a>
+  </div>
+  <p class="sf-valve">TICKRATE n'est pas affilié à Valve Corporation. Counter-Strike et CS:GO sont des marques de Valve Corporation.</p>
+</footer>
+</body>
+</html>

@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script src="/js/canon.js?v=3.6.0"></script>
+<script src="/js/user-bg.js?v=1"></script>
+<title>Commandes CS GO : console, réseau et entraînement · TICKRATE</title>
+<meta name="description" content="Les commandes CS GO utiles : activer la console, net_graph et FPS, réglages réseau 128 tick, commandes d'entraînement sv_cheats, binds et autoexec.">
+<link rel="canonical" href="https://tickrate.eu/commandes-csgo">
+<meta name="robots" content="index,follow,max-snippet:-1,max-image-preview:large">
+<meta name="theme-color" content="#0a0a0a">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="TICKRATE">
+<meta property="og:locale" content="fr_FR">
+<meta property="og:title" content="Commandes CS GO : console, réseau et entraînement · TICKRATE">
+<meta property="og:description" content="Les commandes CS GO utiles : activer la console, net_graph et FPS, réglages réseau 128 tick, commandes d'entraînement sv_cheats, binds et autoexec.">
+<meta property="og:url" content="https://tickrate.eu/commandes-csgo">
+<meta property="og:image" content="https://tickrate.eu/og.jpg?v=2">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg?v=3">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png?v=3">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png?v=3">
+<link rel="stylesheet" href="/seo.css?v=3.6.0">
+<link rel="stylesheet" href="/footer.css?v=3.6.0">
+<script type="application/ld+json">[{"@context":"https://schema.org","@type":"WebPage","name":"Commandes CS GO : console, réseau et entraînement · TICKRATE","description":"Les commandes CS GO utiles : activer la console, net_graph et FPS, réglages réseau 128 tick, commandes d'entraînement sv_cheats, binds et autoexec.","url":"https://tickrate.eu/commandes-csgo","inLanguage":"fr-FR","dateModified":"2026-11-08","about":[{"@type":"Thing","name":"commandes cs go"},{"@type":"Thing","name":"commande csgo"},{"@type":"Thing","name":"console cs go"}],"isPartOf":{"@type":"WebSite","name":"TICKRATE","url":"https://tickrate.eu/"},"publisher":{"@type":"Organization","name":"TICKRATE","url":"https://tickrate.eu/","logo":"https://tickrate.eu/logo.png","sameAs":["https://www.instagram.com/tickrate.eu/","https://www.tiktok.com/@tickrate.eu","https://discord.gg/KNXbGrTDj"]}},{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"TICKRATE","item":"https://tickrate.eu/"},{"@type":"ListItem","position":2,"name":"Guides","item":"https://tickrate.eu/guides"},{"@type":"ListItem","position":3,"name":"Commandes","item":"https://tickrate.eu/commandes-csgo"}]},{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[{"@type":"Question","name":"Comment ouvrir la console CS GO ?","acceptedAnswer":{"@type":"Answer","text":"Active la console de développement dans les paramètres (onglet Jeu), puis appuie sur la touche ² sous Échap."}},{"@type":"Question","name":"Où mettre mon autoexec ?","acceptedAnswer":{"@type":"Answer","text":"Dans le dossier csgo/cfg de ton installation de CS:GO, avec +exec autoexec dans les options de lancement Steam."}},{"@type":"Question","name":"Pourquoi sv_cheats ne marche pas ?","acceptedAnswer":{"@type":"Answer","text":"Il ne fonctionne que sur un serveur dont tu es l'hôte : partie hors ligne ou ton propre serveur."}}]}]</script>
+</head>
+<body>
+<header class="sx-top"><div class="sx-top-in">
+  <a class="sx-brand" href="/"><img src="/logo.png?v=3" alt="" width="30" height="30"><span>TICK<b>RATE</b></span></a>
+  <nav class="sx-nav" aria-label="Présentation"><a href="/serveur-csgo">Serveurs CS:GO</a><a href="/serveurs-csgo">Liste des serveurs</a><a href="/tickrate-csgo">Tickrate</a><a href="/csgo-legacy">CS:GO legacy</a><a href="/matchmaking-csgo">Matchmaking</a><a href="/classement-csgo">Classement</a><a href="/guides">Guides</a></nav>
+  <a class="sx-cta" href="/">Jouer</a>
+</div></header>
+<main class="sx">
+  <p class="sx-crumb"><a href="/">TICKRATE</a> › <a href="/guides">Guides</a> › Commandes</p>
+  <h1>Commandes CS GO utiles</h1>
+  <p class="sx-lead">Les commandes de console de CS:GO qui servent vraiment : affichage, réseau, entraînement privé, binds et fichier autoexec. Toutes fonctionnent sur CS:GO legacy.</p>
+  <div class="sx-actions"><a class="sx-cta" href="/">Créer mon compte gratuit</a><a class="sx-cta ghost" href="/#/play">Voir les modes de jeu</a></div>
+  <h2>Activer la console</h2>
+  <p>Dans les paramètres du jeu, onglet Jeu, active « Activer la console de développement ». La touche sous Échap (²) l'ouvre ensuite. Tu peux aussi ajouter <code>-console</code> aux options de lancement dans Steam.</p>
+  <h2>Affichage et performances</h2>
+  <div class="sx-tbl"><table>
+    <thead><tr><th>Commande</th><th>Effet</th></tr></thead>
+    <tbody>
+      <tr><td><code>net_graph 1</code></td><td>Affiche FPS, ping, perte de paquets et tick du serveur</td></tr>
+      <tr><td><code>cl_showfps 1</code></td><td>Affiche seulement les FPS</td></tr>
+      <tr><td><code>fps_max 0</code></td><td>Retire la limite d'images par seconde</td></tr>
+      <tr><td><code>viewmodel_fov 68</code></td><td>Éloigne l'arme de l'écran (54 à 68)</td></tr>
+      <tr><td><code>cl_righthand 0</code></td><td>Arme tenue à gauche</td></tr>
+      <tr><td><code>cl_radar_scale 0.4</code></td><td>Dézoome le radar</td></tr>
+    </tbody>
+  </table></div>
+  <h2>Réseau (serveurs 128 tick)</h2>
+  <pre><code>rate 786432
+cl_cmdrate 128
+cl_updaterate 128
+cl_interp 0
+cl_interp_ratio 1</code></pre>
+  <p>Ces réglages sont expliqués en détail sur la page <a href="/tickrate-csgo">tickrate</a>.</p>
+  <h2>Entraînement en partie privée</h2>
+  <p>Ces commandes demandent <code>sv_cheats 1</code> et ne marchent que sur ton propre serveur ou en partie hors ligne :</p>
+  <div class="sx-tbl"><table>
+    <thead><tr><th>Commande</th><th>Effet</th></tr></thead>
+    <tbody>
+      <tr><td><code>sv_infinite_ammo 1</code></td><td>Munitions et grenades infinies</td></tr>
+      <tr><td><code>sv_grenade_trajectory 1</code></td><td>Affiche la trajectoire des grenades</td></tr>
+      <tr><td><code>sv_showimpacts 1</code></td><td>Montre où tes balles touchent</td></tr>
+      <tr><td><code>noclip</code></td><td>Vol libre à travers les murs</td></tr>
+      <tr><td><code>bot_kick</code></td><td>Retire tous les bots</td></tr>
+      <tr><td><code>mp_roundtime_defuse 60</code></td><td>Rounds de 60 minutes</td></tr>
+      <tr><td><code>mp_buy_anywhere 1</code></td><td>Acheter partout sur la map</td></tr>
+      <tr><td><code>mp_maxmoney 60000</code> et <code>mp_startmoney 60000</code></td><td>Argent pour tout acheter</td></tr>
+      <tr><td><code>mp_warmup_end</code></td><td>Termine l'échauffement</td></tr>
+      <tr><td><code>mp_restartgame 1</code></td><td>Relance la partie (à taper après les réglages)</td></tr>
+    </tbody>
+  </table></div>
+  <h2>Binds utiles</h2>
+  <pre><code>bind "mwheeldown" "+jump"          // saut à la molette
+bind "f" "use weapon_flashbang"     // flash directe
+bind "c" "use weapon_smokegrenade"  // smoke directe</code></pre>
+  <h2>Le fichier autoexec.cfg</h2>
+  <p>Mets tes commandes dans un fichier <code>autoexec.cfg</code> du dossier <code>csgo/cfg</code> de ton installation, et ajoute <code>+exec autoexec</code> aux options de lancement : ta config CS GO se recharge à chaque démarrage. Termine le fichier par <code>host_writeconfig</code> pour enregistrer les réglages.</p>
+  <h2>Sur un serveur TICKRATE</h2>
+  <p>Les commandes d'entraînement sont désactivées pendant les matchs classés, comme sur tout <a href="/serveur-csgo">serveur CS GO</a> compétitif. Les commandes d'affichage, de réseau et les binds marchent partout.</p>
+  <h2>Questions fréquentes</h2>
+  <details><summary>Comment ouvrir la console CS GO ?</summary><p>Active la console de développement dans les paramètres (onglet Jeu), puis appuie sur la touche ² sous Échap.</p></details>
+  <details><summary>Où mettre mon autoexec ?</summary><p>Dans le dossier csgo/cfg de ton installation de CS:GO, avec +exec autoexec dans les options de lancement Steam.</p></details>
+  <details><summary>Pourquoi sv_cheats ne marche pas ?</summary><p>Il ne fonctionne que sur un serveur dont tu es l'hôte : partie hors ligne ou ton propre serveur.</p></details>
+  <div class="sx-band"><p>Prêt à jouer en 128 tick ?</p><a class="sx-cta" href="/">Rejoindre TICKRATE</a></div>
+  <h2>À lire aussi</h2>
+  <div class="sx-more"><a href="/tickrate-csgo"><b>Tickrate</b><span>64 ou 128 tick : ce que ça change vraiment</span></a><a href="/creer-serveur-csgo"><b>Créer un serveur</b><span>Héberger un serveur CS:GO legacy : SteamCMD, jeton, config</span></a><a href="/serveur-csgo"><b>Serveurs CS:GO</b><span>Serveurs CS GO 128 tick dédiés en Europe</span></a><a href="/serveurs-csgo"><b>Liste des serveurs</b><span>Nos serveurs CS GO en direct : état, map, score</span></a></div>
+</main>
+<footer class="site-foot">
+  <div class="sf-in">
+    <div class="sf-brand">
+      <a class="sf-logo" href="/"><svg class="tr-mark" viewBox="9 9 46 46" aria-hidden="true"><path d="M50.61 37.34A19.36 19.36 0 0 1 37.34 50.61M26.66 50.61A19.36 19.36 0 0 1 13.39 37.34M13.39 26.66A19.36 19.36 0 0 1 26.66 13.39M37.34 13.39A19.36 19.36 0 0 1 50.61 26.66" fill="none" stroke="currentColor" stroke-width="3.52"/><rect x="21.12" y="22.4" width="21.76" height="4.48" rx="1.12" fill="currentColor"/><rect x="29.28" y="22.4" width="5.44" height="21.76" rx="1.36" fill="currentColor"/></svg><span>TICK<b>RATE</b></span></a>
+      <p>Matchmaking CS:GO legacy gratuit sur serveurs 128 tick, à Francfort.</p>
+    </div>
+    <nav class="sf-col" aria-label="Jouer"><h4>Jouer</h4><a href="/">Lancer un match</a><a href="/#/duel">Arène 1v1</a><a href="/#/mapvote">Vote des maps</a><a href="/#/clans">Clans</a><a href="/#/ranking">Classement</a><a href="/serveurs-csgo">Liste des serveurs</a></nav>
+    <nav class="sf-col" aria-label="Guides"><h4>Guides</h4><a href="/serveur-csgo">Serveur CS GO 128 tick</a><a href="/tickrate-csgo">Tickrate : 64 ou 128 tick</a><a href="/csgo-legacy">CS:GO legacy en 2026</a><a href="/commandes-csgo">Commandes CS GO</a><a href="/actualites">Actualités</a><a href="/guides">Tous les guides</a></nav>
+    <nav class="sf-col" aria-label="Communauté"><h4>Communauté</h4><a href="https://discord.gg/KNXbGrTDj" target="_blank" rel="noopener">Discord</a><a href="https://www.instagram.com/tickrate.eu/" target="_blank" rel="me noopener">Instagram</a><a href="https://www.tiktok.com/@tickrate.eu" target="_blank" rel="me noopener">TikTok</a><a href="/#/support">Support</a></nav>
+  </div>
+  <nav class="sf-pages" aria-label="Guides"><a href="/serveur-csgo">Serveurs CS:GO</a><a href="/serveurs-csgo">Liste des serveurs</a><a href="/creer-serveur-csgo">Créer un serveur</a><a href="/tickrate-csgo">Tickrate</a><a href="/csgo-legacy">CS:GO legacy</a><a href="/matchmaking-csgo">Matchmaking</a><a href="/classement-csgo">Classement</a><a href="/commandes-csgo">Commandes</a><a href="/wingman-csgo">Wingman</a><a href="/1v1-csgo">1v1</a><a href="/maps-csgo">Maps</a><a href="/actualites">Actualités</a></nav>
+  <div class="sf-bottom">
+    <span>© 2026 TICKRATE · tickrate.eu</span>
+    <a href="/mentions-legales">Mentions légales</a><a href="/confidentialite">Confidentialité</a><a href="/en/guides" hreflang="en" lang="en">English</a>
+  </div>
+  <p class="sf-valve">TICKRATE n'est pas affilié à Valve Corporation. Counter-Strike et CS:GO sont des marques de Valve Corporation.</p>
+</footer>
+</body>
+</html>

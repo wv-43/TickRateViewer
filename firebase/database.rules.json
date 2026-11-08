@@ -1,0 +1,451 @@
+{
+  "rules": {
+    ".read": false,
+    ".write": false,
+    "Online": {
+      ".read": true,
+      ".write": "auth != null && newData.isNumber() && newData.val() >= 0 && newData.val() <= 10000"
+    },
+    "private": {
+      "$uid": {
+        ".read": "auth != null && auth.uid === $uid",
+        "settings": {
+          ".write": "auth != null && auth.uid === $uid",
+          "ui": {
+            "customCss": {
+              ".validate": "!newData.exists() || (newData.isString() && newData.val().length <= 4000)"
+            }
+          }
+        }
+      }
+    },
+    "presence": {
+      ".read": "auth != null",
+      "$id": {
+        ".write": "auth != null && (data.exists() ? (data.child('uid').val() === auth.uid || data.child('lastSeen').val() < now - 60000) : newData.child('uid').val() === auth.uid)",
+        ".validate": "!newData.exists() || (newData.hasChildren(['lastSeen','uid']) && newData.child('lastSeen').isNumber() && newData.child('uid').val() === auth.uid)",
+        "name": {
+          ".validate": "newData.isString() && newData.val() === root.child('profiles').child(auth.uid).child('name').val()"
+        },
+        "cardStyle": {
+          ".validate": "!newData.exists() || (newData.isString() && newData.val().matches(/^(default|carbon|radar|damascus|tiger|asiimov|printstream|gungnir|sakura|aurora|legion|emerald|ruby|storm|magma|oni|howl|dragon|singularity|sovereign)$/))"
+        }
+      }
+    },
+    "playerDirectory": {
+      ".read": "auth != null",
+      "$user": {
+        ".write": "auth != null && root.child('usernames').child($user).val() === auth.uid",
+        ".validate": "!newData.exists() || newData.hasChildren(['name'])",
+        "name": {
+          ".validate": "newData.isString() && newData.val().matches(/^[A-Za-z0-9_.-]{1,25}$/) && newData.val() === root.child('profiles').child(auth.uid).child('name').val()"
+        },
+        "elo": {
+          ".validate": "!newData.exists() || (newData.isNumber() && newData.val() >= 100 && newData.val() <= 4000)"
+        },
+        "matches": {
+          ".validate": "!newData.exists() || (newData.isNumber() && newData.val() >= 0)"
+        },
+        "wins": {
+          ".validate": "!newData.exists() || (newData.isNumber() && newData.val() >= 0)"
+        },
+        "color": {
+          ".validate": "newData.isString() && newData.val().matches(/^#[0-9a-fA-F]{3,8}$/)"
+        },
+        "cardStyle": {
+          ".validate": "!newData.exists() || (newData.isString() && newData.val().matches(/^(default|carbon|radar|damascus|tiger|asiimov|printstream|gungnir|sakura|aurora|legion|emerald|ruby|storm|magma|oni|howl|dragon|singularity|sovereign)$/))"
+        },
+        "avatar": {
+          ".validate": "!newData.exists() || (newData.isString() && newData.val().length <= 300000 && (newData.val().beginsWith('data:image/png;base64,') || newData.val().beginsWith('data:image/jpeg;base64,') || newData.val().beginsWith('data:image/webp;base64,') || newData.val().beginsWith('data:image/gif;base64,') || newData.val().beginsWith('https://')))"
+        },
+        "email": {
+          ".validate": false
+        }
+      }
+    },
+    "profiles": {
+      ".read": "auth != null",
+      ".indexOn": [
+        "elo",
+        "eloWm",
+        "eloDuel"
+      ],
+      "$uid": {
+        ".write": false
+      }
+    },
+    "bans": {
+      "$uid": {
+        ".read": "auth != null && (auth.uid === $uid || root.child('roles').child(auth.uid).val() === 'dev')",
+        ".write": false,
+        "until": {
+          ".read": "auth != null"
+        },
+        "reason": {
+          ".read": "auth != null"
+        },
+        "minutes": {
+          ".read": "auth != null"
+        }
+      }
+    },
+    "roles": {
+      ".read": "auth != null && root.child('roles').child(auth.uid).val() === 'dev'",
+      "$uid": {
+        ".read": "auth != null",
+        ".write": false
+      }
+    },
+    "influencerRequests": {
+      ".read": "auth != null && root.child('roles').child(auth.uid).val() === 'dev'",
+      ".indexOn": [
+        "status"
+      ],
+      "$uid": {
+        ".read": "auth != null && auth.uid === $uid",
+        ".write": false
+      }
+    },
+    "users": {
+      ".read": "auth != null",
+      ".indexOn": [
+        "elo"
+      ],
+      "$uid": {
+        ".write": "auth != null && auth.uid === $uid",
+        "name": {
+          ".validate": "!newData.exists() || (newData.isString() && newData.val().matches(/^[A-Za-z0-9_.-]{1,25}$/))"
+        },
+        "elo": {
+          ".validate": "!newData.exists() || (newData.isNumber() && newData.val() >= 100 && newData.val() <= 4000)"
+        },
+        "avatar": {
+          ".validate": "!newData.exists() || (newData.isString() && newData.val().length <= 300000 && (newData.val().beginsWith('data:image/png;base64,') || newData.val().beginsWith('data:image/jpeg;base64,') || newData.val().beginsWith('data:image/webp;base64,') || newData.val().beginsWith('data:image/gif;base64,') || newData.val().beginsWith('https://')))"
+        },
+        "email": {
+          ".validate": false
+        },
+        "color": {
+          ".validate": "!newData.exists() || (newData.isString() && newData.val().matches(/^#[0-9a-fA-F]{3,8}$/))"
+        },
+        "cardStyle": {
+          ".validate": "!newData.exists() || (newData.isString() && newData.val().matches(/^(default|carbon|radar|damascus|tiger|asiimov|printstream|gungnir|sakura|aurora|legion|emerald|ruby|storm|magma|oni|howl|dragon|singularity|sovereign)$/))"
+        },
+        "banner": {
+          ".validate": "!newData.exists() || newData.hasChildren(['type'])",
+          "data": {
+            ".validate": "newData.isString() && newData.val().length <= 600000 && (newData.val().beginsWith('data:image/png;base64,') || newData.val().beginsWith('data:image/jpeg;base64,') || newData.val().beginsWith('data:image/webp;base64,') || newData.val().beginsWith('data:image/gif;base64,') || newData.val().beginsWith('https://'))"
+          },
+          "slug": {
+            ".validate": "newData.isString() && newData.val().length <= 30"
+          },
+          "type": {
+            ".validate": "newData.val() === 'img' || newData.val() === 'map'"
+          }
+        }
+      }
+    },
+    "usernames": {
+      ".read": "auth != null",
+      "$u": {
+        ".write": false
+      }
+    },
+    "parties": {
+      ".read": "auth != null",
+      "$code": {
+        ".write": "auth != null && (data.exists() ? data.child('leader').child('key').val() === auth.uid || data.child('expires').val() < now : newData.child('leader').child('key').val() === auth.uid)",
+        ".validate": "!newData.exists() || newData.hasChildren(['leader']) || data.exists()",
+        "leader": {
+          ".validate": "!newData.exists() || newData.hasChildren(['name'])",
+          "name": {
+            ".validate": "newData.isString() && newData.val().matches(/^[A-Za-z0-9_.-]{1,25}$/)"
+          },
+          "color": {
+            ".validate": "newData.isString() && newData.val().matches(/^#[0-9a-fA-F]{3,8}$/)"
+          },
+          "cardStyle": {
+            ".validate": "!newData.exists() || (newData.isString() && newData.val().matches(/^(default|carbon|radar|damascus|tiger|asiimov|printstream|gungnir|sakura|aurora|legion|emerald|ruby|storm|magma|oni|howl|dragon|singularity|sovereign)$/))"
+          },
+          "avatar": {
+            ".validate": "!newData.exists() || (newData.isString() && newData.val().length <= 300000 && (newData.val().beginsWith('data:image/png;base64,') || newData.val().beginsWith('data:image/jpeg;base64,') || newData.val().beginsWith('data:image/webp;base64,') || newData.val().beginsWith('data:image/gif;base64,') || newData.val().beginsWith('https://')))"
+          }
+        },
+        "members": {
+          "$m": {
+            "name": {
+              ".validate": "newData.isString() && newData.val().matches(/^[A-Za-z0-9_.-]{1,25}$/)"
+            },
+            "color": {
+              ".validate": "newData.isString() && newData.val().matches(/^#[0-9a-fA-F]{3,8}$/)"
+            },
+            "cardStyle": {
+              ".validate": "!newData.exists() || (newData.isString() && newData.val().matches(/^(default|carbon|radar|damascus|tiger|asiimov|printstream|gungnir|sakura|aurora|legion|emerald|ruby|storm|magma|oni|howl|dragon|singularity|sovereign)$/))"
+            },
+            ".write": "auth != null && root.child('usernames').child($m).val() === auth.uid"
+          }
+        }
+      }
+    },
+    "history": {
+      ".read": "auth != null",
+      "$user": {
+        ".indexOn": [
+          "at"
+        ],
+        "$matchId": {
+          ".write": false,
+          ".validate": "!newData.exists() || (newData.hasChildren(['map', 'score', 'elo', 'at']) && newData.child('score').isString() && newData.child('score').val().length <= 15 && newData.child('map').isString() && newData.child('map').val().length <= 30 && newData.child('elo').isNumber())"
+        }
+      }
+    },
+    "matches": {
+      ".read": "auth != null",
+      "$m": {
+        ".write": false,
+        ".validate": "!newData.exists() || (newData.hasChildren(['matchId', 'map', 'score']) && newData.child('matchId').isString() && newData.child('score').isString())"
+      }
+    },
+    "friends": {
+      ".read": "auth != null",
+      "$mailbox": {
+        "$friend": {
+          ".write": "auth != null && !newData.exists() && (root.child('usernames').child($mailbox).val() === auth.uid || root.child('usernames').child($friend).val() === auth.uid)",
+          ".validate": "!newData.exists() || (newData.hasChildren(['name']) && newData.child('name').isString() && newData.child('name').val().length <= 25)",
+          "name": {
+            ".validate": "newData.isString() && newData.val().matches(/^[A-Za-z0-9_.-]{1,25}$/)"
+          },
+          "color": {
+            ".validate": "newData.isString() && newData.val().matches(/^#[0-9a-fA-F]{3,8}$/)"
+          },
+          "avatar": {
+            ".validate": "!newData.exists() || (newData.isString() && newData.val().length <= 300000 && (newData.val().beginsWith('data:image/png;base64,') || newData.val().beginsWith('data:image/jpeg;base64,') || newData.val().beginsWith('data:image/webp;base64,') || newData.val().beginsWith('data:image/gif;base64,') || newData.val().beginsWith('https://')))"
+          }
+        }
+      }
+    },
+    "friendRequests": {
+      ".read": "auth != null",
+      "$target": {
+        "$from": {
+          ".write": "auth != null && !newData.exists() && (root.child('usernames').child($target).val() === auth.uid || root.child('usernames').child($from).val() === auth.uid)",
+          ".validate": "!newData.exists() || (newData.hasChildren(['from', 'at']) && newData.child('from').isString() && newData.child('from').val().length <= 25)",
+          "from": {
+            ".validate": "newData.isString() && newData.val().matches(/^[A-Za-z0-9_.-]{1,25}$/)"
+          }
+        }
+      }
+    },
+    "friendAccepts": {
+      ".read": "auth != null",
+      "$target": {
+        "$from": {
+          ".write": "auth != null && !newData.exists() && (root.child('usernames').child($target).val() === auth.uid || root.child('usernames').child($from).val() === auth.uid)",
+          ".validate": "!newData.exists() || (newData.hasChildren(['from', 'at']) && newData.child('from').isString() && newData.child('from').val().length <= 25)",
+          "from": {
+            ".validate": "newData.isString() && newData.val().matches(/^[A-Za-z0-9_.-]{1,25}$/)"
+          }
+        }
+      }
+    },
+    "invites": {
+      ".read": "auth != null",
+      "$target": {
+        "$code": {
+          ".write": "auth != null && (newData.exists() ? newData.child('from').val() === root.child('profiles').child(auth.uid).child('name').val() : (root.child('usernames').child($target).val() === auth.uid || data.child('from').val() === root.child('profiles').child(auth.uid).child('name').val()))",
+          ".validate": "!newData.exists() || (newData.hasChildren(['code', 'from']) && newData.child('code').isString() && newData.child('code').val().length <= 16 && newData.child('from').isString() && newData.child('from').val().length <= 25) && newData.child('from').val().matches(/^[A-Za-z0-9_.-]{1,25}$/)"
+        }
+      }
+    },
+    "teams": {
+      ".read": "auth != null",
+      ".indexOn": ["div"],
+      "$tid": {
+        ".write": false
+      }
+    },
+    "loadouts": {
+      ".read": "auth != null",
+      "$uid": {
+        ".write": "auth != null && auth.uid === $uid",
+        "name": {
+          ".validate": "!newData.exists() || (newData.isString() && newData.val().length <= 25)"
+        },
+        "updatedAt": {
+          ".validate": "!newData.exists() || newData.isNumber()"
+        }
+      }
+    },
+    "purchases": {
+      "$uid": {
+        ".read": "auth != null && auth.uid === $uid",
+        ".write": false
+      }
+    },
+    "wallet": {
+      "$uid": {
+        ".read": "auth != null && auth.uid === $uid",
+        ".write": false
+      }
+    },
+    "pingTargets": {
+      ".read": "auth != null",
+      ".write": false
+    },
+    "liveMatches": {
+      ".read": "auth != null",
+      ".write": false
+    },
+    "config": {
+      ".read": "auth != null",
+      ".write": false
+    },
+    "mapVotes": {
+      "$period": {
+        "$uid": {
+          ".read": "auth != null && auth.uid === $uid",
+          ".write": false
+        }
+      }
+    },
+    "publicStatus": {".read": true, ".write": false},
+    "publicNews": {".read": true, ".write": false},
+    "clans": {".read": "auth != null", ".write": false},
+    "clanOf": {".read": "auth != null", ".write": false},
+    "clanTags": {".read": "auth != null", ".write": false},
+    "clanReq": {".read": "auth != null", ".write": false},
+    "clanReqOf": {"$uid": {".read": "auth != null && auth.uid === $uid", ".write": false}},
+    "mapVoteCounts": {
+      ".read": "auth != null",
+      ".write": false
+    },
+    "lobbyChat": {
+      "$room": {
+        "msgs": {
+          ".read": "auth != null && root.child('matches').child($room).child('players').child(auth.uid).exists()",
+          "$msg": {
+            ".write": "auth != null && root.child('matches').child($room).child('players').child(auth.uid).exists() && (data.exists() ? data.child('uid').val() === auth.uid && !newData.exists() : newData.child('uid').val() === auth.uid)",
+            ".validate": "newData.hasChildren(['from','uid','text','at']) && newData.child('from').val() === root.child('profiles').child(auth.uid).child('name').val() && newData.child('text').isString() && newData.child('text').val().length <= 300 && newData.child('at').isNumber() && (!newData.child('ch').exists() || newData.child('ch').val() === 'all' || newData.child('ch').val() === 'team') && (!newData.child('tm').exists() || (newData.child('tm').isString() && newData.child('tm').val().length <= 40))",
+            "from": {},
+            "uid": {},
+            "text": {},
+            "at": {},
+            "ch": {},
+            "tm": {},
+            "$other": {
+              ".validate": false
+            }
+          }
+        }
+      }
+    },
+    "chatReports": {
+      "$report": {
+        ".write": "auth != null && !data.exists()",
+        ".validate": "newData.hasChildren(['reporter','reported','message','createdAt']) && newData.child('reporterKey').val() === auth.uid && newData.child('message').isString() && newData.child('message').val().length <= 300 && newData.child('reported').isString() && newData.child('reported').val().length <= 40 && newData.child('createdAt').isNumber()"
+      }
+    },
+    "csgo_dispatch": {
+      ".read": "auth != null",
+      "$m": {
+        ".write": false
+      }
+    },
+    "lfg_pool": {
+      ".read": false,
+      ".write": false
+    },
+    "userMatch": {
+      "$uid": {
+        ".read": "auth != null && auth.uid === $uid",
+        ".write": false
+      }
+    },
+    "matchSecrets": {
+      "$m": {
+        ".read": "auth != null && root.child('matches').child($m).child('players').child(auth.uid).exists() && (root.child('matches').child($m).child('status').val() === 'ready' || root.child('matches').child($m).child('status').val() === 'live')",
+        ".write": false
+      }
+    },
+    "mmStats": {
+      ".read": "auth != null",
+      ".write": false
+    },
+    "stattrak": {
+      "$uid": {
+        ".read": "auth != null && auth.uid === $uid",
+        ".write": false
+      }
+    },
+    "market": {
+      ".read": "auth != null",
+      "$lid": {
+        ".write": false
+      }
+    },
+    "feedback": {
+      ".read": "auth != null && root.child('roles').child(auth.uid).val() === 'dev'",
+      ".write": false
+    },
+    "feedbackAt": {
+      ".read": false,
+      ".write": false
+    },
+    "ticketsBy": {
+      ".read": false,
+      ".write": false
+    },
+    "ticketAt": {
+      ".read": false,
+      ".write": false
+    },
+    "trades": {
+      ".read": false,
+      ".write": false
+    },
+    "tradesBy": {
+      ".read": false,
+      ".write": false
+    },
+    "rooms": {
+      ".read": false,
+      ".write": false
+    },
+    "roomOf": {
+      "$uid": {
+        ".read": "auth != null && auth.uid === $uid",
+        ".write": false
+      }
+    },
+    "roomInv": {
+      "$uid": {
+        ".read": "auth != null && auth.uid === $uid",
+        ".write": false
+      }
+    },
+    "dangerzone_waitlist": {
+      "$uid": {
+        ".write": "auth != null && auth.uid === $uid",
+        ".validate": "!newData.exists() || (newData.child('name').isString() && newData.child('name').val().length <= 25 && newData.child('at').isNumber())"
+      }
+    },
+    "teamOf": {
+      ".read": "auth != null",
+      "$uid": {
+        ".write": false
+      }
+    },
+    "teamInv": {
+      "$uid": {
+        ".read": "auth != null && auth.uid === $uid"
+      }
+    },
+    "teamChal": {
+      ".read": "auth != null"
+    },
+    "tourneys": {
+      ".read": "auth != null",
+      ".indexOn": ["status", "at"]
+    }
+  }
+}

@@ -1,0 +1,21 @@
+/* pied de page commun (tools/footer.js) : site, pages guides, pages légales, 404 */
+.site-foot{margin:48px 0 0;padding:36px 24px 28px;border-top:1px solid rgba(255,255,255,.08);color:#8f8f8f;font-size:13.5px;line-height:1.6}
+.site-foot a{color:#a8a8a8;text-decoration:none}
+.site-foot a:hover{color:#f5f5f5}
+.sf-in{max-width:1040px;margin:0 auto;display:grid;grid-template-columns:minmax(220px,1.4fr) repeat(3,minmax(140px,1fr));gap:28px}
+.sf-logo{display:inline-flex;align-items:center;gap:10px;color:#f5f5f5!important;font-weight:800;font-size:16px;letter-spacing:.02em}
+.sf-logo .tr-mark{width:26px;height:26px;color:#f5f5f5}
+.sf-logo b{color:#8a8a8a;font-weight:800}
+.sf-brand p{margin:10px 0 0;max-width:300px;color:#8f8f8f}
+.sf-col{display:flex;flex-direction:column;gap:7px}
+.sf-col h4{margin:0 0 4px;font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#d8d8d8}
+.sf-bottom{max-width:1040px;margin:28px auto 0;padding-top:18px;border-top:1px solid rgba(255,255,255,.06);display:flex;flex-wrap:wrap;gap:8px 18px;align-items:center}
+.sf-bottom span{margin-right:auto;color:#8f8f8f}
+.sf-valve{max-width:1040px;margin:12px auto 0;font-size:12px;color:#6f6f6f}
+@media (max-width:860px){.sf-in{grid-template-columns:1fr 1fr}.sf-brand{grid-column:1/-1}}
+@media (max-width:480px){.site-foot{padding:28px 16px 24px}.sf-in{gap:22px}.sf-bottom span{flex-basis:100%;margin-right:0}}
+/* dans le site (application) : laisse la place à la barre du bas sur téléphone */
+.main>.site-foot{margin-top:56px}
+@media (max-width:720px){.main>.site-foot{padding-bottom:calc(24px + var(--mnav-h,64px) + var(--safe-b,0px))}}
+.sf-pages{max-width:1040px;margin:26px auto 0;display:flex;flex-wrap:wrap;gap:6px 16px;font-size:12.5px}
+.sf-pages a{color:#7f7f7f}

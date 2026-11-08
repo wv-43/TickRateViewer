@@ -1,0 +1,92 @@
+/* =====================================================
+ * TICKRATE - affichage téléphone (mobile.css)
+ * Chargé après styles.css : tout ce qui concerne les écrans de 720 px et moins est ici.
+ * Barre d'onglets en bas (4 pages + « Plus »), panneau « Plus » (js/mobile.js), fenêtres en feuille du bas,
+ * marges des encoches (safe-area) pour l'app ajoutée à l'écran d'accueil.
+ * ===================================================== */
+:root{--mnav-h:60px;--safe-t:env(safe-area-inset-top,0px);--safe-b:env(safe-area-inset-bottom,0px)}
+.ic{display:block;flex:none}
+.msheet{display:none}
+
+@media(max-width:720px){
+  html{-webkit-text-size-adjust:100%}
+  body{-webkit-tap-highlight-color:transparent;padding-bottom:calc(var(--mnav-h) + var(--safe-b))}
+  /* iOS zoome sur un champ de moins de 16 px */
+  input:not([type=checkbox]):not([type=radio]):not([type=range]),select,textarea{font-size:16px!important}
+
+  /* ---------- barre du haut ---------- */
+  .top{height:calc(54px + var(--safe-t));padding:var(--safe-t) 12px 0;gap:6px}
+  .top .brand{display:flex!important;align-items:center;gap:8px;font-size:17px;white-space:nowrap;min-width:0;overflow:hidden}
+  .top .brand .brand-logo{width:28px;height:28px;font-size:12.5px;flex:none}
+  .top .brand .beta-tag{display:none}
+  .top .notif-btn{display:grid}
+  .top .lang-top{display:none!important}          /* la langue est dans « Plus » */
+  .top .profile{padding:0;gap:6px}
+  .top .profile #topLvl{display:none}
+
+  /* ---------- barre d'onglets ---------- */
+  .mnav{display:flex;position:fixed;left:0;right:0;bottom:0;z-index:60;height:calc(var(--mnav-h) + var(--safe-b));padding:0 4px var(--safe-b);
+    background:rgba(11,13,17,.94);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border-top:1px solid #1e222b}
+  .mnav button{flex:1;min-width:0;border:0;background:none;color:#8a92a2;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;
+    font-family:var(--font-main);font-size:10.5px;font-weight:600;letter-spacing:0;text-transform:none;position:relative;cursor:pointer;transition:color .15s}
+  .mnav button .ic,.mnav button svg{width:23px;height:23px}
+  .mnav button span{max-width:100%;padding:0 2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .mnav button.active,.mnav button[aria-expanded=true]{color:var(--acc)}
+  .mnav button.active::before{content:"";position:absolute;top:-1px;left:32%;right:32%;height:2px;border-radius:0 0 2px 2px;background:var(--acc)}
+  .mnav button:active .ic{transform:scale(.9)}
+  .toast{bottom:calc(var(--mnav-h) + var(--safe-b) + 14px)}
+  .dock{bottom:calc(var(--mnav-h) + var(--safe-b) + 12px)}
+
+  /* ---------- accueil : on ne lance pas de partie depuis un téléphone (CS:GO se joue sur PC) ---------- */
+  #modes,#dzBox,#playStage,#playPool{display:none!important}
+
+  /* ---------- pages ---------- */
+  .page{padding:14px 12px calc(24px + var(--safe-b))}
+  .page h1{font-size:26px;line-height:1.15}
+  .modes{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .mode{min-width:0}
+  .mode .nm,.mode .m-name{font-size:clamp(14px,4.4vw,17px);line-height:1.12;white-space:normal;overflow-wrap:anywhere}
+  .maps-in .map{height:auto;width:100%}              /* format 16/9 sur toute la largeur de la colonne */
+  .tbl-wrap{-webkit-overflow-scrolling:touch}
+  .seg{max-width:100%;overflow-x:auto;scrollbar-width:none}
+  .seg::-webkit-scrollbar{display:none}
+
+  /* ---------- fenêtres : feuille qui monte du bas ---------- */
+  .overlay{padding:0;align-items:flex-end}
+  .overlay .modal{width:100%;max-width:100%;max-height:calc(100dvh - var(--safe-t) - 24px);border-radius:16px 16px 0 0;
+    padding:20px 16px calc(18px + var(--safe-b));transform:translateY(24px)}
+  .overlay.on .modal{transform:none}
+  .modal .m-h{margin:-20px -16px 16px;padding:14px 16px;border-radius:16px 16px 0 0}
+  .modal .m-f{flex-wrap:wrap}
+  .modal .m-f .btn{flex:1 1 auto}
+
+  /* ---------- panneau « Plus » ---------- */
+  .msheet{display:block;position:fixed;inset:0;z-index:90;pointer-events:none}
+  .msheet[hidden]{display:none}
+  .msh-back{position:absolute;inset:0;background:rgba(4,5,8,.6);opacity:0;transition:opacity .2s}
+  .msh-panel{position:absolute;left:0;right:0;bottom:0;max-height:calc(100dvh - var(--safe-t) - 40px);overflow:auto;overscroll-behavior:contain;
+    background:#101319;border-top:1px solid #232834;border-radius:18px 18px 0 0;padding:8px 12px calc(16px + var(--safe-b));
+    transform:translateY(100%);transition:transform .25s cubic-bezier(.2,.8,.2,1);box-shadow:0 -18px 48px rgba(0,0,0,.6)}
+  .msheet.on{pointer-events:auto}
+  .msheet.on .msh-back{opacity:1}
+  .msheet.on .msh-panel{transform:none}
+  .msh-grip{width:38px;height:4px;border-radius:2px;background:#2c3240;margin:2px auto 12px}
+  .msh-sec{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#6b7383;margin:12px 6px 6px}
+  .msh-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+  .msh-item{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7px;min-height:78px;padding:10px 6px;border-radius:12px;
+    border:1px solid #20242d;background:#151820;color:var(--text);font-size:12px;font-weight:600;text-align:center;text-decoration:none;cursor:pointer}
+  .msh-item .ic{width:24px;height:24px;color:#aab1bf}
+  .msh-item.active{border-color:rgba(240,165,30,.45);background:rgba(240,165,30,.08)}
+  .msh-item.active .ic{color:var(--acc)}
+  .msh-item.discord .ic{color:#8c9eff}
+  .msh-item:active{background:#1b1f29}
+  .msh-langs{display:flex;gap:8px;margin-top:6px}
+  .msh-langs button{flex:1;height:40px;border-radius:10px;border:1px solid #20242d;background:#151820;color:var(--muted);font-weight:700;cursor:pointer}
+  .msh-langs button.on{color:var(--acc);border-color:rgba(240,165,30,.45)}
+  .msh-legal{display:flex;justify-content:center;gap:14px;margin-top:16px;font-size:12px}
+  .msh-legal a{color:#6b7383}
+}
+@media(max-width:360px){.msh-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.mnav button{font-size:10px}}
+/* app lancée depuis l'écran d'accueil : pas de barre d'adresse, on garde la place de l'encoche */
+@media(display-mode:standalone){body{overscroll-behavior-y:none}}
+@media (prefers-reduced-motion:reduce){.msh-panel,.msh-back{transition:none}}

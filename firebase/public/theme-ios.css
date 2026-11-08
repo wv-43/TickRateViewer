@@ -1,0 +1,166 @@
+/* =====================================================
+ * TICKRATE - ambiance iOS (theme-ios.css), chargé après theme-mono.css
+ * Police système Apple (Inter ailleurs), coins arrondis plus généreux, verre dépoli, titres en minuscules,
+ * boutons principaux blancs pleins, logo « TICK » blanc / « RATE » gris.
+ * Pour revenir à l'ancien style : retirer la ligne theme-ios.css de index.html (et tickrate.html).
+ * ===================================================== */
+:root{
+  --font-main:-apple-system,BlinkMacSystemFont,'SF Pro Text','Inter',system-ui,'Segoe UI',sans-serif;
+  --cond:-apple-system,BlinkMacSystemFont,'SF Pro Display','Inter Tight','Inter',system-ui,sans-serif;
+  --line:rgba(255,255,255,.07);--line2:rgba(255,255,255,.12);
+  --ios-r:16px;--ios-r-sm:12px;
+}
+body{letter-spacing:-.011em}
+
+/* ---------- logo ---------- */
+.brand,.rail-brand{letter-spacing:-.02em}
+.brand b,.top .brand b,.rail-brand b{color:#6f6f6f;font-weight:800}
+/* badge du logo : viseur + T blanc sur noir dégradé, comme l'icône de l'app */
+.logo,.logo-row .logo,.top .brand .brand-logo{background:linear-gradient(180deg,#2c2c2e,#0a0a0a);color:#f5f5f5;box-shadow:0 1px 2px rgba(0,0,0,.5),inset 0 0 0 1px rgba(255,255,255,.12);display:grid;place-items:center}
+.logo,.logo-row .logo,.top .brand .brand-logo{position:relative}
+.tr-mark{width:72%;height:72%;display:block;color:#5c5c5c}                       /* signe éteint */
+/* copie allumée du signe : néon blanc, visible seulement autour de la souris (--mx / --my : js/brand-glow.js) */
+.tr-mark-lit{position:absolute;inset:0;width:100%;height:100%;padding:14%;box-sizing:border-box;color:#fff;opacity:0;transition:opacity .3s ease;pointer-events:none;overflow:visible;
+  filter:drop-shadow(0 0 1.5px #fff) drop-shadow(0 0 5px rgba(255,255,255,.8));
+  -webkit-mask-image:radial-gradient(circle 24px at var(--mx,50%) var(--my,50%),#000 30%,rgba(0,0,0,.35) 65%,transparent 100%);
+          mask-image:radial-gradient(circle 24px at var(--mx,50%) var(--my,50%),#000 30%,rgba(0,0,0,.35) 65%,transparent 100%)}
+.top .brand:hover .tr-mark-lit,.logo-row:hover .tr-mark-lit{opacity:1}
+.logo-row .logo{border-radius:10px}
+.top .brand .brand-logo{border-radius:8px}
+/* survol du logo : les lettres s'allument en néon là où passe la souris.
+   .brand-lit = copie blanche lumineuse posée sur « TICK RATE », masquée sauf autour du curseur (--mx / --my : js/brand-glow.js).
+   « RATE » s'éclaircit aussi un peu sur tout le mot. */
+.brand-word{position:relative;display:inline-block}
+.brand-word b{margin-left:.3em}
+.brand-lit{position:absolute;left:-14px;top:-14px;padding:14px;white-space:nowrap;pointer-events:none;user-select:none;color:#fff;opacity:0;transition:opacity .3s ease;
+  text-shadow:0 0 2px #fff,0 0 8px rgba(255,255,255,.9),0 0 18px rgba(255,255,255,.6),0 0 34px rgba(255,255,255,.32);
+  -webkit-mask-image:radial-gradient(circle 34px at calc(var(--mx,50%) + 14px) calc(var(--my,50%) + 14px),#000 35%,rgba(0,0,0,.35) 65%,transparent 100%);
+          mask-image:radial-gradient(circle 34px at calc(var(--mx,50%) + 14px) calc(var(--my,50%) + 14px),#000 35%,rgba(0,0,0,.35) 65%,transparent 100%)}
+.brand-lit b{color:#fff!important;text-shadow:inherit}
+.brand b,.rail-brand b{transition:color .35s ease}
+.brand-logo,.logo-row .logo{transition:box-shadow .45s ease}
+.top .brand:hover .brand-lit,.logo-row:hover .brand-lit{opacity:1}
+.top .brand:hover .brand-word>b,.logo-row:hover .brand-word>b{color:#a8a8a8}
+.top .brand:hover .brand-logo,.logo-row:hover .logo{box-shadow:0 0 10px rgba(255,255,255,.12),inset 0 0 0 1px rgba(255,255,255,.18)}
+
+
+/* ---------- verre dépoli ---------- */
+.top{background:rgba(10,10,10,.72);backdrop-filter:saturate(180%) blur(20px);-webkit-backdrop-filter:saturate(180%) blur(20px);border-bottom:1px solid var(--line)}
+.rail{background:rgba(12,12,12,.8);backdrop-filter:saturate(180%) blur(20px);-webkit-backdrop-filter:saturate(180%) blur(20px);border-right:1px solid var(--line)}
+.card,.st-card{border-radius:var(--ios-r);background:rgba(22,22,22,.72);border:1px solid var(--line);box-shadow:none}
+.modal{border-radius:20px;background:rgba(24,24,24,.94);backdrop-filter:saturate(180%) blur(24px);-webkit-backdrop-filter:saturate(180%) blur(24px)}
+.modal .m-h{background:transparent;border-bottom:1px solid var(--line)}
+.modal .m-h h2,.modal .m-h h3{text-transform:none;letter-spacing:-.01em;font-size:18px}
+.modal .x2{border-radius:999px;border:none;background:rgba(255,255,255,.08)}
+
+/* ---------- titres : minuscules comme sur iOS ---------- */
+.mode .nm,.find .fl,.sec-t,.veto-h b,.chip,.page h1,.tabs .tab{text-transform:none;letter-spacing:-.02em}
+.find .fl{font-weight:700;font-size:21px;text-transform:lowercase}
+.find .fl::first-letter{text-transform:uppercase}
+.page h1{font-weight:700}
+
+/* ---------- boutons ---------- */
+.btn{border-radius:var(--ios-r-sm);box-shadow:none;background:rgba(255,255,255,.07);border:1px solid transparent}
+.btn:hover{background:rgba(255,255,255,.11)}
+.btn.ghost{background:transparent;border:1px solid var(--line2)}
+.btn.primary,.go-prem{background:#f5f5f5;color:#0a0a0a;border:1px solid transparent;box-shadow:none}
+.btn.primary:hover,.go-prem:hover{background:#ffffff}
+.find{border-radius:var(--ios-r);background:#f5f5f5;color:#0a0a0a;border:none;box-shadow:0 8px 24px rgba(0,0,0,.35)}
+.find:hover{background:#ffffff}
+.find .t{opacity:.6}
+/* recherche en cours / bannissement : bouton sombre, même au survol (sinon fond blanc + texte blanc = illisible) */
+.find.searching,.find.searching:hover{background:#141414;color:#f5f5f5;border:1px solid rgba(255,255,255,.16);box-shadow:0 8px 24px rgba(0,0,0,.45)}
+.find.searching b{color:#f5f5f5}
+.find.searching .t{opacity:1;color:var(--muted)}
+.find.searching:hover .t{color:#ff8a8a}
+.find.banned,.find.banned:hover{background:#141414;color:#ff8a8a;border:1px solid rgba(255,138,138,.35)}
+.find.banned .t{opacity:1;color:var(--muted)}
+.find.banned b{color:#f5f5f5}
+.pill{background:rgba(255,255,255,.07);border-color:transparent}
+.seg{border-radius:10px;background:rgba(255,255,255,.06);border:none;padding:2px}
+.seg button{border-radius:8px}
+.seg button.on{background:rgba(255,255,255,.16);color:#fff;box-shadow:0 1px 3px rgba(0,0,0,.35)}
+
+/* ---------- cartes de jeu ---------- */
+.mode{border-radius:14px}
+.mode.on,.mode.active{background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.18)}
+.chip{border-radius:var(--ios-r-sm)}
+.pcard{border-radius:var(--ios-r)}
+.pcard.me{border-color:rgba(255,255,255,.28);box-shadow:0 8px 24px rgba(0,0,0,.45)}
+.pcard.empty{border-style:dashed;border-color:rgba(255,255,255,.12)}
+.pcard.empty:hover{border-color:rgba(255,255,255,.35);background:rgba(255,255,255,.03);box-shadow:none}
+.pcard.empty:hover .plus{border-color:#fff;color:#fff}
+
+/* ---------- champs ---------- */
+input:not([type=checkbox]):not([type=radio]):not([type=range]),select,textarea{border-radius:var(--ios-r-sm)}
+
+
+/* ---------- téléphone : barre d'onglets et panneau « Plus » ---------- */
+@media(max-width:720px){
+  .mnav{background:rgba(12,12,12,.78);backdrop-filter:saturate(180%) blur(20px);-webkit-backdrop-filter:saturate(180%) blur(20px)}
+  .mnav button.active,.mnav button[aria-expanded=true]{color:#fff}
+  .mnav button.active::before{display:none}
+  .mnav button:not(.active){color:#7d7d7d}
+  .msh-panel{border-radius:22px 22px 0 0;background:rgba(22,22,22,.94);backdrop-filter:saturate(180%) blur(24px);-webkit-backdrop-filter:saturate(180%) blur(24px)}
+  .msh-item{border-radius:14px;border-color:transparent;background:rgba(255,255,255,.06)}
+  .msh-item.active{border-color:rgba(255,255,255,.2);background:rgba(255,255,255,.1)}
+  .msh-item.active .ic{color:#fff}
+  .msh-langs button{border-radius:12px;border-color:transparent;background:rgba(255,255,255,.06)}
+  .msh-langs button.on{color:#fff;background:rgba(255,255,255,.16)}
+  .overlay .modal{border-radius:20px 20px 0 0}
+}
+
+/* ---------- page de connexion : logo allumé par la souris + cubes en fondu ---------- */
+.auth-brand{display:inline-flex;align-items:center;gap:14px;font-weight:800;letter-spacing:-.02em;cursor:default;position:relative}
+.auth-brand b{color:#6f6f6f}
+.auth-brand .brand-logo{width:44px;height:44px;border-radius:11px;background:linear-gradient(180deg,#2c2c2e,#0a0a0a);box-shadow:0 1px 2px rgba(0,0,0,.5),inset 0 0 0 1px rgba(255,255,255,.12);display:grid;place-items:center;position:relative;transition:box-shadow .45s ease}
+.auth-brand .brand-lit{text-shadow:0 0 2px #fff,0 0 10px rgba(255,255,255,.9),0 0 24px rgba(255,255,255,.55),0 0 44px rgba(255,255,255,.3);
+  -webkit-mask-image:radial-gradient(circle 48px at calc(var(--mx,50%) + 14px) calc(var(--my,50%) + 14px),#000 35%,rgba(0,0,0,.35) 65%,transparent 100%);
+          mask-image:radial-gradient(circle 48px at calc(var(--mx,50%) + 14px) calc(var(--my,50%) + 14px),#000 35%,rgba(0,0,0,.35) 65%,transparent 100%)}
+.auth-brand:hover .brand-lit,.auth-brand:hover .tr-mark-lit{opacity:1}
+.auth-brand:hover .brand-word>b{color:#a8a8a8}
+.auth-brand:hover .brand-logo{box-shadow:0 0 12px rgba(255,255,255,.12),inset 0 0 0 1px rgba(255,255,255,.18)}
+.auth-cubes{position:absolute;inset:0;width:100%;height:100%;z-index:0;pointer-events:none}
+.auth-art>:not(.auth-cubes){position:relative;z-index:1}
+
+/* rail des pages de présentation : barre de progression du 01 jusqu'à la page en cours (js/auth-slider.js) */
+.auth-vrail-thumb{top:0!important;height:0;border-radius:2px;background:#f5f5f5;transition:height .35s cubic-bezier(.2,.8,.2,1)}
+
+/* ---------- barre du haut : ne déborde jamais (le pseudo et l'avatar restent visibles) ---------- */
+@media(max-width:1440px){.top{gap:14px}.top .concept{display:none}}
+@media(max-width:1000px){.top .go-prem{display:none}}
+/* menu latéral réduit en icônes : pas de place pour les liens légaux, ils sont dans le menu du compte (avatar) */
+@media(max-width:1180px){.rail-legal{display:none}}
+.um-legal{display:flex;flex-wrap:wrap;gap:4px 12px;padding:9px 14px 4px;margin-top:4px;border-top:1px solid var(--line);font-size:11.5px}
+.um-legal a{color:var(--dim);text-decoration:none}
+.um-legal a:hover{color:var(--text)}
+
+/* ---------- rouge réservé aux vrais dangers, et discret : contour plutôt que bouton plein ---------- */
+.btn.danger{background:transparent;border:1px solid rgba(244,63,94,.45);color:#f87171;box-shadow:none}
+.btn.danger:hover{background:rgba(244,63,94,.1);border-color:rgba(244,63,94,.7);box-shadow:none}
+.st-danger-zone{background:rgba(22,22,22,.72)!important;border:1px solid var(--line)!important;box-shadow:none!important}
+.st-danger-zone::before,.st-danger-zone::after{display:none!important}
+
+/* ---------- « Ma config CS:GO » : étapes d'installation de autoexec.cfg ---------- */
+.cfg-how{margin:10px 0 16px;padding-left:20px;display:grid;gap:6px;font-size:13px;color:var(--muted);line-height:1.45}
+.cfg-how li::marker{color:var(--text);font-weight:700}
+.cfg-status,.cfg-status.ok{background:rgba(255,255,255,.04);border-color:var(--line);color:var(--text)}
+
+/* ---------- badges DEV / PREMIUM de la barre du haut : éteints au repos, une lumière suit la souris
+   (intérieur + liseré du contour ; --mx / --my posés par js/brand-glow.js) au lieu du bouton qui devient blanc ---------- */
+.go-prem.has{position:relative;overflow:hidden;isolation:isolate;background:var(--panel2);border:1px solid var(--line)}
+.go-prem.has:hover{background:var(--panel2)}
+.go-prem.has .pb{opacity:.55;transition:opacity .35s ease}
+.go-prem.has:hover .pb{opacity:.8}
+.go-prem.has::after,.go-prem.has::before{content:"";position:absolute;pointer-events:none;opacity:0;transition:opacity .3s ease}
+.go-prem.has::after{inset:0;mix-blend-mode:screen;
+  background:radial-gradient(circle 40px at var(--mx,50%) var(--my,50%),rgba(255,255,255,.5),rgba(255,255,255,.12) 50%,transparent 75%)}
+.go-prem.has::before{inset:0;border-radius:inherit;padding:1px;
+  background:radial-gradient(circle 52px at var(--mx,50%) var(--my,50%),rgba(255,255,255,.95),rgba(255,255,255,.25) 45%,transparent 72%);
+  -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;
+          mask:linear-gradient(#000 0 0) content-box exclude,linear-gradient(#000 0 0)}
+.go-prem.has:hover::after,.go-prem.has:hover::before{opacity:1}
+/* liens vers les pages de présentation (section SEO de l'accueil) */
+.seo-links{display:flex;flex-wrap:wrap;gap:8px;margin:18px 0 6px}
+.seo-links a{font-size:13.5px;color:#e6e6e6;text-decoration:none;padding:7px 13px;border-radius:20px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08)}
+.seo-links a:hover{background:rgba(255,255,255,.12);color:#fff}

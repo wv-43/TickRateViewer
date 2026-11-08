@@ -1,0 +1,5 @@
+User-agent: *
+Allow: /
+Disallow: /fastdl/
+
+Sitemap: https://tickrate.eu/sitemap.xml

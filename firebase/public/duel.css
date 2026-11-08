@@ -1,0 +1,74 @@
+/* =====================================================
+ * TICKRATE - Arène 1v1 (duel.css), chargé après theme-ios.css
+ * Le salon reste noir et blanc ; seule la couleur du rang (--c) ressort sur l'emblème, la barre et le liseré.
+ * ===================================================== */
+.du-wrap{display:flex;flex-direction:column;gap:16px;max-width:1180px}
+.du-hero{position:relative;display:grid;grid-template-columns:auto 1fr minmax(260px,340px);gap:24px;align-items:center;padding:24px;border-radius:var(--ios-r,18px);
+  background:radial-gradient(120% 140% at 0% 0%,color-mix(in srgb,var(--c) 14%,transparent),transparent 55%),#111;border:1px solid rgba(255,255,255,.08);overflow:hidden}
+.du-big{width:132px;height:132px;filter:drop-shadow(0 10px 26px color-mix(in srgb,var(--c) 30%,transparent))}
+.du-big svg{width:100%;height:100%;display:block}
+.du-kicker{font-size:12px;color:var(--muted);letter-spacing:.02em}
+.du-rank{margin:4px 0 2px;font-size:34px;font-weight:700;letter-spacing:-.02em;line-height:1.1;color:#f5f5f5}
+.du-elo{font-size:14px;color:var(--muted)}
+.du-elo b{font-size:20px;color:#f5f5f5;font-variant-numeric:tabular-nums;margin-right:2px}
+.du-prog{margin-top:12px;height:6px;border-radius:6px;background:rgba(255,255,255,.08);overflow:hidden;max-width:420px}
+.du-prog i{display:block;height:100%;border-radius:inherit;background:var(--c);transition:width .4s}
+.du-next{margin-top:7px;font-size:12.5px;color:var(--muted)}
+.du-side{display:flex;flex-direction:column;gap:14px}
+.du-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.du-stat{display:flex;flex-direction:column;align-items:center;gap:2px;padding:10px 4px;border-radius:12px;background:rgba(255,255,255,.04)}
+.du-stat b{font-size:18px;color:#f5f5f5;font-variant-numeric:tabular-nums}
+.du-stat span{font-size:11px;color:var(--muted);text-align:center}
+.du-find{height:60px}
+.du-find:disabled{opacity:.45;cursor:not-allowed}
+.du-note{margin:0;font-size:13px;color:var(--muted)}
+.du-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);gap:16px;align-items:start}
+.du-col{display:flex;flex-direction:column;gap:16px}
+.du-card{padding:18px}
+.du-h{margin:0 0 4px;font-size:15px;font-weight:600;color:#f5f5f5}
+.du-sub{margin:0 0 12px;font-size:12.5px;color:var(--muted)}
+.du-ladder{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:2px}
+.du-ladder li{display:flex;align-items:center;gap:12px;padding:6px 10px;border-radius:10px}
+.du-ladder li.me{background:color-mix(in srgb,var(--c) 12%,transparent);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--c) 40%,transparent)}
+.du-emb{width:34px;height:34px;flex-shrink:0}
+.du-emb svg{width:100%;height:100%;display:block}
+.du-ln{font-size:14px;color:#e8e8e8}
+.du-you{font-size:11px;padding:2px 7px;border-radius:20px;background:var(--c);color:#0a0a0a;font-weight:700}
+.du-lm{margin-left:auto;font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
+.du-top{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:2px}
+.du-top li{display:grid;grid-template-columns:26px 30px minmax(0,1fr) auto 52px;align-items:center;gap:10px;padding:6px 8px;border-radius:10px}
+.du-top li:nth-child(-n+3) .du-pos{color:#f5f5f5;font-weight:700}
+.du-top li.me{background:rgba(255,255,255,.06)}
+.du-pos{font-size:13px;color:var(--muted);text-align:right;font-variant-numeric:tabular-nums}
+.du-pn{font-size:14px;color:#ececec;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:pointer}
+.du-pn:hover{text-decoration:underline}
+.du-pm{font-size:12px;color:var(--muted);white-space:nowrap}
+.du-pe{text-align:right;font-variant-numeric:tabular-nums;color:#f5f5f5}
+.du-chips{display:flex;flex-wrap:wrap;gap:6px}
+.du-chip{font-size:12.5px;padding:5px 10px;border-radius:20px;background:rgba(255,255,255,.06);color:#dcdcdc;font-family:ui-monospace,Menlo,Consolas,monospace}
+.du-rules{margin:4px 0 0;padding-left:18px;font-size:13px;color:#cfcfcf;line-height:1.7}
+
+/* pastille de rang 1v1 (même place que les rangs du 5v5) */
+.lvl.du-lvl{width:28px;height:28px}
+.lvl.du-lvl.lvl-lg{width:52px;height:52px}
+.du-top .lvl.du-lvl{width:28px;height:28px}
+.pcard .big .lvl.du-lvl{width:34px;height:34px;right:-10px;bottom:-8px;filter:drop-shadow(0 2px 4px rgba(0,0,0,.6))}
+#topLvl .lvl.du-lvl{width:26px;height:26px}
+#profile .p-duel[data-du]{display:inline-flex;align-items:center;gap:6px}
+#profile .p-duel[data-du] svg{width:18px;height:18px}
+
+@media (max-width:980px){
+  .du-hero{grid-template-columns:auto 1fr}
+  .du-side{grid-column:1/-1}
+  .du-grid{grid-template-columns:1fr}
+}
+@media (max-width:720px){
+  .du-hero{grid-template-columns:1fr;justify-items:center;text-align:center;padding:20px 16px;gap:14px}
+  .du-big{width:104px;height:104px}
+  .du-rank{font-size:28px}
+  .du-prog{margin-inline:auto}
+  .du-side{width:100%}
+  .du-stats{grid-template-columns:repeat(2,1fr)}
+  .du-top li{grid-template-columns:22px 28px minmax(0,1fr) 46px}
+  .du-pm{display:none}
+}

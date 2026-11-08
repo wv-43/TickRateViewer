@@ -1,0 +1,756 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<script src="js/canon.js?v=1"></script>
+<script src="/js/user-bg.js?v=1"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>TICKRATE — Serveurs CS:GO 128 tick</title>
+<!-- Référencement (Google SERP) & aperçus sociaux (Discord, X, WhatsApp, Steam) -->
+<meta name="description" content="Serveurs TICKRATE pour CS:GO : 128 tick à Francfort, matchmaking 5v5, Wingman et 1v1, classement ELO, vote des maps et GOTV. Gratuit.">
+<meta name="keywords" content="TICKRATE, tickrate, serveur cs go, CS:GO, CSGO, CS GO legacy, 128 tick, matchmaking, 5v5, wingman, 1v1 aim, ELO, CSGO legacy, serveurs dédiés, tournoi, ligue">
+<meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
+<meta name="theme-color" content="#0a0a0a">
+<meta name="application-name" content="TICKRATE">
+<meta name="apple-mobile-web-app-title" content="TICKRATE">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="canonical" href="https://tickrate.eu/">
+<link rel="alternate" hreflang="fr" href="https://tickrate.eu/">
+<link rel="alternate" hreflang="x-default" href="https://tickrate.eu/">
+
+<!-- Balises Favicons complètes (Google SERP requiert un PNG de 48px minimum ou multiple de 48px) -->
+<link rel="shortcut icon" href="/favicon.ico?v=3">
+<link rel="icon" type="image/x-icon" href="/favicon.ico?v=3">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16.png?v=3">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png?v=3">
+<link rel="icon" type="image/png" sizes="48x48" href="/favicon-48.png?v=3">
+<link rel="icon" type="image/png" sizes="96x96" href="/favicon-96.png?v=3">
+<link rel="icon" type="image/png" sizes="192x192" href="/favicon-192.png?v=3">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg?v=3">
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png?v=3">
+
+<!-- Image miniatures pour Google et moteurs de recherche -->
+<meta name="thumbnail" content="https://tickrate.eu/og.jpg?v=2">
+<link rel="image_src" href="https://tickrate.eu/og.jpg?v=2">
+
+<!-- Open Graph (Facebook, Discord, LinkedIn, Steam) -->
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="TICKRATE">
+<meta property="og:url" content="https://tickrate.eu/">
+<meta property="og:title" content="TICKRATE — Serveurs CS:GO 128 tick">
+<meta property="og:description" content="Serveurs TICKRATE pour CS:GO : 128 tick à Francfort, matchmaking 5v5, Wingman et 1v1, classement ELO, vote des maps et GOTV. Gratuit.">
+<meta property="og:image" content="https://tickrate.eu/og.jpg?v=2">
+<meta property="og:image:secure_url" content="https://tickrate.eu/og.jpg?v=2">
+<meta property="og:image:type" content="image/jpeg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="TICKRATE · Matchmaking CS:GO 128 tick">
+<meta property="og:locale" content="fr_FR">
+<meta property="og:locale:alternate" content="en_US">
+<meta property="og:locale:alternate" content="ru_RU">
+
+<!-- Twitter / X Card -->
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:site" content="@tickrate_eu">
+<meta name="twitter:title" content="TICKRATE — Serveurs CS:GO 128 tick">
+<meta name="twitter:description" content="Serveurs TICKRATE pour CS:GO : 128 tick à Francfort, matchmaking 5v5, Wingman et 1v1, classement ELO, vote des maps et GOTV. Gratuit.">
+<meta name="twitter:image" content="https://tickrate.eu/og.jpg?v=2">
+
+<!-- Données structurées Schema.org pour Google Rich Snippets & Vignette -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "WebSite",
+      "@id": "https://tickrate.eu/#website",
+      "url": "https://tickrate.eu/",
+      "name": "TICKRATE",
+      "alternateName": ["TICKRATE CS:GO", "Tickrate CS GO", "tickrate.eu"],
+      "description": "Plateforme compétitive CS:GO sur serveurs 128 tick dédiés. Matchmaking 5v5, 2v2 Wingman et 1v1 Aim Arena avec classement ELO en temps réel.",
+      "inLanguage": "fr-FR",
+      "publisher": { "@id": "https://tickrate.eu/#organization" }
+    },
+    {
+      "@type": "Organization",
+      "@id": "https://tickrate.eu/#organization",
+      "name": "TICKRATE",
+      "url": "https://tickrate.eu/",
+      "logo": {
+        "@type": "ImageObject",
+        "url": "https://tickrate.eu/logo.png",
+        "width": 512,
+        "height": 512
+      },
+      "image": "https://tickrate.eu/og.jpg?v=2",
+      "sameAs": ["https://www.instagram.com/tickrate.eu/", "https://www.tiktok.com/@tickrate.eu", "https://discord.gg/KNXbGrTDj"]
+    },
+    {
+      "@type": "WebApplication",
+      "@id": "https://tickrate.eu/#app",
+      "name": "TICKRATE Matchmaking",
+      "url": "https://tickrate.eu/",
+      "applicationCategory": "GameApplication",
+      "operatingSystem": "Windows",
+      "browserRequirements": "Requires JavaScript. Requires HTML5.",
+      "image": {
+        "@type": "ImageObject",
+        "url": "https://tickrate.eu/og.jpg?v=2",
+        "width": 1200,
+        "height": 630
+      },
+      "screenshot": "https://tickrate.eu/og.jpg?v=2",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "EUR"
+      }
+    },
+    {
+      "@type": "FAQPage",
+      "@id": "https://tickrate.eu/#faq",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "Comment jouer à CS:GO sur TICKRATE ?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Installe CS:GO (version legacy) depuis ta bibliothèque Steam, crée ton compte sur tickrate.eu et lie ton compte Steam. Ensuite : « Trouver un match », accepte, fais le veto et clique sur Connecter. La page « Comment jouer » détaille chaque étape."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Est-ce gratuit ?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Oui. Tous les modes, le classement, les serveurs et la ligue sont gratuits. Les formules Plus et Premium ajoutent de la personnalisation et des outils d'analyse, sans avantage en jeu."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Qu'est-ce que le 128 tick change ?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Le serveur calcule la partie plus souvent : les tirs sont enregistrés plus près du moment où tu cliques et les trajectoires de grenades sont plus régulières. Ta connexion reste importante : un bon ping compte autant."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Comment fonctionne l'anti-triche ?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Le plugin du serveur relève des statistiques de tir pendant le match. Les signalements sont revus par des joueurs fiables dans Vigie, à partir de la demo. Un tricheur confirmé est banni et perd du facteur de confiance."
+          }
+        }
+      ]
+    }
+  ]
+}
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Inter+Tight:wght@500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<!--
+  IMAGES DES MAPS : place tes images dans un dossier "maps" à côté de ce fichier :
+  maps/mirage.jpg  maps/inferno.jpg  maps/dust2.jpg  maps/nuke.jpg
+  maps/overpass.jpg  maps/ancient.jpg  maps/vertigo.jpg  maps/train.jpg
+  (format paysage conseillé, ~1280x720). Sans image, un fond neutre s'affiche.
+-->
+<link rel="preconnect" href="https://tickratecsgo-default-rtdb.europe-west1.firebasedatabase.app" crossorigin>
+<link rel="preconnect" href="https://europe-west1-tickratecsgo.cloudfunctions.net" crossorigin>
+<link rel="dns-prefetch" href="https://community.akamai.steamstatic.com">
+<link rel="stylesheet" href="styles.css?v=3.6.0">
+<link rel="stylesheet" href="mobile.css?v=3.6.0">
+<link rel="stylesheet" href="theme-mono.css?v=3.6.0">
+<link rel="stylesheet" href="theme-ios.css?v=3.6.0">
+<link rel="stylesheet" href="duel.css?v=3.6.0">
+<link rel="stylesheet" href="mapvote.css?v=3.6.0">
+<link rel="stylesheet" href="clans.css?v=3.6.0">
+<link rel="stylesheet" href="footer.css?v=3.6.0">
+<style id="userCustomCss"></style>
+</head>
+<body>
+<noscript>
+  <div style="padding:32px;max-width:800px;margin:0 auto;color:#eee;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;line-height:1.6">
+    <h1>TICKRATE · Matchmaking compétitif CS:GO en 128 tick</h1>
+    <p>Plateforme de jeu compétitive pour CS:GO Legacy sur serveurs dédiés 128 tick situés en France et en Europe.</p>
+    <h2>Modes de jeu disponibles</h2>
+    <ul>
+      <li><strong>5v5 Compétitif</strong> : Matchmaking classé avec système de veto des maps, ELO individuel calculé sur vos performances et serveurs 128 tick réels.</li>
+      <li><strong>2v2 Wingman</strong> : Duels en binôme sur maps réduites avec classement ELO dédié.</li>
+      <li><strong>1v1 Aim Arena</strong> : Duels de précision instantanés sur maps d'entraînement (aim_redline, aim_map, awp_lego_2...).</li>
+    </ul>
+    <h2>Infrastructure & Fonctionnalités</h2>
+    <p>Serveurs GOTV en direct avec délai de sécurité anti-triche de 90 secondes, détection télémétrique des tricheurs, statistiques détaillées par manche et profils Steam vérifiés.</p>
+    <p>Pour lancer la recherche d'un match ou consulter votre profil, veuillez activer JavaScript dans votre navigateur.</p>
+  </div>
+</noscript>
+<div class="app">
+  <aside class="rail">
+    <div class="logo-row"><div class="logo"><svg class="tr-mark" viewBox="9 9 46 46" aria-hidden="true"><path d="M50.61 37.34A19.36 19.36 0 0 1 37.34 50.61M26.66 50.61A19.36 19.36 0 0 1 13.39 37.34M13.39 26.66A19.36 19.36 0 0 1 26.66 13.39M37.34 13.39A19.36 19.36 0 0 1 50.61 26.66" fill="none" stroke="currentColor" stroke-width="3.52"/><rect x="21.12" y="22.4" width="21.76" height="4.48" rx="1.12" fill="currentColor"/><rect x="29.28" y="22.4" width="5.44" height="21.76" rx="1.36" fill="currentColor"/></svg><svg class="tr-mark tr-mark-lit" viewBox="9 9 46 46" aria-hidden="true"><path d="M50.61 37.34A19.36 19.36 0 0 1 37.34 50.61M26.66 50.61A19.36 19.36 0 0 1 13.39 37.34M13.39 26.66A19.36 19.36 0 0 1 26.66 13.39M37.34 13.39A19.36 19.36 0 0 1 50.61 26.66" fill="none" stroke="currentColor" stroke-width="3.52"/><rect x="21.12" y="22.4" width="21.76" height="4.48" rx="1.12" fill="currentColor"/><rect x="29.28" y="22.4" width="5.44" height="21.76" rx="1.36" fill="currentColor"/></svg></div><div class="rail-brand"><span class="brand-word">TICK<b>RATE</b><span class="brand-lit" aria-hidden="true">TICK<b>RATE</b></span></span><small>CS:GO · 128 tick</small></div></div>
+    <div class="rail-sec" data-i18n="rs_play"></div>
+    <button class="rail-btn active" data-view="play" data-i18n-title="nav_play"><svg class="ic" aria-hidden="true" fill="currentColor" viewBox="0 0 512 512"><path d="M483.13 245.38C461.92 149.49 430 98.31 382.65 84.33A107.13 107.13 0 00352 80c-13.71 0-25.65 3.34-38.28 6.88C298.5 91.15 281.21 96 256 96s-42.51-4.84-57.76-9.11C185.6 83.34 173.67 80 160 80a115.74 115.74 0 00-31.73 4.32c-47.1 13.92-79 65.08-100.52 161C4.61 348.54 16 413.71 59.69 428.83a56.62 56.62 0 0018.64 3.22c29.93 0 53.93-24.93 70.33-45.34 18.53-23.1 40.22-34.82 107.34-34.82 59.95 0 84.76 8.13 106.19 34.82 13.47 16.78 26.2 28.52 38.9 35.91 16.89 9.82 33.77 12 50.16 6.37 25.82-8.81 40.62-32.1 44-69.24 2.57-28.48-1.39-65.89-12.12-114.37zM208 240h-32v32a16 16 0 01-32 0v-32h-32a16 16 0 010-32h32v-32a16 16 0 0132 0v32h32a16 16 0 010 32zm84 4a20 20 0 1120-20 20 20 0 01-20 20zm44 44a20 20 0 1120-19.95A20 20 0 01336 288zm0-88a20 20 0 1120-20 20 20 0 01-20 20zm44 44a20 20 0 1120-20 20 20 0 01-20 20z"/></svg><span class="rl" data-i18n="nav_play"></span></button>
+    <button class="rail-btn" data-view="duel" data-i18n-title="nav_duel"><svg class="ic" aria-hidden="true" fill="currentColor" viewBox="0 0 512 512"><path d="M256 32a224 224 0 10224 224A224.26 224.26 0 00256 32zm24 383.2V376a24 24 0 00-48 0v39.2A160.33 160.33 0 0196.8 280H136a24 24 0 000-48H96.8A160.33 160.33 0 01232 96.8V136a24 24 0 0048 0V96.8A160.33 160.33 0 01415.2 232H376a24 24 0 000 48h39.2A160.33 160.33 0 01280 415.2zM256 216a40 40 0 1040 40 40 40 0 00-40-40z"/></svg><span class="rl" data-i18n="nav_duel">Arène 1v1</span></button>
+    <button class="rail-btn" data-view="mapvote" data-i18n-title="nav_mapvote"><svg class="ic" aria-hidden="true" fill="currentColor" viewBox="0 0 512 512"><path d="M400 48H112a64.07 64.07 0 00-64 64v288a64.07 64.07 0 0064 64h288a64.07 64.07 0 0064-64V112a64.07 64.07 0 00-64-64zm-35.75 138.29l-134.4 160a16 16 0 01-12 5.71h-.27a16 16 0 01-11.89-5.3l-57.6-64a16 16 0 1123.78-21.4l45.29 50.32 122.59-145.91a16 16 0 0124.5 20.58z"/></svg><span class="rl" data-i18n="nav_mapvote">Vote des maps</span></button>
+    <button class="rail-btn" data-view="compet" data-i18n-title="nav_leagues"><svg class="ic" aria-hidden="true" fill="currentColor" viewBox="0 0 512 512"><path d="M464 80h-60.1a4 4 0 01-4-4V63.92a32 32 0 00-32-31.92l-223.79.26a32 32 0 00-31.94 31.93V76a4 4 0 01-4 4H48a16 16 0 00-16 16v16c0 54.53 30 112.45 76.52 125.35a7.82 7.82 0 015.55 5.9c5.77 26.89 23.52 52.5 51.41 73.61 20.91 15.83 45.85 27.5 68.27 32.48a8 8 0 016.25 7.8V444a4 4 0 01-4 4h-59.55c-8.61 0-16 6.62-16.43 15.23A16 16 0 00176 480h159.55c8.61 0 16-6.62 16.43-15.23A16 16 0 00336 448h-60a4 4 0 01-4-4v-86.86a8 8 0 016.25-7.8c22.42-5 47.36-16.65 68.27-32.48 27.89-21.11 45.64-46.72 51.41-73.61a7.82 7.82 0 015.55-5.9C450 224.45 480 166.53 480 112V96a16 16 0 00-16-16zM112 198.22a4 4 0 01-6 3.45c-10.26-6.11-17.75-15.37-22.14-21.89-11.91-17.69-19-40.67-19.79-63.63a4 4 0 014-4.15h40a4 4 0 014 4c-.02 27.45-.07 58.87-.07 82.22zm316.13-18.44c-4.39 6.52-11.87 15.78-22.13 21.89a4 4 0 01-6-3.46c0-26.51 0-56.63-.05-82.21a4 4 0 014-4h40a4 4 0 014 4.15c-.79 22.96-7.9 45.94-19.81 63.63z"/></svg><span class="rl" data-i18n="nav_leagues"></span></button>
+    <button class="rail-btn" data-view="clans" data-i18n-title="nav_clans"><svg class="ic" aria-hidden="true" fill="currentColor" viewBox="0 0 512 512"><path d="M479.07 111.36a16 16 0 00-13.15-14.74c-86.5-15.52-122.61-26.74-203.33-63.2a16 16 0 00-13.18 0C168.69 69.88 132.58 81.1 46.08 96.62a16 16 0 00-13.15 14.74c-3.85 61.11 4.36 118.05 24.43 169.24A349.47 349.47 0 00129 393.11c53.47 56.73 110.24 81.37 121.07 85.73a16 16 0 0012 0c10.83-4.36 67.6-29 121.07-85.73a349.47 349.47 0 0071.5-112.51c20.07-51.19 28.28-108.13 24.43-169.24z"/></svg><span class="rl" data-i18n="nav_clans">Clans</span></button>
+    <button class="rail-btn" data-view="ranking" data-i18n-title="nav_ranking"><svg class="ic" aria-hidden="true" fill="currentColor" viewBox="0 0 512 512"><path d="M320 32H192a32 32 0 00-32 32v412a4 4 0 004 4h184a4 4 0 004-4V64a32 32 0 00-32-32zM464 192h-72a8 8 0 00-8 8v272a8 8 0 008 8h80a24 24 0 0024-24V224a32 32 0 00-32-32zM48 128a32 32 0 00-32 32v296a24 24 0 0024 24h80a8 8 0 008-8V136a8 8 0 00-8-8z"/></svg><span class="rl" data-i18n="nav_ranking"></span></button>
+    <div class="rail-sec" data-i18n="rs_items"></div>
+    <button class="rail-btn" data-view="loadout" data-i18n-title="nav_loadout"><svg class="ic" aria-hidden="true" fill="currentColor" viewBox="0 0 512 512"><path d="M440.9 136.3a4 4 0 000-6.91L288.16 40.65a64.14 64.14 0 00-64.33 0L71.12 129.39a4 4 0 000 6.91L254 243.88a4 4 0 004.06 0zM54 163.51a4 4 0 00-6 3.49v173.89a48 48 0 0023.84 41.39L234 479.51a4 4 0 006-3.46V274.3a4 4 0 00-2-3.46zM272 275v201a4 4 0 006 3.46l162.15-97.23A48 48 0 00464 340.89V167a4 4 0 00-6-3.45l-184 108a4 4 0 00-2 3.45z"/></svg><span class="rl" data-i18n="nav_loadout"></span></button>
+    <button class="rail-btn" data-view="shop" data-i18n-title="nav_shop"><svg class="ic" aria-hidden="true" fill="currentColor" viewBox="0 0 512 512"><path d="M480 448h-12a4 4 0 01-4-4V273.51a4 4 0 00-5.24-3.86 104.92 104.92 0 01-28.32 4.78c-1.18 0-2.3.05-3.4.05a108.22 108.22 0 01-52.85-13.64 8.23 8.23 0 00-8 0 108.18 108.18 0 01-52.84 13.64 106.11 106.11 0 01-52.46-13.79 8.21 8.21 0 00-8.09 0 108.14 108.14 0 01-53.16 13.8 106.19 106.19 0 01-52.77-14 8.25 8.25 0 00-8.16 0 106.19 106.19 0 01-52.77 14c-1.09 0-2.19 0-3.37-.05h-.06a104.91 104.91 0 01-29.28-5.09 4 4 0 00-5.23 3.8V444a4 4 0 01-4 4H32.5c-8.64 0-16.1 6.64-16.48 15.28A16 16 0 0032 480h447.5c8.64 0 16.1-6.64 16.48-15.28A16 16 0 00480 448zm-256-68a4 4 0 01-4 4h-88a4 4 0 01-4-4v-64a12 12 0 0112-12h72a12 12 0 0112 12zm156 68h-72a4 4 0 01-4-4V316a12 12 0 0112-12h56a12 12 0 0112 12v128a4 4 0 01-4 4zM492.57 170.28l-42.92-98.49C438.41 47.62 412.74 32 384.25 32H127.7c-28.49 0-54.16 15.62-65.4 39.79l-42.92 98.49c-9 19.41 2.89 39.34 2.9 39.35l.28.45c.49.78 1.36 2 1.89 2.78.05.06.09.13.14.2l5 6.05a7.45 7.45 0 00.6.65l5 4.83.42.36a69.65 69.65 0 009.39 6.78v.05a74 74 0 0036 10.67h2.47a76.08 76.08 0 0051.89-20.31l.33-.31a7.94 7.94 0 0110.89 0l.33.31a77.3 77.3 0 00104.46 0 8 8 0 0110.87 0 77.31 77.31 0 00104.21.23 7.88 7.88 0 0110.71 0 76.81 76.81 0 0052.31 20.08h2.49a71.35 71.35 0 0035-10.7c.95-.57 1.86-1.17 2.78-1.77A71.33 71.33 0 00488 212.17l1.74-2.63q.26-.4.48-.84c1.66-3.38 10.56-20.76 2.35-38.42z"/></svg><span class="rl" data-i18n="nav_shop"></span></button>
+    <button class="rail-btn" data-view="premium" data-i18n-title="nav_premium"><svg class="ic" aria-hidden="true" fill="currentColor" viewBox="0 0 512 512"><path d="M121.72 32a4 4 0 00-3.72 5.56l2.3 5.43 40.7 94.9a4 4 0 006.88.82L243 38.4a4 4 0 00-3.2-6.4zM419.93 58.06l-41.28 96.37a4 4 0 003.68 5.57h101a4 4 0 003.4-6.11L427 57.53a4 4 0 00-7.07.53zM85 57.57l-59.71 96.32a4 4 0 003.4 6.11h101a4 4 0 003.67-5.58L92 58.1a4 4 0 00-7-.53zM393.27 32H267.82a1.94 1.94 0 00-1.56 3.11l79.92 106.46a1.94 1.94 0 003.34-.4L391.6 43l3.4-8.34a1.92 1.92 0 00-1.7-2.66zM239 448l-89.43-253.49A3.78 3.78 0 00146 192H25.7a3.72 3.72 0 00-2.95 6l216 279.81a5.06 5.06 0 006.39 1.37 5 5 0 002.39-6.08zM486.3 192H366a3.75 3.75 0 00-3.54 2.51l-98.2 278.16a5.21 5.21 0 002.42 6.31 5.22 5.22 0 006.61-1.39L489.25 198a3.72 3.72 0 00-2.95-6zM259.2 78.93l56 74.67a4 4 0 01-3.2 6.4H200a4 4 0 01-3.2-6.4l56-74.67a4 4 0 016.4 0zm-7 310.31l-67.7-191.91a4 4 0 013.77-5.33h135.46a4 4 0 013.77 5.33l-67.73 191.91a4 4 0 01-7.54 0z"/></svg><span class="rl" data-i18n="nav_premium"></span></button>
+    <div class="rail-sec" data-i18n="rs_social"></div>
+    <button class="rail-btn" data-view="friends" data-i18n-title="nav_friends"><svg class="ic" aria-hidden="true" fill="currentColor" viewBox="0 0 512 512"><path d="M336 256c-20.56 0-40.44-9.18-56-25.84-15.13-16.25-24.37-37.92-26-61-1.74-24.62 5.77-47.26 21.14-63.76S312 80 336 80c23.83 0 45.38 9.06 60.7 25.52 15.47 16.62 23 39.22 21.26 63.63-1.67 23.11-10.9 44.77-26 61C376.44 246.82 356.57 256 336 256zm66-88zM467.83 432H204.18a27.71 27.71 0 01-22-10.67 30.22 30.22 0 01-5.26-25.79c8.42-33.81 29.28-61.85 60.32-81.08C264.79 297.4 299.86 288 336 288c36.85 0 71 9 98.71 26.05 31.11 19.13 52 47.33 60.38 81.55a30.27 30.27 0 01-5.32 25.78A27.68 27.68 0 01467.83 432zM147 260c-35.19 0-66.13-32.72-69-72.93-1.42-20.6 5-39.65 18-53.62 12.86-13.83 31-21.45 51-21.45s38 7.66 50.93 21.57c13.1 14.08 19.5 33.09 18 53.52-2.87 40.2-33.8 72.91-68.93 72.91zM212.66 291.45c-17.59-8.6-40.42-12.9-65.65-12.9-29.46 0-58.07 7.68-80.57 21.62-25.51 15.83-42.67 38.88-49.6 66.71a27.39 27.39 0 004.79 23.36A25.32 25.32 0 0041.72 400h111a8 8 0 007.87-6.57c.11-.63.25-1.26.41-1.88 8.48-34.06 28.35-62.84 57.71-83.82a8 8 0 00-.63-13.39c-1.57-.92-3.37-1.89-5.42-2.89z"/></svg><span class="rl" data-i18n="nav_friends"></span></button>
+    <button class="rail-btn" data-view="profile" data-i18n-title="nav_profile"><svg class="ic" aria-hidden="true" fill="currentColor" viewBox="0 0 512 512"><path d="M332.64 64.58C313.18 43.57 286 32 256 32c-30.16 0-57.43 11.5-76.8 32.38-19.58 21.11-29.12 49.8-26.88 80.78C156.76 206.28 203.27 256 256 256s99.16-49.71 103.67-110.82c2.27-30.7-7.33-59.33-27.03-80.6zM432 480H80a31 31 0 01-24.2-11.13c-6.5-7.77-9.12-18.38-7.18-29.11C57.06 392.94 83.4 353.61 124.8 326c36.78-24.51 83.37-38 131.2-38s94.42 13.5 131.2 38c41.4 27.6 67.74 66.93 76.18 113.75 1.94 10.73-.68 21.34-7.18 29.11A31 31 0 01432 480z"/></svg><span class="rl" data-i18n="nav_profile"></span></button>
+    <button class="rail-btn" data-view="vigie" data-i18n-title="nav_vigie"><svg class="ic" aria-hidden="true" fill="currentColor" viewBox="0 0 512 512"><circle cx="256" cy="256" r="64"/><path d="M490.84 238.6c-26.46-40.92-60.79-75.68-99.27-100.53C349 110.55 302 96 255.66 96c-42.52 0-84.33 12.15-124.27 36.11-40.73 24.43-77.63 60.12-109.68 106.07a31.92 31.92 0 00-.64 35.54c26.41 41.33 60.4 76.14 98.28 100.65C162 402 207.9 416 255.66 416c46.71 0 93.81-14.43 136.2-41.72 38.46-24.77 72.72-59.66 99.08-100.92a32.2 32.2 0 00-.1-34.76zM256 352a96 96 0 1196-96 96.11 96.11 0 01-96 96z"/></svg><span class="rl" data-i18n="nav_vigie">Vigie</span></button>
+    <button class="rail-btn" data-view="settings" data-i18n-title="nav_settings"><svg class="ic" aria-hidden="true" fill="currentColor" viewBox="0 0 512 512"><circle cx="256" cy="256" r="48"/><path d="M470.39 300l-.47-.38-31.56-24.75a16.11 16.11 0 01-6.1-13.33v-11.56a16 16 0 016.11-13.22L469.92 212l.47-.38a26.68 26.68 0 005.9-34.06l-42.71-73.9a1.59 1.59 0 01-.13-.22A26.86 26.86 0 00401 92.14l-.35.13-37.1 14.93a15.94 15.94 0 01-14.47-1.29q-4.92-3.1-10-5.86a15.94 15.94 0 01-8.19-11.82l-5.59-39.59-.12-.72A27.22 27.22 0 00298.76 26h-85.52a26.92 26.92 0 00-26.45 22.39l-.09.56-5.57 39.67a16 16 0 01-8.13 11.82 175.21 175.21 0 00-10 5.82 15.92 15.92 0 01-14.43 1.27l-37.13-15-.35-.14a26.87 26.87 0 00-32.48 11.34l-.13.22-42.77 73.95a26.71 26.71 0 005.9 34.1l.47.38 31.56 24.75a16.11 16.11 0 016.1 13.33v11.56a16 16 0 01-6.11 13.22L42.08 300l-.47.38a26.68 26.68 0 00-5.9 34.06l42.71 73.9a1.59 1.59 0 01.13.22 26.86 26.86 0 0032.45 11.3l.35-.13 37.07-14.93a15.94 15.94 0 0114.47 1.29q4.92 3.11 10 5.86a15.94 15.94 0 018.19 11.82l5.56 39.59.12.72A27.22 27.22 0 00213.24 486h85.52a26.92 26.92 0 0026.45-22.39l.09-.56 5.57-39.67a16 16 0 018.18-11.82c3.42-1.84 6.76-3.79 10-5.82a15.92 15.92 0 0114.43-1.27l37.13 14.95.35.14a26.85 26.85 0 0032.48-11.34 2.53 2.53 0 01.13-.22l42.71-73.89a26.7 26.7 0 00-5.89-34.11zm-134.48-40.24a80 80 0 11-83.66-83.67 80.21 80.21 0 0183.66 83.67z"/></svg><span class="rl" data-i18n="nav_settings"></span></button>
+    <button class="rail-btn" data-view="support" data-i18n-title="nav_support"><svg class="ic" aria-hidden="true" fill="currentColor" viewBox="0 0 512 512"><path d="M411.16 97.46C368.43 55.86 311.88 32 256 32S143.57 55.86 100.84 97.46C56.45 140.67 32 197 32 256c0 26.67 8.75 61.09 32.88 125.55S137 473 157.27 477.41c5.81 1.27 12.62 2.59 18.73 2.59a60.06 60.06 0 0030-8l14-8c15.07-8.82 19.47-28.13 10.8-43.35l-86.92-152.57a31.73 31.73 0 00-43.57-11.76l-13.69 8a56.49 56.49 0 00-14 11.59 4 4 0 01-7-2A114.68 114.68 0 0164 256c0-50.31 21-98.48 59.16-135.61C160 84.55 208.39 64 256 64s96 20.55 132.84 56.39C427 157.52 448 205.69 448 256a114.68 114.68 0 01-1.68 17.91 4 4 0 01-7 2 56.49 56.49 0 00-14-11.59l-13.69-8a31.73 31.73 0 00-43.57 11.76L281.2 420.65c-8.67 15.22-4.27 34.53 10.8 43.35l14 8a60.06 60.06 0 0030 8c6.11 0 12.92-1.32 18.73-2.59C375 473 423 446 447.12 381.55S480 282.67 480 256c0-59-24.45-115.33-68.84-158.54z"/></svg><span class="rl" data-i18n="nav_support"></span></button>
+    <a class="rail-btn discord-link" data-discord target="_blank" rel="noopener noreferrer" href="#" title="Discord"><svg class="ic" aria-hidden="true" fill="currentColor" viewBox="0 0 512 512"><path d="M464 66.52A50 50 0 00414.12 17L97.64 16A49.65 49.65 0 0048 65.52V392c0 27.3 22.28 48 49.64 48H368l-13-44 109 100zM324.65 329.81s-8.72-10.39-16-19.32C340.39 301.55 352.5 282 352.5 282a139 139 0 01-27.85 14.25 173.31 173.31 0 01-35.11 10.39 170.05 170.05 0 01-62.72-.24 184.45 184.45 0 01-35.59-10.4 141.46 141.46 0 01-17.68-8.21c-.73-.48-1.45-.72-2.18-1.21-.49-.24-.73-.48-1-.48-4.36-2.42-6.78-4.11-6.78-4.11s11.62 19.09 42.38 28.26c-7.27 9.18-16.23 19.81-16.23 19.81-53.51-1.69-73.85-36.47-73.85-36.47 0-77.06 34.87-139.62 34.87-139.62 34.87-25.85 67.8-25.12 67.8-25.12l2.42 2.9c-43.59 12.32-63.44 31.4-63.44 31.4s5.32-2.9 14.28-6.77c25.91-11.35 46.5-14.25 55-15.21a24 24 0 014.12-.49 205.62 205.62 0 0148.91-.48 201.62 201.62 0 0172.89 22.95s-19.13-18.15-60.3-30.45l3.39-3.86s33.17-.73 67.81 25.16c0 0 34.87 62.56 34.87 139.62 0-.28-20.35 34.5-73.86 36.19z"/><path d="M212.05 218c-13.8 0-24.7 11.84-24.7 26.57s11.14 26.57 24.7 26.57c13.8 0 24.7-11.83 24.7-26.57.25-14.76-10.9-26.57-24.7-26.57zM300.43 218c-13.8 0-24.7 11.84-24.7 26.57s11.14 26.57 24.7 26.57c13.81 0 24.7-11.83 24.7-26.57S314 218 300.43 218z"/></svg><span class="rl">Discord</span></a>
+    <div class="spacer"></div>
+    <div class="lang" data-lang-root>
+      <button class="lang-btn" data-lang-toggle data-i18n-title="language"><svg class="ic" aria-hidden="true" fill="currentColor" viewBox="0 0 512 512"><path d="M340.75 344.49c5.91-20.7 9.82-44.75 11.31-67.84a4.41 4.41 0 00-4.46-4.65h-71.06a4.43 4.43 0 00-4.47 4.39v55.3a4.44 4.44 0 004.14 4.38 273.51 273.51 0 0159 11.39 4.45 4.45 0 005.54-2.97zM323.58 377.31a260.05 260.05 0 00-46.6-9.09 4.42 4.42 0 00-4.91 4.29v65.24a4.47 4.47 0 006.76 3.7c15.9-9.27 29-24.84 40.84-45.43 1.94-3.36 4.89-9.15 6.67-12.69a4.29 4.29 0 00-2.76-6.02zM235.29 368.4a256.85 256.85 0 00-46.56 8.82c-2.64.76-3.75 4.4-2.55 6.79 1.79 3.56 4 8.11 5.89 11.51 13 23 26.84 37.5 41.24 45.93a4.47 4.47 0 006.76-3.7v-65.27a4.16 4.16 0 00-4.78-4.08zM235.6 272h-71.06a4.41 4.41 0 00-4.46 4.64c1.48 23.06 5.37 47.16 11.26 67.84a4.46 4.46 0 005.59 3 272.2 272.2 0 0159-11.36 4.44 4.44 0 004.15-4.38V276.4a4.43 4.43 0 00-4.48-4.4zM277 143.78a235.8 235.8 0 0046.5-9.14 4.3 4.3 0 002.76-6c-1.79-3.57-4.27-8.68-6.17-12.09-12.29-22-26.14-37.35-41.24-46a4.48 4.48 0 00-6.76 3.7v65.23a4.43 4.43 0 004.91 4.3zM276.54 240h71.06a4.39 4.39 0 004.46-4.58c-1.48-22.77-5.27-47.8-11.16-68.22a4.46 4.46 0 00-5.59-2.95c-19 5.74-38.79 10.43-59.09 12a4.4 4.4 0 00-4.15 4.32v55.11a4.4 4.4 0 004.47 4.32zM233.31 70.56c-15.42 8.57-29.17 24.43-41.47 46.37-1.91 3.41-4.19 8.11-6 11.67a4.31 4.31 0 002.76 6 225.42 225.42 0 0046.54 9.17 4.43 4.43 0 004.91-4.29V74.26a4.49 4.49 0 00-6.74-3.7zM235.92 176.26c-20.3-1.55-40.11-6.24-59.09-12a4.46 4.46 0 00-5.59 2.95c-5.89 20.42-9.68 45.45-11.16 68.22a4.39 4.39 0 004.46 4.58h71.06a4.4 4.4 0 004.47-4.34v-55.09a4.4 4.4 0 00-4.15-4.32z"/><path d="M414.39 97.61A224 224 0 1097.61 414.39 224 224 0 10414.39 97.61zM176.6 430.85a219.08 219.08 0 01-12.48-19.66c-2-3.69-4.84-9.26-6.73-13.13a7.29 7.29 0 00-10.31-3.16c-4.3 2.41-10 5.72-14.13 8.43a147.29 147.29 0 01-23.57-22.43 248.83 248.83 0 0130.41-18.36c1.86-1 2.77-2.14 2.18-4.18a374.8 374.8 0 01-14.09-82.17 4.36 4.36 0 00-4.3-4.17H66.84a2 2 0 01-2-1.7A98.28 98.28 0 0164 256a96.27 96.27 0 01.86-14.29 2 2 0 012-1.7h56.74c2.29 0 4.17-1.32 4.29-3.63a372.71 372.71 0 0114-81.83 4.36 4.36 0 00-2.19-5.11 260.63 260.63 0 01-29.84-17.9 169.82 169.82 0 0123.14-22.8c4.08 2.68 9.4 5.71 13.66 8.11a7.89 7.89 0 0011-3.42c1.88-3.87 4-8.18 6.06-11.88a221.93 221.93 0 0112.54-19.91A185 185 0 01256 64c28.94 0 55.9 7 80.53 18.46a202.23 202.23 0 0112 19c2.59 4.66 5.34 10.37 7.66 15.32a4.29 4.29 0 005.92 1.94c5.38-2.91 11.21-6.26 16.34-9.63a171.36 171.36 0 0123.2 23 244.89 244.89 0 01-29.06 17.31 4.35 4.35 0 00-2.18 5.12 348.68 348.68 0 0113.85 81.4 4.33 4.33 0 004.3 4.12l56.62-.07a2 2 0 012 1.7 117.46 117.46 0 010 28.62 2 2 0 01-2 1.72h-56.67a4.35 4.35 0 00-4.3 4.17 367.4 367.4 0 01-13.87 81.3 4.45 4.45 0 002.19 5.19c5 2.59 10.57 5.48 15.37 8.42s9.55 6.08 14.13 9.34a172.73 172.73 0 01-23 22.93c-2.44-1.61-5.34-3.44-7.84-4.94-1.72-1-4.89-2.77-6.65-3.76-3.82-2.14-7.88-.54-9.79 3.4s-4.83 9.59-6.87 13.25a212.42 212.42 0 01-12.35 19.53C310.91 442.37 284.94 448 256 448s-54.77-5.63-79.4-17.15z"/></svg><span data-lang-code>FR</span></button>
+      <div class="lang-menu"><div class="lang-h" data-i18n="language">Langue</div><div data-lang-list></div></div>
+    </div>
+    <div class="rail-legal">
+      <a href="/mentions-legales" data-i18n="lg_legal">Mentions légales</a> · <a href="/confidentialite" data-i18n="lg_privacy">Confidentialité</a>
+    </div>
+  </aside>
+
+  <div class="main">
+    <header class="top">
+      <div class="brand" data-view="play" style="cursor:pointer" title="TICKRATE"><span class="brand-logo"><svg class="tr-mark" viewBox="9 9 46 46" aria-hidden="true"><path d="M50.61 37.34A19.36 19.36 0 0 1 37.34 50.61M26.66 50.61A19.36 19.36 0 0 1 13.39 37.34M13.39 26.66A19.36 19.36 0 0 1 26.66 13.39M37.34 13.39A19.36 19.36 0 0 1 50.61 26.66" fill="none" stroke="currentColor" stroke-width="3.52"/><rect x="21.12" y="22.4" width="21.76" height="4.48" rx="1.12" fill="currentColor"/><rect x="29.28" y="22.4" width="5.44" height="21.76" rx="1.36" fill="currentColor"/></svg><svg class="tr-mark tr-mark-lit" viewBox="9 9 46 46" aria-hidden="true"><path d="M50.61 37.34A19.36 19.36 0 0 1 37.34 50.61M26.66 50.61A19.36 19.36 0 0 1 13.39 37.34M13.39 26.66A19.36 19.36 0 0 1 26.66 13.39M37.34 13.39A19.36 19.36 0 0 1 50.61 26.66" fill="none" stroke="currentColor" stroke-width="3.52"/><rect x="21.12" y="22.4" width="21.76" height="4.48" rx="1.12" fill="currentColor"/><rect x="29.28" y="22.4" width="5.44" height="21.76" rx="1.36" fill="currentColor"/></svg></span> <span class="brand-word">TICK<b>RATE</b><span class="brand-lit" aria-hidden="true">TICK<b>RATE</b></span></span><span class="beta-tag" data-i18n="beta_tag">BÊTA</span></div><div class="concept">CS:GO · 128 TICK</div>
+      <div class="psearch" id="psearch"><svg class="ic" aria-hidden="true" fill="currentColor" viewBox="0 0 512 512"><path d="M456.69 421.39L362.6 327.3a173.81 173.81 0 0034.84-104.58C397.44 126.38 319.06 48 222.72 48S48 126.38 48 222.72s78.38 174.72 174.72 174.72A173.81 173.81 0 00327.3 362.6l94.09 94.09a25 25 0 0035.3-35.3zM97.92 222.72a124.8 124.8 0 11124.8 124.8 124.95 124.95 0 01-124.8-124.8z"/></svg><input id="psIn" autocomplete="off" data-i18n-ph="ps_ph"><div class="ps-res" id="psRes" hidden></div></div>
+      <nav class="tabs">
+        <div class="tab active" data-view="play" data-i18n="nav_play">Jouer</div><div class="tab" data-view="compet" data-i18n="nav_leagues">Ligues & Teams</div><div class="tab" data-view="loadout" data-i18n="nav_loadout">Casier & Inventaire</div><div class="tab" data-view="shop" data-i18n="nav_shop">Boutique</div><div class="tab" data-view="profile" data-i18n="nav_profile">Profil</div><div class="tab" data-view="friends" data-i18n="nav_friends">Amis</div><div class="tab" data-view="ranking" data-i18n="nav_ranking">Classement</div>
+      </nav>
+      <div class="grow"></div>
+      <div class="online"><div class="dot"></div><b id="online">1</b> <span data-i18n="online">en ligne</span></div>
+      <div class="theme-pop-wrap" id="themeWrap" hidden>
+        <button class="icon-btn" id="themeBtn" title="Thème & style CSS" data-i18n-title="theme_btn"><svg class="ic" aria-hidden="true" fill="currentColor" viewBox="0 0 512 512"><path d="M441 336.2l-.06-.05c-9.93-9.18-22.78-11.34-32.16-12.92l-.69-.12c-9.05-1.49-10.48-2.5-14.58-6.17-2.44-2.17-5.35-5.65-5.35-9.94s2.91-7.77 5.34-9.94l30.28-26.87c25.92-22.91 40.2-53.66 40.2-86.59s-14.25-63.68-40.2-86.6c-35.89-31.59-85-49-138.37-49C223.72 48 162 71.37 116 112.11c-43.87 38.77-68 90.71-68 146.24s24.16 107.47 68 146.23c21.75 19.24 47.49 34.18 76.52 44.42a266.17 266.17 0 0086.87 15h1.81c61 0 119.09-20.57 159.39-56.4 9.7-8.56 15.15-20.83 15.34-34.56.21-14.17-5.37-27.95-14.93-36.84zM112 208a32 32 0 1132 32 32 32 0 01-32-32zm40 135a32 32 0 1132-32 32 32 0 01-32 32zm40-199a32 32 0 1132 32 32 32 0 01-32-32zm64 271a48 48 0 1148-48 48 48 0 01-48 48zm72-239a32 32 0 1132-32 32 32 0 01-32 32z"/></svg></button>
+        <div class="theme-pop" id="themePop"></div>
+      </div>
+      <button class="icon-btn top-help" data-view="support" data-i18n-title="nav_support"><svg class="ic" aria-hidden="true" fill="currentColor" viewBox="0 0 512 512"><path d="M256 64C150 64 64 150 64 256s86 192 192 192 192-86 192-192S362 64 256 64zm-6 304a20 20 0 1120-20 20 20 0 01-20 20zm33.44-102C267.23 276.88 265 286.85 265 296a14 14 0 01-28 0c0-21.91 10.08-39.33 30.82-53.26C287.1 229.8 298 221.6 298 203.57c0-12.26-7-21.57-21.49-28.46-3.41-1.62-11-3.2-20.34-3.09-11.72.15-20.82 2.95-27.83 8.59C215.12 191.25 214 202.83 214 203a14 14 0 11-28-1.35c.11-2.43 1.8-24.32 24.77-42.8 11.91-9.58 27.06-14.56 45-14.78 12.7-.15 24.63 2 32.72 5.82C312.7 161.34 326 180.43 326 203.57c0 33.83-22.61 49.02-42.56 62.43z"/></svg></button>
+      <button class="icon-btn notif-btn" id="notifBtn" data-i18n-title="notifications"><svg class="ic" aria-hidden="true" fill="currentColor" viewBox="0 0 512 512"><path d="M440.08 341.31c-1.66-2-3.29-4-4.89-5.93-22-26.61-35.31-42.67-35.31-118 0-39-9.33-71-27.72-95-13.56-17.73-31.89-31.18-56.05-41.12a3 3 0 01-.82-.67C306.6 51.49 282.82 32 256 32s-50.59 19.49-59.28 48.56a3.13 3.13 0 01-.81.65c-56.38 23.21-83.78 67.74-83.78 136.14 0 75.36-13.29 91.42-35.31 118-1.6 1.93-3.23 3.89-4.89 5.93a35.16 35.16 0 00-4.65 37.62c6.17 13 19.32 21.07 34.33 21.07H410.5c14.94 0 28-8.06 34.19-21a35.17 35.17 0 00-4.61-37.66zM256 480a80.06 80.06 0 0070.44-42.13 4 4 0 00-3.54-5.87H189.12a4 4 0 00-3.55 5.87A80.06 80.06 0 00256 480z"/></svg><b class="nb" id="notifCount" hidden></b></button>
+      <button class="wallet" id="wallet" data-view="shop"></button>
+      <button class="go-prem" id="goPrem" data-view="premium"></button>
+      <div class="lang lang-top" data-lang-root>
+        <button class="lang-btn" data-lang-toggle data-i18n-title="language"><svg class="ic" aria-hidden="true" fill="currentColor" viewBox="0 0 512 512"><path d="M340.75 344.49c5.91-20.7 9.82-44.75 11.31-67.84a4.41 4.41 0 00-4.46-4.65h-71.06a4.43 4.43 0 00-4.47 4.39v55.3a4.44 4.44 0 004.14 4.38 273.51 273.51 0 0159 11.39 4.45 4.45 0 005.54-2.97zM323.58 377.31a260.05 260.05 0 00-46.6-9.09 4.42 4.42 0 00-4.91 4.29v65.24a4.47 4.47 0 006.76 3.7c15.9-9.27 29-24.84 40.84-45.43 1.94-3.36 4.89-9.15 6.67-12.69a4.29 4.29 0 00-2.76-6.02zM235.29 368.4a256.85 256.85 0 00-46.56 8.82c-2.64.76-3.75 4.4-2.55 6.79 1.79 3.56 4 8.11 5.89 11.51 13 23 26.84 37.5 41.24 45.93a4.47 4.47 0 006.76-3.7v-65.27a4.16 4.16 0 00-4.78-4.08zM235.6 272h-71.06a4.41 4.41 0 00-4.46 4.64c1.48 23.06 5.37 47.16 11.26 67.84a4.46 4.46 0 005.59 3 272.2 272.2 0 0159-11.36 4.44 4.44 0 004.15-4.38V276.4a4.43 4.43 0 00-4.48-4.4zM277 143.78a235.8 235.8 0 0046.5-9.14 4.3 4.3 0 002.76-6c-1.79-3.57-4.27-8.68-6.17-12.09-12.29-22-26.14-37.35-41.24-46a4.48 4.48 0 00-6.76 3.7v65.23a4.43 4.43 0 004.91 4.3zM276.54 240h71.06a4.39 4.39 0 004.46-4.58c-1.48-22.77-5.27-47.8-11.16-68.22a4.46 4.46 0 00-5.59-2.95c-19 5.74-38.79 10.43-59.09 12a4.4 4.4 0 00-4.15 4.32v55.11a4.4 4.4 0 004.47 4.32zM233.31 70.56c-15.42 8.57-29.17 24.43-41.47 46.37-1.91 3.41-4.19 8.11-6 11.67a4.31 4.31 0 002.76 6 225.42 225.42 0 0046.54 9.17 4.43 4.43 0 004.91-4.29V74.26a4.49 4.49 0 00-6.74-3.7zM235.92 176.26c-20.3-1.55-40.11-6.24-59.09-12a4.46 4.46 0 00-5.59 2.95c-5.89 20.42-9.68 45.45-11.16 68.22a4.39 4.39 0 004.46 4.58h71.06a4.4 4.4 0 004.47-4.34v-55.09a4.4 4.4 0 00-4.15-4.32z"/><path d="M414.39 97.61A224 224 0 1097.61 414.39 224 224 0 10414.39 97.61zM176.6 430.85a219.08 219.08 0 01-12.48-19.66c-2-3.69-4.84-9.26-6.73-13.13a7.29 7.29 0 00-10.31-3.16c-4.3 2.41-10 5.72-14.13 8.43a147.29 147.29 0 01-23.57-22.43 248.83 248.83 0 0130.41-18.36c1.86-1 2.77-2.14 2.18-4.18a374.8 374.8 0 01-14.09-82.17 4.36 4.36 0 00-4.3-4.17H66.84a2 2 0 01-2-1.7A98.28 98.28 0 0164 256a96.27 96.27 0 01.86-14.29 2 2 0 012-1.7h56.74c2.29 0 4.17-1.32 4.29-3.63a372.71 372.71 0 0114-81.83 4.36 4.36 0 00-2.19-5.11 260.63 260.63 0 01-29.84-17.9 169.82 169.82 0 0123.14-22.8c4.08 2.68 9.4 5.71 13.66 8.11a7.89 7.89 0 0011-3.42c1.88-3.87 4-8.18 6.06-11.88a221.93 221.93 0 0112.54-19.91A185 185 0 01256 64c28.94 0 55.9 7 80.53 18.46a202.23 202.23 0 0112 19c2.59 4.66 5.34 10.37 7.66 15.32a4.29 4.29 0 005.92 1.94c5.38-2.91 11.21-6.26 16.34-9.63a171.36 171.36 0 0123.2 23 244.89 244.89 0 01-29.06 17.31 4.35 4.35 0 00-2.18 5.12 348.68 348.68 0 0113.85 81.4 4.33 4.33 0 004.3 4.12l56.62-.07a2 2 0 012 1.7 117.46 117.46 0 010 28.62 2 2 0 01-2 1.72h-56.67a4.35 4.35 0 00-4.3 4.17 367.4 367.4 0 01-13.87 81.3 4.45 4.45 0 002.19 5.19c5 2.59 10.57 5.48 15.37 8.42s9.55 6.08 14.13 9.34a172.73 172.73 0 01-23 22.93c-2.44-1.61-5.34-3.44-7.84-4.94-1.72-1-4.89-2.77-6.65-3.76-3.82-2.14-7.88-.54-9.79 3.4s-4.83 9.59-6.87 13.25a212.42 212.42 0 01-12.35 19.53C310.91 442.37 284.94 448 256 448s-54.77-5.63-79.4-17.15z"/></svg><span data-lang-code>FR</span></button>
+        <div class="lang-menu"><div class="lang-h" data-i18n="language">Langue</div><div data-lang-list></div></div>
+      </div>
+      <div class="profile" id="topProfile" data-i18n-title="my_profile">
+        <div class="meta"><div class="top-name-row"><span class="name" id="topName">Kaze</span><span class="top-badges" id="topBadges"></span></div><div class="elo" id="topElo">1840 ELO</div></div>
+        <div id="topLvl"></div>
+        <div id="topAv"></div>
+      </div>
+    </header>
+
+    <div class="banner" id="banner">
+      <div class="spin"></div>
+      <span><i class="tx" data-i18n="searching_banner">Recherche d'un match</i> <b id="bMode"></b> · <b id="bTime">00:00</b></span>
+      <button class="link" id="bCancel" data-i18n="cancel">Annuler</button>
+    </div>
+
+    <!-- ===== JOUER ===== -->
+    <main class="page" id="play">
+      <div class="mobile-hub" id="mobileHub">
+        <div class="mh-card">
+          <div class="mh-top">
+            <span class="mh-badge" data-i18n="mh_badge">SERVEURS CS:GO 128 TICK</span>
+            <span class="mh-tag"><svg class="ic" aria-hidden="true" fill="currentColor" viewBox="0 0 512 512" width="13" height="13" style="display:inline;vertical-align:-2px;margin-right:5px"><path d="M16 352a48.05 48.05 0 0048 48h133.88l-4 32H144a16 16 0 000 32h224a16 16 0 000-32h-49.88l-4-32H448a48.05 48.05 0 0048-48v-48H16zm240-16a16 16 0 11-16 16 16 16 0 0116-16zM496 96a48.05 48.05 0 00-48-48H64a48.05 48.05 0 00-48 48v192h480z"/></svg><span data-i18n="mh_tag">Matchmaking PC</span></span>
+          </div>
+          <h2 class="mh-title" data-i18n="mh_title">Rejoins les serveurs depuis ton PC</h2>
+          <p class="mh-desc" data-i18n="mh_desc">
+            Le matchmaking compétitif s'exécute sur CS:GO avec Steam ouvert. Sur smartphone, suis tes stats en direct, gère ton inventaire et tes amis.
+          </p>
+          <div class="mh-actions">
+            <button type="button" class="btn primary sm mh-btn" data-goview="profile">
+              <svg class="ic" aria-hidden="true" fill="currentColor" viewBox="0 0 512 512" width="16" height="16"><path d="M332.64 64.58C313.18 43.57 286 32 256 32c-30.16 0-57.43 11.5-76.8 32.38-19.58 21.11-29.12 49.8-26.88 80.78C156.76 206.28 203.27 256 256 256s99.16-49.71 103.67-110.82c2.27-30.7-7.33-59.33-27.03-80.6zM432 480H80a31 31 0 01-24.2-11.13c-6.5-7.77-9.12-18.38-7.18-29.11C57.06 392.94 83.4 353.61 124.8 326c36.78-24.51 83.37-38 131.2-38s94.42 13.5 131.2 38c41.4 27.6 67.74 66.93 76.18 113.75 1.94 10.73-.68 21.34-7.18 29.11A31 31 0 01432 480z"/></svg>
+              <span data-i18n="nav_profile">Mon Profil</span>
+            </button>
+            <button type="button" class="btn ghost sm mh-btn" data-goview="ranking">
+              <svg class="ic" aria-hidden="true" fill="currentColor" viewBox="0 0 512 512" width="16" height="16"><path d="M320 32H192a32 32 0 00-32 32v412a4 4 0 004 4h184a4 4 0 004-4V64a32 32 0 00-32-32zM464 192h-72a8 8 0 00-8 8v272a8 8 0 008 8h80a24 24 0 0024-24V224a32 32 0 00-32-32zM48 128a32 32 0 00-32 32v296a24 24 0 0024 24h80a8 8 0 008-8V136a8 8 0 00-8-8z"/></svg>
+              <span data-i18n="nav_ranking">Classement</span>
+            </button>
+            <button type="button" class="btn ghost sm mh-btn" data-goview="shop">
+              <svg class="ic" aria-hidden="true" fill="currentColor" viewBox="0 0 512 512" width="16" height="16"><path d="M480 448h-12a4 4 0 01-4-4V273.51a4 4 0 00-5.24-3.86 104.92 104.92 0 01-28.32 4.78c-1.18 0-2.3.05-3.4.05a108.22 108.22 0 01-52.85-13.64 8.23 8.23 0 00-8 0 108.18 108.18 0 01-52.84 13.64 106.11 106.11 0 01-52.46-13.79 8.21 8.21 0 00-8.09 0 108.14 108.14 0 01-53.16 13.8 106.19 106.19 0 01-52.77-14 8.25 8.25 0 00-8.16 0 106.19 106.19 0 01-52.77 14c-1.09 0-2.19 0-3.37-.05h-.06a104.91 104.91 0 01-29.28-5.09 4 4 0 00-5.23 3.8V444a4 4 0 01-4 4H32.5c-8.64 0-16.1 6.64-16.48 15.28A16 16 0 0032 480h447.5c8.64 0 16.1-6.64 16.48-15.28A16 16 0 00480 448zm-256-68a4 4 0 01-4 4h-88a4 4 0 01-4-4v-64a12 12 0 0112-12h72a12 12 0 0112 12zm156 68h-72a4 4 0 01-4-4V316a12 12 0 0112-12h56a12 12 0 0112 12v128a4 4 0 01-4 4zM492.57 170.28l-42.92-98.49C438.41 47.62 412.74 32 384.25 32H127.7c-28.49 0-54.16 15.62-65.4 39.79l-42.92 98.49c-9 19.41 2.89 39.34 2.9 39.35l.28.45c.49.78 1.36 2 1.89 2.78.05.06.09.13.14.2l5 6.05a7.45 7.45 0 00.6.65l5 4.83.42.36a69.65 69.65 0 009.39 6.78v.05a74 74 0 0036 10.67h2.47a76.08 76.08 0 0051.89-20.31l.33-.31a7.94 7.94 0 0110.89 0l.33.31a77.3 77.3 0 00104.46 0 8 8 0 0110.87 0 77.31 77.31 0 00104.21.23 7.88 7.88 0 0110.71 0 76.81 76.81 0 0052.31 20.08h2.49a71.35 71.35 0 0035-10.7c.95-.57 1.86-1.17 2.78-1.77A71.33 71.33 0 00488 212.17l1.74-2.63q.26-.4.48-.84c1.66-3.38 10.56-20.76 2.35-38.42z"/></svg>
+              <span data-i18n="nav_shop">Skins & Caisses</span>
+            </button>
+            <button type="button" class="btn ghost sm mh-btn" data-goview="compet">
+              <svg class="ic" aria-hidden="true" fill="currentColor" viewBox="0 0 512 512" width="16" height="16"><path d="M464 80h-60.1a4 4 0 01-4-4V63.92a32 32 0 00-32-31.92l-223.79.26a32 32 0 00-31.94 31.93V76a4 4 0 01-4 4H48a16 16 0 00-16 16v16c0 54.53 30 112.45 76.52 125.35a7.82 7.82 0 015.55 5.9c5.77 26.89 23.52 52.5 51.41 73.61 20.91 15.83 45.85 27.5 68.27 32.48a8 8 0 016.25 7.8V444a4 4 0 01-4 4h-59.55c-8.61 0-16 6.62-16.43 15.23A16 16 0 00176 480h159.55c8.61 0 16-6.62 16.43-15.23A16 16 0 00336 448h-60a4 4 0 01-4-4v-86.86a8 8 0 016.25-7.8c22.42-5 47.36-16.65 68.27-32.48 27.89-21.11 45.64-46.72 51.41-73.61a7.82 7.82 0 015.55-5.9C450 224.45 480 166.53 480 112V96a16 16 0 00-16-16zM112 198.22a4 4 0 01-6 3.45c-10.26-6.11-17.75-15.37-22.14-21.89-11.91-17.69-19-40.67-19.79-63.63a4 4 0 014-4.15h40a4 4 0 014 4c-.02 27.45-.07 58.87-.07 82.22zm316.13-18.44c-4.39 6.52-11.87 15.78-22.13 21.89a4 4 0 01-6-3.46c0-26.51 0-56.63-.05-82.21a4 4 0 014-4h40a4 4 0 014 4.15c-.79 22.96-7.9 45.94-19.81 63.63z"/></svg>
+              <span data-i18n="nav_comp">Matchs en direct</span>
+            </button>
+          </div>
+        </div>
+      </div>
+      <div class="modes" id="modes"></div>
+      <div class="banbox" id="banBox" hidden></div>
+      <section class="dz-wrap" id="dzBox" hidden></section>
+      <section class="stage" id="playStage">
+        <div class="stage-head">
+          <div class="ttl" data-i18n="your_team">Ton équipe</div>
+          <div class="right">
+            <span class="pill" id="partyCount">1/5</span>
+            <span class="pill"><i class="tx" data-i18n="avg_elo">ELO moy.</i> <b id="sAvg">1840</b></span>
+            <span class="pill" id="poolPill"></span>
+          </div>
+        </div>
+        <div class="party" id="slots"></div>
+        <div class="launch">
+          <div class="regions" id="regions"></div>
+          <button class="find" id="find"></button>
+          <div class="stats">
+            <div class="stat"><span data-i18n="in_queue">En file</span><b id="sQueue">0</b></div>
+            <div class="stat"><span data-i18n="est_wait">Attente estimée</span><b id="sWait">~0:40</b></div>
+            <div class="stat"><span data-i18n="elo_gap">Écart d'ELO max</span><b id="sGap">±400</b></div>
+            <label class="stat mm-tog" data-i18n-title="mm_sort_hint"><input type="checkbox" id="mmSort"><i class="sw"></i><span data-i18n="mm_sort">Tri par ELO</span></label>
+            <div class="stat ac"><svg class="ic" aria-hidden="true" fill="currentColor" viewBox="0 0 512 512"><circle cx="256" cy="256" r="64"/><path d="M490.84 238.6c-26.46-40.92-60.79-75.68-99.27-100.53C349 110.55 302 96 255.66 96c-42.52 0-84.33 12.15-124.27 36.11-40.73 24.43-77.63 60.12-109.68 106.07a31.92 31.92 0 00-.64 35.54c26.41 41.33 60.4 76.14 98.28 100.65C162 402 207.9 416 255.66 416c46.71 0 93.81-14.43 136.2-41.72 38.46-24.77 72.72-59.66 99.08-100.92a32.2 32.2 0 00-.1-34.76zM256 352a96 96 0 1196-96 96.11 96.11 0 01-96 96z"/></svg><i class="tx" data-i18n="anticheat">Anti-cheat actif</i></div>
+          </div>
+        </div>
+      </section>
+      <section class="pool" id="playPool">
+        <div class="label pool-head"><i class="tx" data-i18n="map_pool">Pool de maps</i> <span id="mapCount"></span></div>
+        <div class="pool-tools" id="poolTools"></div>
+        <div class="maps" id="maps"></div>
+      </section>
+      <section class="missions" id="missions"></section>
+
+      <!-- Section Référencement & FAQ Accessible (Crawlable par Googlebot) -->
+      <section class="seo-hub" aria-label="Présentation et questions fréquentes">
+        <div class="seo-card">
+          <div class="seo-badge" data-i18n="sh_badge">SERVEURS 128 TICK · CS:GO LEGACY</div>
+          <h2 data-i18n="sh_h2">Matchmaking CS:GO en 128 tick, en Europe</h2>
+          <p data-i18n-html="sh_p">
+            TICKRATE organise des parties de <strong>Counter-Strike: Global Offensive</strong> (version legacy) sur nos propres serveurs en 128 tick, hébergés en Allemagne. Tu lances la recherche depuis le site, seul ou avec ton groupe, et CS:GO te connecte au serveur quand le match est prêt.
+          </p>
+          <div class="seo-features-grid">
+            <div class="seo-feat">
+              <h3 data-i18n="sh_f1t">128 tick sur chaque serveur</h3>
+              <p data-i18n="sh_f1p">Le serveur met la partie à jour 128 fois par seconde, deux fois plus qu'en 64 tick : les tirs et les grenades suivent mieux ce que tu vois.</p>
+            </div>
+            <div class="seo-feat">
+              <h3 data-i18n="sh_f2t">ELO selon ton match</h3>
+              <p data-i18n="sh_f2p">La victoire compte, mais ton ADR, tes kills et ton impact font varier les points gagnés ou perdus.</p>
+            </div>
+            <div class="seo-feat">
+              <h3 data-i18n="sh_f3t">Vigie et facteur de confiance</h3>
+              <p data-i18n="sh_f3p">Les joueurs signalent, d'autres joueurs revoient la demo et votent. Ton facteur de confiance règle avec qui tu joues.</p>
+            </div>
+            <div class="seo-feat">
+              <h3 data-i18n="sh_f4t">5v5, Wingman et 1v1</h3>
+              <p data-i18n="sh_f4p">Veto de maps avant chaque match, équipes, ligue et tournois organisés par les joueurs.</p>
+            </div>
+          </div>
+          <nav class="seo-links" aria-label="En savoir plus"><a href="/serveur-csgo" data-i18n="sl_srv">Serveur CS GO 128 tick</a><a href="/serveurs-csgo" data-i18n="sl_list">Liste des serveurs en direct</a><a href="/tickrate-csgo" data-i18n="sl_tick">Tickrate : 64 ou 128 tick</a><a href="/csgo-legacy" data-i18n="sl_legacy">Jouer à CS GO legacy en 2026</a><a href="/matchmaking-csgo" data-i18n="sl_mm">Matchmaking CS GO</a><a href="/classement-csgo" data-i18n="sl_rank">Classement et rangs</a><a href="/maps-csgo" data-i18n="sl_maps">Maps et vote du pool</a><a href="/wingman-csgo" data-i18n="sl_wm">Wingman 2v2</a><a href="/1v1-csgo" data-i18n="sl_duel">1v1 Aim</a><a href="/commandes-csgo" data-i18n="sl_cmd">Commandes CS GO</a><a href="/creer-serveur-csgo" data-i18n="sl_host">Créer un serveur CS GO</a><a href="/guides" data-i18n="sl_guides">Tous les guides</a><a href="/en/csgo-server" hreflang="en" lang="en">English</a><a href="https://www.instagram.com/tickrate.eu/" target="_blank" rel="me noopener">Instagram</a><a href="https://www.tiktok.com/@tickrate.eu" target="_blank" rel="me noopener">TikTok</a><a href="https://discord.gg/KNXbGrTDj" target="_blank" rel="noopener">Discord</a></nav>
+          <div class="seo-faq" id="seoFaq">
+            <h3 data-i18n="sh_faq">Questions fréquentes</h3>
+            <details class="faq-item">
+              <summary><strong data-i18n="sh_q1">Comment jouer à CS:GO sur TICKRATE ?</strong></summary>
+              <p data-i18n="sh_a1">Installe CS:GO (version legacy) depuis ta bibliothèque Steam, crée ton compte sur tickrate.eu et lie ton compte Steam. Ensuite : « Trouver un match », accepte, fais le veto et clique sur Connecter. La page « Comment jouer » détaille chaque étape.</p>
+            </details>
+            <details class="faq-item">
+              <summary><strong data-i18n="sh_q2">Est-ce gratuit ?</strong></summary>
+              <p data-i18n="sh_a2">Oui. Tous les modes, le classement, les serveurs et la ligue sont gratuits. Les formules Plus et Premium ajoutent de la personnalisation et des outils d'analyse, sans avantage en jeu.</p>
+            </details>
+            <details class="faq-item">
+              <summary><strong data-i18n="sh_q3">Qu'est-ce que le 128 tick change ?</strong></summary>
+              <p data-i18n="sh_a3">Le serveur calcule la partie plus souvent : les tirs sont enregistrés plus près du moment où tu cliques et les trajectoires de grenades sont plus régulières. Ta connexion reste importante : un bon ping compte autant.</p>
+            </details>
+            <details class="faq-item">
+              <summary><strong data-i18n="sh_q4">Comment fonctionne l'anti-triche ?</strong></summary>
+              <p data-i18n="sh_a4">Le plugin du serveur relève des statistiques de tir pendant le match. Les signalements sont revus par des joueurs fiables dans Vigie, à partir de la demo. Un tricheur confirmé est banni et perd du facteur de confiance.</p>
+            </details>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- ===== LOBBY ===== -->
+    <main class="page" id="lobby" hidden>
+      <div class="lobby-top">
+        <div><div class="label" id="matchId">MATCH</div><h1 class="h1" data-i18n="match_ready">Match prêt</h1></div>
+        <button class="btn ghost" id="leave" data-i18n="leave_lobby">Quitter le lobby</button>
+      </div>
+      <div class="versus">
+        <div class="team a"><div class="team-h"><h3 id="nameA"></h3><span id="avgA"></span></div><div id="teamA"></div></div>
+        <div class="center">
+          <div class="mapbig"><div class="bg" id="mapBg"></div><div class="vs" id="vsTag">5 VS 5</div><div class="mb-info"><span>MAP</span><b id="mapName"></b></div></div>
+          <div class="card veto" id="veto" hidden></div>
+          <div class="card info">
+            <div class="irow"><span data-i18n="server">Serveur</span><b id="srv"></b></div>
+            <div class="irow"><span data-i18n="mode">Mode</span><b id="lMode"></b></div>
+            <div class="irow"><span data-i18n="trust_pool">File trust</span><b id="lPool"></b></div>
+            <div class="irow"><span data-i18n="mm_quality">Qualité du matchmaking</span><b id="lGap"></b></div>
+            <div class="irow"><span data-i18n="win_chance">Chances de victoire</span><b id="winP"></b></div>
+            <div class="stakes" id="stakes"></div>
+            <div class="perf-note" data-i18n="perf_note" hidden></div>
+            <div class="joinbox" id="joinBox" hidden></div>
+            <button class="connect" id="connect" data-i18n="connect">CONNECTER</button>
+            <div class="launch-hint" data-i18n="launch_hint"></div>
+            <div class="ip-row"><div class="ip" id="ip"></div><button class="btn ghost sm ip-copy" id="ipCopy" data-i18n="copy_cmd">Copier</button></div>
+            <div class="ip-hint" data-i18n="ip_open_hint"></div>
+            <div class="sim-row"><button class="sim" id="simBtn" data-i18n-html="simulate"></button><button class="sim afk" id="afkBtn" data-i18n="sim_afk" hidden></button></div>
+          </div>
+        </div>
+        <div class="team b"><div class="team-h"><h3 id="nameB"></h3><span id="avgB"></span></div><div id="teamB"></div></div>
+      <section class="card lchat" id="lchat">
+        <div class="lc-h"><b><svg class="ic" aria-hidden="true" fill="currentColor" viewBox="0 0 512 512"><path d="M60.44 389.17c0 .07 0 .2-.08.38.03-.12.05-.25.08-.38zM439.9 405.6a26.77 26.77 0 01-9.59-2l-56.78-20.13-.42-.17a9.88 9.88 0 00-3.91-.76 10.32 10.32 0 00-3.62.66c-1.38.52-13.81 5.19-26.85 8.77-7.07 1.94-31.68 8.27-51.43 8.27-50.48 0-97.68-19.4-132.89-54.63A183.38 183.38 0 01100.3 215.1a175.9 175.9 0 014.06-37.58c8.79-40.62 32.07-77.57 65.55-104A194.76 194.76 0 01290.3 32c52.21 0 100.86 20 137 56.18 34.16 34.27 52.88 79.33 52.73 126.87a177.86 177.86 0 01-30.3 99.15l-.19.28-.74 1c-.17.23-.34.45-.5.68l-.15.27a21.63 21.63 0 00-1.08 2.09l15.74 55.94a26.42 26.42 0 011.12 7.11 24 24 0 01-24.03 24.03z"/><path d="M299.87 425.39a15.74 15.74 0 00-10.29-8.1c-5.78-1.53-12.52-1.27-17.67-1.65a201.78 201.78 0 01-128.82-58.75A199.21 199.21 0 0186.4 244.16C85 234.42 85 232 85 232a16 16 0 00-28-10.58s-7.88 8.58-11.6 17.19a162.09 162.09 0 0011 150.06C59 393 59 395 58.42 399.5c-2.73 14.11-7.51 39-10 51.91a24 24 0 008 22.92l.46.39A24.34 24.34 0 0072 480a23.42 23.42 0 009-1.79l53.51-20.65a8.05 8.05 0 015.72 0c21.07 7.84 43 12 63.78 12a176 176 0 0074.91-16.66c5.46-2.56 14-5.34 19-11.12a15 15 0 001.95-16.39z"/></svg> <span data-i18n="chat"></span></b>
+          <div class="seg lc-tabs"><button data-ch="team"><span data-i18n="ch_team"></span><i></i></button><button data-ch="all"><span data-i18n="ch_all"></span><i></i></button></div></div>
+        <div class="lc-msgs" id="lcMsgs" aria-live="polite"></div>
+        <form class="lc-form" id="lcForm" autocomplete="off"><span class="lc-to" id="lcTo"></span><input id="lcIn" maxlength="300"><button class="btn primary" type="submit" aria-label="send"><svg class="ic" aria-hidden="true" fill="currentColor" viewBox="0 0 512 512"><path d="M476.59 227.05l-.16-.07L49.35 49.84A23.56 23.56 0 0027.14 52 24.65 24.65 0 0016 72.59v113.29a24 24 0 0019.52 23.57l232.93 43.07a4 4 0 010 7.86L35.53 303.45A24 24 0 0016 327v113.31A23.57 23.57 0 0026.59 460a23.94 23.94 0 0013.22 4 24.55 24.55 0 009.52-1.93L476.4 285.94l.19-.09a32 32 0 000-58.8z"/></svg></button></form>
+      </section>
+      </div>
+    </main>
+
+    <!-- ===== RÉSULTAT ===== -->
+    <main class="page" id="result" hidden>
+      <div class="res-head" id="resHead"></div>
+      <div class="res-grid">
+        <div class="card" id="eloCard"></div>
+        <div class="card" id="mvpCard"></div>
+      </div>
+      <div class="card board a"><div class="bh"><h3 id="bnA"></h3><span class="pill" id="bsA"></span></div><div class="tbl-wrap"><table class="tbl" id="boardA"></table></div></div>
+      <div class="card board b"><div class="bh"><h3 id="bnB"></h3><span class="pill" id="bsB"></span></div><div class="tbl-wrap"><table class="tbl" id="boardB"></table></div></div>
+      <div class="card review" id="reviewCard"></div>
+      <div class="res-actions">
+        <button class="find" id="again"><span class="fl" data-i18n="play_again">REJOUER</span></button>
+        <button class="btn" id="toProfile" data-i18n="see_profile">Voir mon profil</button>
+      </div>
+    </main>
+
+    <!-- ===== PROFIL ===== -->
+    <main class="page" id="profile" hidden></main>
+
+    <!-- ===== CASIER (SKINS) ===== -->
+    <main class="page" id="loadout" hidden></main>
+
+    <!-- ===== BOUTIQUE ===== -->
+    <main class="page" id="shop" hidden></main>
+
+    <!-- ===== COMPÉTITION : ligues, tournois, équipes ===== -->
+    <main class="page" id="settings" hidden></main>
+    <main class="page" id="vigie" hidden></main>
+    <main class="page" id="influencer" hidden></main>
+    <main class="page" id="support" hidden></main>
+    <main class="page" id="compet" hidden><div id="competBody"></div><div id="leagues" class="lg-embed" hidden></div></main>
+
+    <!-- ===== PREMIUM ===== -->
+    <main class="page" id="premium" hidden></main>
+
+    <!-- ===== CLASSEMENT ===== -->
+    <main class="page" id="ranking" hidden></main>
+    <main class="page" id="duel" hidden></main>
+    <main class="page" id="mapvote" hidden></main>
+    <main class="page" id="clans" hidden></main>
+
+    <!-- ===== LIGUES & TEAMS ===== -->
+
+    <!-- ===== AMIS ===== -->
+    <main class="page" id="friends" hidden></main>
+<!--FOOTER-->
+<footer class="site-foot">
+  <div class="sf-in">
+    <div class="sf-brand">
+      <a class="sf-logo" href="/"><svg class="tr-mark" viewBox="9 9 46 46" aria-hidden="true"><path d="M50.61 37.34A19.36 19.36 0 0 1 37.34 50.61M26.66 50.61A19.36 19.36 0 0 1 13.39 37.34M13.39 26.66A19.36 19.36 0 0 1 26.66 13.39M37.34 13.39A19.36 19.36 0 0 1 50.61 26.66" fill="none" stroke="currentColor" stroke-width="3.52"/><rect x="21.12" y="22.4" width="21.76" height="4.48" rx="1.12" fill="currentColor"/><rect x="29.28" y="22.4" width="5.44" height="21.76" rx="1.36" fill="currentColor"/></svg><span>TICK<b>RATE</b></span></a>
+      <p data-i18n="ft_tag">Matchmaking CS:GO legacy gratuit sur serveurs 128 tick, à Francfort.</p>
+    </div>
+    <nav class="sf-col" aria-label="Jouer"><h4 data-i18n="ft_play">Jouer</h4><a href="/" data-i18n="ft_l_play">Lancer un match</a><a href="/#/duel" data-i18n="ft_l_duel">Arène 1v1</a><a href="/#/mapvote" data-i18n="ft_l_vote">Vote des maps</a><a href="/#/clans" data-i18n="ft_l_clans">Clans</a><a href="/#/ranking" data-i18n="ft_l_rank">Classement</a><a href="/serveurs-csgo" data-i18n="ft_l_list">Liste des serveurs</a></nav>
+    <nav class="sf-col" aria-label="Guides"><h4 data-i18n="ft_guides">Guides</h4><a href="/serveur-csgo" data-i18n="ft_g_srv">Serveur CS GO 128 tick</a><a href="/tickrate-csgo" data-i18n="ft_g_tick">Tickrate : 64 ou 128 tick</a><a href="/csgo-legacy" data-i18n="ft_g_legacy">CS:GO legacy en 2026</a><a href="/commandes-csgo" data-i18n="ft_g_cmd">Commandes CS GO</a><a href="/actualites" data-i18n="ft_g_news">Actualités</a><a href="/guides" data-i18n="ft_g_all">Tous les guides</a></nav>
+    <nav class="sf-col" aria-label="Communauté"><h4 data-i18n="ft_comm">Communauté</h4><a href="https://discord.gg/KNXbGrTDj" target="_blank" rel="noopener">Discord</a><a href="https://www.instagram.com/tickrate.eu/" target="_blank" rel="me noopener">Instagram</a><a href="https://www.tiktok.com/@tickrate.eu" target="_blank" rel="me noopener">TikTok</a><a href="/#/support" data-i18n="ft_c_support">Support</a></nav>
+  </div>
+  <div class="sf-bottom">
+    <span>© 2026 TICKRATE · tickrate.eu</span>
+    <a href="/mentions-legales" data-i18n="ft_legal">Mentions légales</a><a href="/confidentialite" data-i18n="ft_privacy">Confidentialité</a><a href="/en/guides" hreflang="en" lang="en">English</a>
+  </div>
+  <p class="sf-valve" data-i18n="ft_valve">TICKRATE n'est pas affilié à Valve Corporation. Counter-Strike et CS:GO sont des marques de Valve Corporation.</p>
+</footer>
+<!--/FOOTER-->
+  </div>
+</div>
+
+<!-- ===== MATCH TROUVÉ ===== -->
+<div class="overlay" id="found">
+  <div class="modal found">
+    <div class="found-tag" data-i18n="get_ready"></div>
+    <div class="found-t" data-i18n="match_found"></div>
+    <div class="found-s" id="fMode"></div>
+    <div class="ring">
+      <svg viewBox="0 0 124 124"><circle class="bgc" cx="62" cy="62" r="52"/><circle class="fg" id="ringFg" cx="62" cy="62" r="52"/></svg>
+      <div class="num" id="ringNum">20</div>
+    </div>
+    <div class="accepts" id="accepts"></div>
+    <div class="f-status" id="fStatus"></div>
+    <button class="accept-btn" id="acceptBtn" data-i18n="accept"></button>
+    <button class="decline-btn" id="declineBtn" data-i18n="decline"></button>
+  </div>
+</div>
+
+<!-- ===== CONFIRMATION ===== -->
+<div class="overlay" id="confirmModal" role="dialog" aria-modal="true" aria-labelledby="cfTitle">
+  <div class="modal">
+    <div class="m-h"><h3 id="cfTitle" data-i18n="confirm_title">Confirmation</h3><button class="x2" data-close aria-label="Fermer"><svg class="ic" aria-hidden="true" fill="currentColor" viewBox="0 0 512 512" width="16" height="16"><path d="M289.94 256l95-95A24 24 0 00351 127l-95 95-95-95a24 24 0 00-34 34l95 95-95 95a24 24 0 1034 34l95-95 95 95a24 24 0 0034-34z"/></svg></button></div>
+    <div class="warn-txt" id="cfText"></div>
+    <div class="m-f"><button class="btn ghost" data-close id="cfNo" data-i18n="cancel">Annuler</button><button class="btn danger" id="cfYes" data-i18n="confirm_btn">Confirmer</button></div>
+  </div>
+</div>
+
+<!-- ===== PAIEMENT (démo) ===== -->
+<div class="overlay" id="checkoutModal">
+  <div class="modal">
+    <div class="m-h"><h3 data-i18n="checkout"></h3><button class="x2" data-close aria-label="Fermer"><svg class="ic" aria-hidden="true" fill="currentColor" viewBox="0 0 512 512" width="16" height="16"><path d="M289.94 256l95-95A24 24 0 00351 127l-95 95-95-95a24 24 0 00-34 34l95 95-95 95a24 24 0 1034 34l95-95 95 95a24 24 0 0034-34z"/></svg></button></div>
+    <div id="coBody"></div>
+    <div class="m-f"><button class="btn ghost" data-close data-i18n="cancel"></button><button class="btn primary" id="coPay" data-i18n="pay"></button></div>
+  </div>
+</div>
+
+<div class="overlay" id="stkModal">
+  <div class="modal stk-modal">
+    <div class="m-h"><h3 data-i18n="stk_pick"></h3><button class="x2" data-close aria-label="Fermer"><svg class="ic" aria-hidden="true" fill="currentColor" viewBox="0 0 512 512" width="16" height="16"><path d="M289.94 256l95-95A24 24 0 00351 127l-95 95-95-95a24 24 0 00-34 34l95 95-95 95a24 24 0 1034 34l95-95 95 95a24 24 0 0034-34z"/></svg></button></div>
+    <div id="stkBody"></div>
+  </div>
+</div>
+
+<!-- ===== REPORT ===== -->
+<div class="overlay" id="reportModal">
+  <div class="modal">
+    <div class="m-h"><h3 data-i18n="report_title"></h3><button class="x2" data-close aria-label="Fermer"><svg class="ic" aria-hidden="true" fill="currentColor" viewBox="0 0 512 512" width="16" height="16"><path d="M289.94 256l95-95A24 24 0 00351 127l-95 95-95-95a24 24 0 00-34 34l95 95-95 95a24 24 0 1034 34l95-95 95 95a24 24 0 0034-34z"/></svg></button></div>
+    <div class="rep-who" id="repWho"></div>
+    <div class="reasons" id="repReasons"></div>
+    <textarea class="note" id="repNote" data-i18n-ph="report_note_ph"></textarea>
+    <div class="m-hint" data-i18n="report_hint"></div>
+    <div class="m-f"><button class="btn ghost" data-close data-i18n="cancel"></button><button class="btn danger" id="repSend" data-i18n="send_report"></button></div>
+  </div>
+</div>
+
+<!-- ===== PERSONNALISATION ===== -->
+<div class="overlay" id="editModal">
+  <div class="modal wide">
+    <div class="m-h"><h3 data-i18n="customize"></h3><button class="x2" data-close aria-label="Fermer"><svg class="ic" aria-hidden="true" fill="currentColor" viewBox="0 0 512 512" width="16" height="16"><path d="M289.94 256l95-95A24 24 0 00351 127l-95 95-95-95a24 24 0 00-34 34l95 95-95 95a24 24 0 1034 34l95-95 95 95a24 24 0 0034-34z"/></svg></button></div>
+    <div class="ed-prev"><div class="ed-bn" id="edBanner"></div><div class="pa" id="edAv"></div></div>
+    <div class="ed-sec">
+      <label class="label" for="edNameIn"><span data-i18n="au_user">Pseudo</span><span class="ed-cd-pill" id="edNameBadge"></span></label>
+      <div class="ed-name-row">
+        <input class="ed-name-in" id="edNameIn" aria-label="Pseudo" maxlength="16" autocomplete="off" spellcheck="false">
+      </div>
+      <div class="ed-name-msg" id="edNameMsg"></div>
+    </div>
+    <div class="ed-sec">
+      <div class="label" data-i18n="avatar_l"></div>
+      <div class="ed-opts" id="edAvOpts"></div>
+    </div>
+    <div class="ed-sec">
+      <div class="label" data-i18n="banner_l"></div>
+      <div class="ed-opts" id="edBnOpts"></div>
+    </div>
+    <div class="m-hint" data-i18n="upload_hint"></div>
+    <div class="m-f"><button class="btn ghost" id="edReset" data-i18n="reset"></button><span class="grow"></span><button class="btn ghost" data-close data-i18n="cancel"></button><button class="btn primary" id="edSave" data-i18n="save"></button></div>
+  </div>
+</div>
+
+<nav class="mnav" aria-label="Navigation">
+  <button data-view="play"><svg class="ic" aria-hidden="true" fill="currentColor" viewBox="0 0 512 512"><path d="M261.56 101.28a8 8 0 00-11.06 0L66.4 277.15a8 8 0 00-2.47 5.79L63.9 448a32 32 0 0032 32H192a16 16 0 0016-16V328a8 8 0 018-8h80a8 8 0 018 8v136a16 16 0 0016 16h96.06a32 32 0 0032-32V282.94a8 8 0 00-2.47-5.79z"/><path d="M490.91 244.15l-74.8-71.56V64a16 16 0 00-16-16h-48a16 16 0 00-16 16v32l-57.92-55.38C272.77 35.14 264.71 32 256 32c-8.68 0-16.72 3.14-22.14 8.63l-212.7 203.5c-6.22 6-7 15.87-1.34 22.37A16 16 0 0043 267.56L250.5 69.28a8 8 0 0111.06 0l207.52 198.28a16 16 0 0022.59-.44c6.14-6.36 5.63-16.86-.76-22.97z"/></svg><span data-i18n="nav_home"></span></button>
+  <button data-view="compet"><svg class="ic" aria-hidden="true" fill="currentColor" viewBox="0 0 512 512"><path d="M464 80h-60.1a4 4 0 01-4-4V63.92a32 32 0 00-32-31.92l-223.79.26a32 32 0 00-31.94 31.93V76a4 4 0 01-4 4H48a16 16 0 00-16 16v16c0 54.53 30 112.45 76.52 125.35a7.82 7.82 0 015.55 5.9c5.77 26.89 23.52 52.5 51.41 73.61 20.91 15.83 45.85 27.5 68.27 32.48a8 8 0 016.25 7.8V444a4 4 0 01-4 4h-59.55c-8.61 0-16 6.62-16.43 15.23A16 16 0 00176 480h159.55c8.61 0 16-6.62 16.43-15.23A16 16 0 00336 448h-60a4 4 0 01-4-4v-86.86a8 8 0 016.25-7.8c22.42-5 47.36-16.65 68.27-32.48 27.89-21.11 45.64-46.72 51.41-73.61a7.82 7.82 0 015.55-5.9C450 224.45 480 166.53 480 112V96a16 16 0 00-16-16zM112 198.22a4 4 0 01-6 3.45c-10.26-6.11-17.75-15.37-22.14-21.89-11.91-17.69-19-40.67-19.79-63.63a4 4 0 014-4.15h40a4 4 0 014 4c-.02 27.45-.07 58.87-.07 82.22zm316.13-18.44c-4.39 6.52-11.87 15.78-22.13 21.89a4 4 0 01-6-3.46c0-26.51 0-56.63-.05-82.21a4 4 0 014-4h40a4 4 0 014 4.15c-.79 22.96-7.9 45.94-19.81 63.63z"/></svg><span data-i18n="nav_comp"></span></button>
+  <button data-view="loadout"><svg class="ic" aria-hidden="true" fill="currentColor" viewBox="0 0 512 512"><path d="M440.9 136.3a4 4 0 000-6.91L288.16 40.65a64.14 64.14 0 00-64.33 0L71.12 129.39a4 4 0 000 6.91L254 243.88a4 4 0 004.06 0zM54 163.51a4 4 0 00-6 3.49v173.89a48 48 0 0023.84 41.39L234 479.51a4 4 0 006-3.46V274.3a4 4 0 00-2-3.46zM272 275v201a4 4 0 006 3.46l162.15-97.23A48 48 0 00464 340.89V167a4 4 0 00-6-3.45l-184 108a4 4 0 00-2 3.45z"/></svg><span data-i18n="nav_loadout"></span></button>
+  <button data-view="friends"><svg class="ic" aria-hidden="true" fill="currentColor" viewBox="0 0 512 512"><path d="M336 256c-20.56 0-40.44-9.18-56-25.84-15.13-16.25-24.37-37.92-26-61-1.74-24.62 5.77-47.26 21.14-63.76S312 80 336 80c23.83 0 45.38 9.06 60.7 25.52 15.47 16.62 23 39.22 21.26 63.63-1.67 23.11-10.9 44.77-26 61C376.44 246.82 356.57 256 336 256zm66-88zM467.83 432H204.18a27.71 27.71 0 01-22-10.67 30.22 30.22 0 01-5.26-25.79c8.42-33.81 29.28-61.85 60.32-81.08C264.79 297.4 299.86 288 336 288c36.85 0 71 9 98.71 26.05 31.11 19.13 52 47.33 60.38 81.55a30.27 30.27 0 01-5.32 25.78A27.68 27.68 0 01467.83 432zM147 260c-35.19 0-66.13-32.72-69-72.93-1.42-20.6 5-39.65 18-53.62 12.86-13.83 31-21.45 51-21.45s38 7.66 50.93 21.57c13.1 14.08 19.5 33.09 18 53.52-2.87 40.2-33.8 72.91-68.93 72.91zM212.66 291.45c-17.59-8.6-40.42-12.9-65.65-12.9-29.46 0-58.07 7.68-80.57 21.62-25.51 15.83-42.67 38.88-49.6 66.71a27.39 27.39 0 004.79 23.36A25.32 25.32 0 0041.72 400h111a8 8 0 007.87-6.57c.11-.63.25-1.26.41-1.88 8.48-34.06 28.35-62.84 57.71-83.82a8 8 0 00-.63-13.39c-1.57-.92-3.37-1.89-5.42-2.89z"/></svg><span data-i18n="nav_friends"></span></button>
+</nav>
+
+<!-- ===== CONNEXION / INSCRIPTION ===== -->
+<div class="auth" id="auth" hidden>
+  <div class="auth-slider-bg" id="authSliderBg">
+    <div class="auth-bg-layer layer-a" id="authBgLayerA"></div>
+    <div class="auth-bg-layer layer-b" id="authBgLayerB"></div>
+    <div class="auth-bg-overlay"></div>
+    <div class="auth-bg-particles"></div>
+  </div>
+  <div class="auth-art" id="authArt">
+    <canvas class="auth-cubes" id="authCubes" aria-hidden="true"></canvas>
+    <div class="auth-art-header">
+      <div class="auth-brand"><span class="brand-logo"><svg class="tr-mark" viewBox="9 9 46 46" aria-hidden="true"><path d="M50.61 37.34A19.36 19.36 0 0 1 37.34 50.61M26.66 50.61A19.36 19.36 0 0 1 13.39 37.34M13.39 26.66A19.36 19.36 0 0 1 26.66 13.39M37.34 13.39A19.36 19.36 0 0 1 50.61 26.66" fill="none" stroke="currentColor" stroke-width="3.52"/><rect x="21.12" y="22.4" width="21.76" height="4.48" rx="1.12" fill="currentColor"/><rect x="29.28" y="22.4" width="5.44" height="21.76" rx="1.36" fill="currentColor"/></svg><svg class="tr-mark tr-mark-lit" viewBox="9 9 46 46" aria-hidden="true"><path d="M50.61 37.34A19.36 19.36 0 0 1 37.34 50.61M26.66 50.61A19.36 19.36 0 0 1 13.39 37.34M13.39 26.66A19.36 19.36 0 0 1 26.66 13.39M37.34 13.39A19.36 19.36 0 0 1 50.61 26.66" fill="none" stroke="currentColor" stroke-width="3.52"/><rect x="21.12" y="22.4" width="21.76" height="4.48" rx="1.12" fill="currentColor"/><rect x="29.28" y="22.4" width="5.44" height="21.76" rx="1.36" fill="currentColor"/></svg></span><span class="brand-word">TICK<b>RATE</b><span class="brand-lit" aria-hidden="true">TICK<b>RATE</b></span></span></div>
+    </div>
+    <div class="auth-vpresentation">
+      <div class="auth-vrail" id="authVRail" aria-label="Navigation des fonctionnalités"></div>
+      <div class="auth-vslider-viewport" id="authSliderViewport"></div>
+    </div>
+    <div class="auth-art-footer">
+      <button type="button" class="auth-scroll-prompt" id="authScrollDown" title="Descendre à la fonctionnalité suivante" data-i18n-title="feat_next">
+        <span class="scroll-mouse-icon"><i class="scroll-wheel"></i></span>
+        <span class="scroll-prompt-txt" data-i18n="scroll_down">SCROLL VERS LE BAS</span>
+        <svg class="ic scroll-chevron" aria-hidden="true" fill="currentColor" viewBox="0 0 512 512"><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="48" d="M112 184l144 144 144-144"/></svg>
+      </button>
+      <div class="auth-slide-counter">
+        <span class="cur-num" id="authCurNum">01</span>
+        <span class="counter-sep">/</span>
+        <span class="total-num">05</span>
+      </div>
+    </div>
+    <div class="auth-foot" id="authMode" style="display:none"></div>
+  </div>
+  <div class="auth-side">
+    <div class="auth-langs" id="authLangs"></div>
+    <div class="auth-card">
+      <div class="auth-tabs"><button data-atab="login" data-i18n="au_login"></button><button data-atab="register" data-i18n="au_register"></button></div>
+
+      <form class="auth-form" id="fLogin" novalidate>
+        <h2 data-i18n="au_welcome"></h2>
+        <div class="af"><label for="liLogin" data-i18n="au_id"></label><input id="liLogin" name="login" autocomplete="username" maxlength="254" required></div>
+        <div class="af"><label for="liPass" data-i18n="au_pw"></label><div class="pw"><input id="liPass" type="password" name="password" autocomplete="current-password" maxlength="128" required><button type="button" class="pw-eye" data-eye tabindex="-1" aria-label="Afficher ou masquer le mot de passe"><svg class="ic" aria-hidden="true" fill="currentColor" viewBox="0 0 512 512"><circle cx="256" cy="256" r="64"/><path d="M490.84 238.6c-26.46-40.92-60.79-75.68-99.27-100.53C349 110.55 302 96 255.66 96c-42.52 0-84.33 12.15-124.27 36.11-40.73 24.43-77.63 60.12-109.68 106.07a31.92 31.92 0 00-.64 35.54c26.41 41.33 60.4 76.14 98.28 100.65C162 402 207.9 416 255.66 416c46.71 0 93.81-14.43 136.2-41.72 38.46-24.77 72.72-59.66 99.08-100.92a32.2 32.2 0 00-.1-34.76zM256 352a96 96 0 1196-96 96.11 96.11 0 01-96 96z"/></svg></button></div></div>
+        <div class="af-row"><label class="chk"><input type="checkbox" id="liRem" checked> <span data-i18n="au_remember"></span></label><button type="button" class="lnk" id="forgot" data-i18n="au_forgot"></button></div>
+        <div class="af-err" id="liErr" role="alert"></div>
+        <button class="btn primary af-go" type="submit" data-i18n="au_login_btn"></button>
+        <div class="af-or"><span data-i18n="au_or"></span></div>
+        <div class="af-social-btns">
+          <button type="button" class="btn af-google" data-google-auth><svg viewBox="0 0 24 24"><path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.8-2.4 3.65v3h3.88c2.27-2.09 3.665-5.17 3.665-9.09z"/><path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.28v3.09C3.3 21.44 7.37 24 12 24z"/><path fill="#FBBC05" d="M5.28 14.32c-.25-.72-.38-1.49-.38-2.32s.13-1.6.38-2.32V6.59H1.28C.46 8.21 0 10.05 0 12s.46 3.79 1.28 5.41l4-3.09z"/><path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.37 0 3.3 2.56 1.28 6.59l4 3.09c.95-2.83 3.6-4.93 6.72-4.93z"/></svg><span data-i18n="google_login"></span></button>
+          <button type="button" class="btn af-steam" data-steam-auth><svg class="ic" aria-hidden="true" fill="currentColor" viewBox="0 0 512 512"><path d="M478.8 208.2a36 36 0 11-36-36 36 36 0 0136 36zM442.6 139a69.42 69.42 0 00-69.4 68.7l-43.2 62a48.86 48.86 0 00-5.4-.3 51.27 51.27 0 00-26.4 7.3L102.4 198a51.8 51.8 0 10-50.6 62.9 51.27 51.27 0 0026.4-7.3L274 332.2a51.76 51.76 0 00102.1-5.9l66.5-48.6a69.35 69.35 0 100-138.7zm0 22.9a46.45 46.45 0 11-46.5 46.5 46.54 46.54 0 0146.5-46.5zm-390.8 9a38.18 38.18 0 0133.7 20.2l-18.9-7.6v.1a30.21 30.21 0 00-22.6 56v.1l16.1 6.4a36.8 36.8 0 01-8.2.9 38.05 38.05 0 01-.1-76.1zm272.8 112.2a38.1 38.1 0 11-33.7 55.9c6.3 2.5 12.5 5 18.8 7.6a30.27 30.27 0 1022.5-56.2l-15.9-6.4a46.83 46.83 0 018.3-.9z"/></svg><span data-i18n="steam_login"></span></button>
+        </div>
+        <div class="af-sw"><span data-i18n="au_no_acc"></span> <button type="button" class="lnk" data-atab="register" data-i18n="au_register"></button></div>
+      </form>
+
+      <form class="auth-form" id="fReg" novalidate hidden>
+        <h2 data-i18n="au_create"></h2>
+        <div class="af"><label for="reUser"><span data-i18n="au_user"></span><small data-i18n="au_user_h"></small></label><input id="reUser" name="username" autocomplete="username" maxlength="16" required></div>
+        <div class="af"><label for="reMail" data-i18n="au_mail"></label><input id="reMail" type="email" name="email" autocomplete="email" maxlength="254" required></div>
+        <div class="af"><label for="rePass" data-i18n="au_pw"></label><div class="pw"><input id="rePass" type="password" name="password" autocomplete="new-password" maxlength="128" required><button type="button" class="pw-eye" data-eye tabindex="-1" aria-label="Afficher ou masquer le mot de passe"><svg class="ic" aria-hidden="true" fill="currentColor" viewBox="0 0 512 512"><circle cx="256" cy="256" r="64"/><path d="M490.84 238.6c-26.46-40.92-60.79-75.68-99.27-100.53C349 110.55 302 96 255.66 96c-42.52 0-84.33 12.15-124.27 36.11-40.73 24.43-77.63 60.12-109.68 106.07a31.92 31.92 0 00-.64 35.54c26.41 41.33 60.4 76.14 98.28 100.65C162 402 207.9 416 255.66 416c46.71 0 93.81-14.43 136.2-41.72 38.46-24.77 72.72-59.66 99.08-100.92a32.2 32.2 0 00-.1-34.76zM256 352a96 96 0 1196-96 96.11 96.11 0 01-96 96z"/></svg></button></div>
+          <div class="pw-meter"><i id="pwBar"></i></div><div class="pw-rules" id="pwRules"></div></div>
+        <div class="af"><label for="rePass2" data-i18n="au_pw2"></label><input id="rePass2" type="password" autocomplete="new-password" maxlength="128" required></div>
+        <label class="chk af-cgu"><input type="checkbox" id="reCgu"> <span data-i18n-html="au_cgu_html"></span></label>
+        <div class="af-err" id="reErr" role="alert"></div>
+        <button class="btn primary af-go" type="submit" data-i18n="au_create_btn"></button>
+        <div class="af-or"><span data-i18n="au_or"></span></div>
+        <div class="af-social-btns">
+          <button type="button" class="btn af-google" data-google-auth><svg viewBox="0 0 24 24"><path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.8-2.4 3.65v3h3.88c2.27-2.09 3.665-5.17 3.665-9.09z"/><path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.28v3.09C3.3 21.44 7.37 24 12 24z"/><path fill="#FBBC05" d="M5.28 14.32c-.25-.72-.38-1.49-.38-2.32s.13-1.6.38-2.32V6.59H1.28C.46 8.21 0 10.05 0 12s.46 3.79 1.28 5.41l4-3.09z"/><path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.37 0 3.3 2.56 1.28 6.59l4 3.09c.95-2.83 3.6-4.93 6.72-4.93z"/></svg><span data-i18n="au_google_reg"></span></button>
+          <button type="button" class="btn af-steam" data-steam-auth><svg class="ic" aria-hidden="true" fill="currentColor" viewBox="0 0 512 512"><path d="M478.8 208.2a36 36 0 11-36-36 36 36 0 0136 36zM442.6 139a69.42 69.42 0 00-69.4 68.7l-43.2 62a48.86 48.86 0 00-5.4-.3 51.27 51.27 0 00-26.4 7.3L102.4 198a51.8 51.8 0 10-50.6 62.9 51.27 51.27 0 0026.4-7.3L274 332.2a51.76 51.76 0 00102.1-5.9l66.5-48.6a69.35 69.35 0 100-138.7zm0 22.9a46.45 46.45 0 11-46.5 46.5 46.54 46.54 0 0146.5-46.5zm-390.8 9a38.18 38.18 0 0133.7 20.2l-18.9-7.6v.1a30.21 30.21 0 00-22.6 56v.1l16.1 6.4a36.8 36.8 0 01-8.2.9 38.05 38.05 0 01-.1-76.1zm272.8 112.2a38.1 38.1 0 11-33.7 55.9c6.3 2.5 12.5 5 18.8 7.6a30.27 30.27 0 1022.5-56.2l-15.9-6.4a46.83 46.83 0 018.3-.9z"/></svg><span data-i18n="au_steam_reg"></span></button>
+        </div>
+        <div class="af-sw"><span data-i18n="au_have_acc"></span> <button type="button" class="lnk" data-atab="login" data-i18n="au_login"></button></div>
+      </form>
+
+      <div class="auth-form auth-verify" id="fVerify" hidden>
+        <div class="verify-icon">
+          <svg class="ic" aria-hidden="true" fill="currentColor" viewBox="0 0 512 512"><path d="M424 80H88a56.06 56.06 0 00-56 56v240a56.06 56.06 0 0056 56h336a56.06 56.06 0 0056-56V136a56.06 56.06 0 00-56-56zm-14.18 92.63l-144 112a16 16 0 01-19.64 0l-144-112a16 16 0 1119.64-25.26L256 251.73l134.18-104.36a16 16 0 0119.64 25.26z"/></svg>
+        </div>
+        <h2 data-i18n="au_verify_title">Vérifie ton adresse e-mail</h2>
+        <p class="verify-desc" id="verifyHint" data-i18n="au_verify_desc">Un e-mail de confirmation vient d'être envoyé à ta boîte de réception. Clique sur le lien dans le message pour activer ton compte (pense à vérifier tes spams).</p>
+        <div class="verify-target-box"><span class="verify-mail-icon"><svg class="ic ico" aria-hidden="true" fill="currentColor" viewBox="0 0 512 512" width="18" height="18"><path d="M424 80H88a56.06 56.06 0 00-56 56v240a56.06 56.06 0 0056 56h336a56.06 56.06 0 0056-56V136a56.06 56.06 0 00-56-56zm-14.18 92.63l-144 112a16 16 0 01-19.64 0l-144-112a16 16 0 1119.64-25.26L256 251.73l134.18-104.36a16 16 0 0119.64 25.26z"/></svg></span><b id="verifyTargetMail">...</b></div>
+        <div class="verify-alert" id="verifyAlert" role="alert" hidden></div>
+        <div class="verify-actions">
+          <button class="btn primary af-go" type="button" id="btnVerifyCheck" data-i18n="au_verify_check">J'ai validé mon e-mail</button>
+          <button class="btn outline af-go" type="button" id="btnVerifyResend" data-i18n="au_verify_resend">Renvoyer l'e-mail</button>
+        </div>
+        <div class="verify-manual-box" style="margin-top:14px;padding-top:14px;border-top:1px solid var(--line);text-align:left">
+          <label for="verifyManualCode" style="display:block;font-size:12px;color:var(--muted);margin-bottom:6px" data-i18n="au_verify_paste_label">Ou colle le lien de confirmation reçu :</label>
+          <div style="display:flex;gap:6px">
+            <input id="verifyManualCode" style="flex:1;background:var(--panel);border:1px solid var(--line);color:var(--text);border-radius:6px;padding:8px 10px;font-size:13px" placeholder="https://... ou code" data-i18n-ph="au_verify_paste_ph">
+            <button class="btn primary sm" type="button" id="btnVerifyManual" style="padding:0 14px" data-i18n="au_verify_manual_btn">Valider</button>
+          </div>
+        </div>
+        <div class="af-sw"><button type="button" class="lnk" id="btnVerifyBack" data-i18n="au_verify_back">Se connecter avec un autre compte</button></div>
+      </div>
+      <div class="auth-legal">
+        <a href="/mentions-legales" data-i18n="lg_legal">Mentions légales</a>
+        <span>·</span>
+        <a href="/confidentialite" data-i18n="lg_privacy">Politique de confidentialité</a>
+        <span>·</span>
+        <a href="https://discord.gg/KNXbGrTDj" target="_blank" rel="noopener noreferrer">Discord</a>
+        <span>·</span>
+        <a href="https://www.instagram.com/tickrate.eu/" target="_blank" rel="me noopener">Instagram</a>
+        <span>·</span>
+        <a href="https://www.tiktok.com/@tickrate.eu" target="_blank" rel="me noopener">TikTok</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="dock" id="dock">
+  <div class="dk-win" id="dkWin" hidden></div>
+  <div class="dk-list" id="dkList" hidden></div>
+  <button class="dk-btn" id="dkBtn" data-i18n-title="messages"><svg class="ic" aria-hidden="true" fill="currentColor" viewBox="0 0 512 512"><path d="M60.44 389.17c0 .07 0 .2-.08.38.03-.12.05-.25.08-.38zM439.9 405.6a26.77 26.77 0 01-9.59-2l-56.78-20.13-.42-.17a9.88 9.88 0 00-3.91-.76 10.32 10.32 0 00-3.62.66c-1.38.52-13.81 5.19-26.85 8.77-7.07 1.94-31.68 8.27-51.43 8.27-50.48 0-97.68-19.4-132.89-54.63A183.38 183.38 0 01100.3 215.1a175.9 175.9 0 014.06-37.58c8.79-40.62 32.07-77.57 65.55-104A194.76 194.76 0 01290.3 32c52.21 0 100.86 20 137 56.18 34.16 34.27 52.88 79.33 52.73 126.87a177.86 177.86 0 01-30.3 99.15l-.19.28-.74 1c-.17.23-.34.45-.5.68l-.15.27a21.63 21.63 0 00-1.08 2.09l15.74 55.94a26.42 26.42 0 011.12 7.11 24 24 0 01-24.03 24.03z"/><path d="M299.87 425.39a15.74 15.74 0 00-10.29-8.1c-5.78-1.53-12.52-1.27-17.67-1.65a201.78 201.78 0 01-128.82-58.75A199.21 199.21 0 0186.4 244.16C85 234.42 85 232 85 232a16 16 0 00-28-10.58s-7.88 8.58-11.6 17.19a162.09 162.09 0 0011 150.06C59 393 59 395 58.42 399.5c-2.73 14.11-7.51 39-10 51.91a24 24 0 008 22.92l.46.39A24.34 24.34 0 0072 480a23.42 23.42 0 009-1.79l53.51-20.65a8.05 8.05 0 015.72 0c21.07 7.84 43 12 63.78 12a176 176 0 0074.91-16.66c5.46-2.56 14-5.34 19-11.12a15 15 0 001.95-16.39z"/></svg><b id="dkCount" hidden></b></button>
+</div>
+
+<div class="npanel" id="npanel" hidden>
+  <div class="np-h"><b data-i18n="notifications"></b><button class="lnk" id="nRead" data-i18n="n_read_all"></button></div>
+  <div class="np-list" id="nList"></div>
+  <div class="np-f"><button class="lnk" id="nClear" data-i18n="n_clear"></button></div>
+</div>
+
+<div class="umenu" id="umenu" hidden>
+  <div class="um-h"><b id="umName"></b><small id="umMail"></small></div>
+  <button data-um="profile"><span data-i18n="nav_profile"></span></button>
+  <button data-um="account"><span data-i18n="nav_settings"></span></button>
+  <button data-um="influencer"><span data-i18n="inf_nav"></span></button>
+  <div class="um-legal"><a href="/mentions-legales" data-i18n="lg_legal">Mentions légales</a><a href="/confidentialite" data-i18n="lg_privacy">Confidentialité</a></div>
+  <button data-um="logout" class="danger"><span data-i18n="au_logout"></span></button>
+</div>
+
+<div class="overlay" id="tnModal">
+  <div class="modal wide">
+    <div class="m-h"><h3 data-i18n="tn_create"></h3><button class="x2" data-close aria-label="Fermer"><svg class="ic" aria-hidden="true" fill="currentColor" viewBox="0 0 512 512" width="16" height="16"><path d="M289.94 256l95-95A24 24 0 00351 127l-95 95-95-95a24 24 0 00-34 34l95 95-95 95a24 24 0 1034 34l95-95 95 95a24 24 0 0034-34z"/></svg></button></div>
+    <form id="tnForm" novalidate></form>
+  </div>
+</div>
+
+<div class="overlay" id="accModal">
+  <div class="modal">
+    <div class="m-h"><h3 data-i18n="au_settings"></h3><button class="x2" data-close aria-label="Fermer"><svg class="ic" aria-hidden="true" fill="currentColor" viewBox="0 0 512 512" width="16" height="16"><path d="M289.94 256l95-95A24 24 0 00351 127l-95 95-95-95a24 24 0 00-34 34l95 95-95 95a24 24 0 1034 34l95-95 95 95a24 24 0 0034-34z"/></svg></button></div>
+    <div id="accBody"></div>
+  </div>
+</div>
+
+<div class="overlay" id="plModal" role="dialog" aria-modal="true" aria-labelledby="plModalTitle">
+  <div class="modal pl-modal">
+    <div class="m-h"><h3 id="plModalTitle" data-i18n="pl_modal_title">Inviter dans l'équipe</h3><button class="x2" data-close aria-label="Fermer"><svg class="ic" aria-hidden="true" fill="currentColor" viewBox="0 0 512 512" width="16" height="16"><path d="M289.94 256l95-95A24 24 0 00351 127l-95 95-95-95a24 24 0 00-34 34l95 95-95 95a24 24 0 1034 34l95-95 95 95a24 24 0 0034-34z"/></svg></button></div>
+    <div id="plBody"></div>
+  </div>
+</div>
+
+<div class="lvup" id="lvup" aria-live="assertive"></div>
+<div class="party-invite-banner" id="partyInviteBanner" hidden></div>
+<div class="toast" id="toast"></div>
+
+<script defer src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script defer src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+<script defer src="skins-data.js?v=2.49.0"></script>
+<script defer src="stickers-data.js?v=2.49.0"></script>
+<script defer src="cases-data.js?v=2.49.0"></script>
+<script defer src="eco-core.js?v=2.57.0"></script>
+<script defer src="maps/radar-data.js?v=2.49.0"></script>
+<script defer src="js/ranks.js?v=3.6.0"></script>
+<script defer src="js/core.js?v=3.6.0"></script>
+<script defer src="js/i18n-extra.js?v=3.6.0"></script>
+<script defer src="js/seo-hub.js?v=3.6.0"></script>
+<script defer src="js/i18n-modes.js?v=3.6.0"></script>
+<script defer src="js/i18n-clans.js?v=3.6.0"></script>
+<script defer src="js/play.js?v=3.6.1"></script>
+<script defer src="js/ranking.js?v=3.6.0"></script>
+<script defer src="js/profile.js?v=3.6.0"></script>
+<script defer src="js/friends.js?v=3.6.0"></script>
+<script defer src="js/premium.js?v=3.6.0"></script>
+<script defer src="js/loadout.js?v=3.6.0"></script>
+<script defer src="js/shop.js?v=3.6.0"></script>
+<script defer src="js/leagues.js?v=3.6.0"></script>
+<script defer src="js/nav-auth.js?v=3.6.0"></script>
+<script defer src="js/auth-slider.js?v=3.6.0"></script>
+<script defer src="js/social.js?v=3.6.0"></script>
+<script defer src="js/compet.js?v=3.6.0"></script>
+<script defer src="js/settings.js?v=3.6.3"></script>
+<script defer src="js/vigie.js?v=3.6.0"></script>
+<script defer src="js/extensions.js?v=3.6.0"></script>
+<script defer src="js/realmm.js?v=3.6.0"></script>
+<script defer src="js/rankup.js?v=3.6.0"></script>
+<script defer src="js/rooms.js?v=3.6.1"></script>
+<script defer src="js/srveco.js?v=3.6.0"></script>
+<script defer src="js/influencer.js?v=3.6.0"></script>
+<script defer src="js/admin.js?v=3.6.0"></script>
+<script defer src="js/update.js?v=3.6.0"></script>
+<script defer src="js/reset.js?v=3.6.0"></script>
+<script defer src="js/support.js?v=3.6.0"></script>
+<script defer src="js/trade.js?v=3.6.0"></script>
+<script defer src="js/ping.js?v=3.6.0"></script>
+<script defer src="js/duel.js?v=3.6.0"></script>
+<script defer src="js/mapvote.js?v=3.6.0"></script>
+<script defer src="js/clans.js?v=3.6.0"></script>
+<script defer src="js/mobile.js?v=3.6.0"></script>
+<script defer src="js/brand-glow.js?v=3.6.0"></script>
+<script defer src="js/auth-cubes.js?v=3.6.0"></script>
+</body>
+</html>

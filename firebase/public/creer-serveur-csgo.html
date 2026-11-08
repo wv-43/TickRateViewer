@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script src="/js/canon.js?v=3.6.0"></script>
+<script src="/js/user-bg.js?v=1"></script>
+<title>Créer un serveur CS GO dédié (legacy) en 2026 · TICKRATE</title>
+<meta name="description" content="Créer un serveur CS GO dédié en 2026 : installer CS:GO legacy avec SteamCMD, jeton Steam (GSLT), paramètres de lancement, 128 tick et server.cfg.">
+<link rel="canonical" href="https://tickrate.eu/creer-serveur-csgo">
+<meta name="robots" content="index,follow,max-snippet:-1,max-image-preview:large">
+<meta name="theme-color" content="#0a0a0a">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="TICKRATE">
+<meta property="og:locale" content="fr_FR">
+<meta property="og:title" content="Créer un serveur CS GO dédié (legacy) en 2026 · TICKRATE">
+<meta property="og:description" content="Créer un serveur CS GO dédié en 2026 : installer CS:GO legacy avec SteamCMD, jeton Steam (GSLT), paramètres de lancement, 128 tick et server.cfg.">
+<meta property="og:url" content="https://tickrate.eu/creer-serveur-csgo">
+<meta property="og:image" content="https://tickrate.eu/og.jpg?v=2">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg?v=3">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png?v=3">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png?v=3">
+<link rel="stylesheet" href="/seo.css?v=3.6.0">
+<link rel="stylesheet" href="/footer.css?v=3.6.0">
+<script type="application/ld+json">[{"@context":"https://schema.org","@type":"WebPage","name":"Créer un serveur CS GO dédié (legacy) en 2026 · TICKRATE","description":"Créer un serveur CS GO dédié en 2026 : installer CS:GO legacy avec SteamCMD, jeton Steam (GSLT), paramètres de lancement, 128 tick et server.cfg.","url":"https://tickrate.eu/creer-serveur-csgo","inLanguage":"fr-FR","dateModified":"2026-11-08","about":[{"@type":"Thing","name":"créer un serveur cs go"},{"@type":"Thing","name":"serveur dédié cs go"},{"@type":"Thing","name":"héberger un serveur csgo"}],"isPartOf":{"@type":"WebSite","name":"TICKRATE","url":"https://tickrate.eu/"},"publisher":{"@type":"Organization","name":"TICKRATE","url":"https://tickrate.eu/","logo":"https://tickrate.eu/logo.png","sameAs":["https://www.instagram.com/tickrate.eu/","https://www.tiktok.com/@tickrate.eu","https://discord.gg/KNXbGrTDj"]}},{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"TICKRATE","item":"https://tickrate.eu/"},{"@type":"ListItem","position":2,"name":"Guides","item":"https://tickrate.eu/guides"},{"@type":"ListItem","position":3,"name":"Créer un serveur","item":"https://tickrate.eu/creer-serveur-csgo"}]},{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[{"@type":"Question","name":"Quel App ID pour le serveur CS:GO legacy ?","acceptedAnswer":{"@type":"Answer","text":"Le serveur dédié s'installe avec SteamCMD sous l'App ID 740. Le jeton de serveur (GSLT) se crée avec l'App ID de CS:GO legacy, 4465480."}},{"@type":"Question","name":"Un serveur CS GO peut-il tourner sous Windows ?","acceptedAnswer":{"@type":"Answer","text":"Oui, le serveur dédié existe aussi pour Windows, mais la plupart des hébergeurs utilisent Linux, plus léger."}},{"@type":"Question","name":"Combien de joueurs par serveur ?","acceptedAnswer":{"@type":"Answer","text":"Un serveur compétitif accueille 10 joueurs. Le nombre maximum se règle avec le paramètre de lancement -maxplayers_override."}},{"@type":"Question","name":"Le 128 tick demande-t-il une grosse machine ?","acceptedAnswer":{"@type":"Answer","text":"Il demande plus de processeur que le 64 tick, surtout à 10 joueurs. Un cœur rapide par serveur est conseillé."}}]}]</script>
+</head>
+<body>
+<header class="sx-top"><div class="sx-top-in">
+  <a class="sx-brand" href="/"><img src="/logo.png?v=3" alt="" width="30" height="30"><span>TICK<b>RATE</b></span></a>
+  <nav class="sx-nav" aria-label="Présentation"><a href="/serveur-csgo">Serveurs CS:GO</a><a href="/serveurs-csgo">Liste des serveurs</a><a href="/tickrate-csgo">Tickrate</a><a href="/csgo-legacy">CS:GO legacy</a><a href="/matchmaking-csgo">Matchmaking</a><a href="/classement-csgo">Classement</a><a href="/guides">Guides</a></nav>
+  <a class="sx-cta" href="/">Jouer</a>
+</div></header>
+<main class="sx">
+  <p class="sx-crumb"><a href="/">TICKRATE</a> › <a href="/guides">Guides</a> › Créer un serveur</p>
+  <h1>Créer un serveur CS GO dédié en 2026</h1>
+  <p class="sx-lead">Le guide que nous suivons pour nos propres serveurs, simplifié : installer un serveur dédié CS GO (version legacy) sous Linux, obtenir un jeton Steam, le lancer en 128 tick et le configurer.</p>
+  <div class="sx-actions"><a class="sx-cta" href="/">Créer mon compte gratuit</a><a class="sx-cta ghost" href="/#/play">Voir les modes de jeu</a></div>
+  <h2>Ce qu'il faut</h2>
+  <ul>
+    <li><b>Une machine Linux</b> (un VPS suffit) avec une bonne connexion. Compte environ 40 Go de disque pour le jeu.</li>
+    <li><b>SteamCMD</b>, l'outil en ligne de commande de Valve pour installer les serveurs de jeu.</li>
+    <li><b>Un jeton de serveur Steam (GSLT)</b>, gratuit, lié à ton compte Steam.</li>
+    <li><b>Les ports UDP ouverts</b> : 27015 par défaut pour le jeu, et un port pour GOTV si tu l'utilises.</li>
+  </ul>
+  <h2>1. Installer le serveur avec SteamCMD</h2>
+  <p>Le serveur dédié de CS:GO s'installe avec SteamCMD, en connexion anonyme :</p>
+  <pre><code>steamcmd +force_install_dir ~/csgo-ds +login anonymous +app_update 740 validate +quit</code></pre>
+  <p>Depuis que CS:GO legacy est une application Steam à part (mars 2026), le serveur doit s'annoncer avec l'App ID de la version legacy, 4465480. Sur nos serveurs, nous écrivons cet App ID dans le fichier <code>steam_appid.txt</code> du dossier du serveur et dans la ligne <code>appID=</code> de <code>csgo/steam.inf</code>, avant chaque démarrage (une mise à jour peut remettre l'ancienne valeur).</p>
+  <h2>2. Obtenir un jeton Steam (GSLT)</h2>
+  <p>Sans jeton, ton serveur n'apparaît pas correctement aux joueurs. Va sur la page de gestion des serveurs de jeu de Steam (steamcommunity.com/dev/managegameservers), indique l'App ID <b>4465480</b> et génère un jeton. Il en faut un par serveur. Garde-le secret : il est lié à ton compte.</p>
+  <h2>3. Lancer le serveur en 128 tick</h2>
+  <pre><code>./srcds_run -game csgo -console -usercon -port 27015 -tickrate 128 +game_type 0 +game_mode 1 +map de_mirage +sv_setsteamaccount TON_JETON</code></pre>
+  <p>Le paramètre <code>-tickrate 128</code> fait tourner le serveur à 128 tick (voir <a href="/tickrate-csgo">c'est quoi le tickrate</a>). Le couple <code>game_type</code> / <code>game_mode</code> choisit le mode :</p>
+  <div class="sx-tbl"><table>
+    <thead><tr><th>Mode</th><th>game_type</th><th>game_mode</th></tr></thead>
+    <tbody>
+      <tr><td>Occasionnel</td><td>0</td><td>0</td></tr>
+      <tr><td>Compétitif</td><td>0</td><td>1</td></tr>
+      <tr><td>Wingman</td><td>0</td><td>2</td></tr>
+      <tr><td>Course à l'armement</td><td>1</td><td>0</td></tr>
+      <tr><td>Deathmatch</td><td>1</td><td>2</td></tr>
+    </tbody>
+  </table></div>
+  <h2>4. Le fichier server.cfg</h2>
+  <p>Dans <code>csgo/cfg/server.cfg</code>, les réglages de base :</p>
+  <pre><code>hostname "Mon serveur CS:GO 128 tick"
+rcon_password "un_mot_de_passe_long"
+sv_password ""            // mot de passe pour rejoindre, vide = public
+sv_lan 0
+sv_cheats 0</code></pre>
+  <p>Pour la liste des commandes utiles en jeu et en console, voir notre page <a href="/commandes-csgo">commandes CS:GO</a>.</p>
+  <h2>5. Faire tourner le serveur en continu</h2>
+  <p>Lance le serveur comme un service (systemd sous Linux) pour qu'il redémarre tout seul après un plantage ou un redémarrage de la machine, et fais tourner SteamCMD régulièrement pour les mises à jour.</p>
+  <h2>Ou jouer sans rien héberger</h2>
+  <p>Héberger un serveur CS:GO coûte du temps et de l'argent, et il faut encore trouver des joueurs. Si tu veux juste jouer des matchs équilibrés, TICKRATE fournit un <a href="/serveur-csgo">serveur CS GO 128 tick</a> pour chaque partie, gratuitement.</p>
+  <h2>Questions fréquentes</h2>
+  <details><summary>Quel App ID pour le serveur CS:GO legacy ?</summary><p>Le serveur dédié s'installe avec SteamCMD sous l'App ID 740. Le jeton de serveur (GSLT) se crée avec l'App ID de CS:GO legacy, 4465480.</p></details>
+  <details><summary>Un serveur CS GO peut-il tourner sous Windows ?</summary><p>Oui, le serveur dédié existe aussi pour Windows, mais la plupart des hébergeurs utilisent Linux, plus léger.</p></details>
+  <details><summary>Combien de joueurs par serveur ?</summary><p>Un serveur compétitif accueille 10 joueurs. Le nombre maximum se règle avec le paramètre de lancement -maxplayers_override.</p></details>
+  <details><summary>Le 128 tick demande-t-il une grosse machine ?</summary><p>Il demande plus de processeur que le 64 tick, surtout à 10 joueurs. Un cœur rapide par serveur est conseillé.</p></details>
+  <div class="sx-band"><p>Prêt à jouer en 128 tick ?</p><a class="sx-cta" href="/">Rejoindre TICKRATE</a></div>
+  <h2>À lire aussi</h2>
+  <div class="sx-more"><a href="/tickrate-csgo"><b>Tickrate</b><span>64 ou 128 tick : ce que ça change vraiment</span></a><a href="/commandes-csgo"><b>Commandes</b><span>Console, réseau, entraînement et binds</span></a><a href="/serveur-csgo"><b>Serveurs CS:GO</b><span>Serveurs CS GO 128 tick dédiés en Europe</span></a><a href="/serveurs-csgo"><b>Liste des serveurs</b><span>Nos serveurs CS GO en direct : état, map, score</span></a></div>
+</main>
+<footer class="site-foot">
+  <div class="sf-in">
+    <div class="sf-brand">
+      <a class="sf-logo" href="/"><svg class="tr-mark" viewBox="9 9 46 46" aria-hidden="true"><path d="M50.61 37.34A19.36 19.36 0 0 1 37.34 50.61M26.66 50.61A19.36 19.36 0 0 1 13.39 37.34M13.39 26.66A19.36 19.36 0 0 1 26.66 13.39M37.34 13.39A19.36 19.36 0 0 1 50.61 26.66" fill="none" stroke="currentColor" stroke-width="3.52"/><rect x="21.12" y="22.4" width="21.76" height="4.48" rx="1.12" fill="currentColor"/><rect x="29.28" y="22.4" width="5.44" height="21.76" rx="1.36" fill="currentColor"/></svg><span>TICK<b>RATE</b></span></a>
+      <p>Matchmaking CS:GO legacy gratuit sur serveurs 128 tick, à Francfort.</p>
+    </div>
+    <nav class="sf-col" aria-label="Jouer"><h4>Jouer</h4><a href="/">Lancer un match</a><a href="/#/duel">Arène 1v1</a><a href="/#/mapvote">Vote des maps</a><a href="/#/clans">Clans</a><a href="/#/ranking">Classement</a><a href="/serveurs-csgo">Liste des serveurs</a></nav>
+    <nav class="sf-col" aria-label="Guides"><h4>Guides</h4><a href="/serveur-csgo">Serveur CS GO 128 tick</a><a href="/tickrate-csgo">Tickrate : 64 ou 128 tick</a><a href="/csgo-legacy">CS:GO legacy en 2026</a><a href="/commandes-csgo">Commandes CS GO</a><a href="/actualites">Actualités</a><a href="/guides">Tous les guides</a></nav>
+    <nav class="sf-col" aria-label="Communauté"><h4>Communauté</h4><a href="https://discord.gg/KNXbGrTDj" target="_blank" rel="noopener">Discord</a><a href="https://www.instagram.com/tickrate.eu/" target="_blank" rel="me noopener">Instagram</a><a href="https://www.tiktok.com/@tickrate.eu" target="_blank" rel="me noopener">TikTok</a><a href="/#/support">Support</a></nav>
+  </div>
+  <nav class="sf-pages" aria-label="Guides"><a href="/serveur-csgo">Serveurs CS:GO</a><a href="/serveurs-csgo">Liste des serveurs</a><a href="/creer-serveur-csgo">Créer un serveur</a><a href="/tickrate-csgo">Tickrate</a><a href="/csgo-legacy">CS:GO legacy</a><a href="/matchmaking-csgo">Matchmaking</a><a href="/classement-csgo">Classement</a><a href="/commandes-csgo">Commandes</a><a href="/wingman-csgo">Wingman</a><a href="/1v1-csgo">1v1</a><a href="/maps-csgo">Maps</a><a href="/actualites">Actualités</a></nav>
+  <div class="sf-bottom">
+    <span>© 2026 TICKRATE · tickrate.eu</span>
+    <a href="/mentions-legales">Mentions légales</a><a href="/confidentialite">Confidentialité</a><a href="/en/guides" hreflang="en" lang="en">English</a>
+  </div>
+  <p class="sf-valve">TICKRATE n'est pas affilié à Valve Corporation. Counter-Strike et CS:GO sont des marques de Valve Corporation.</p>
+</footer>
+</body>
+</html>
