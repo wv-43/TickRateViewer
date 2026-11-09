@@ -2,6 +2,8 @@
 
 Plateforme de matchmaking pour CS:GO Legacy : [tickrate.eu](https://tickrate.eu).
 
+Feel Free to contriubuate to the developpement of the site, this is an open source-project whit community stending.
+
 Ce dépôt publie le code du site, des fonctions serveur et des serveurs de jeu, pour que chacun puisse voir comment la plateforme fonctionne.
 
 ## Contenu
