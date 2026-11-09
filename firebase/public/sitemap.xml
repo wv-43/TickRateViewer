@@ -4,7 +4,7 @@
         xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
   <url>
     <loc>https://tickrate.eu/</loc>
-    <lastmod>2026-11-08</lastmod>
+    <lastmod>2026-11-09</lastmod>
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
     <image:image>
@@ -19,7 +19,7 @@
   </url>
   <url>
     <loc>https://tickrate.eu/serveur-csgo</loc>
-    <lastmod>2026-11-08</lastmod>
+    <lastmod>2026-11-09</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.9</priority>
     <xhtml:link rel="alternate" hreflang="fr" href="https://tickrate.eu/serveur-csgo"/>
@@ -27,7 +27,7 @@
   </url>
   <url>
     <loc>https://tickrate.eu/serveurs-csgo</loc>
-    <lastmod>2026-11-08</lastmod>
+    <lastmod>2026-11-09</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.9</priority>
     <xhtml:link rel="alternate" hreflang="fr" href="https://tickrate.eu/serveurs-csgo"/>
@@ -35,13 +35,13 @@
   </url>
   <url>
     <loc>https://tickrate.eu/creer-serveur-csgo</loc>
-    <lastmod>2026-11-08</lastmod>
+    <lastmod>2026-11-09</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://tickrate.eu/tickrate-csgo</loc>
-    <lastmod>2026-11-08</lastmod>
+    <lastmod>2026-11-09</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.9</priority>
     <xhtml:link rel="alternate" hreflang="fr" href="https://tickrate.eu/tickrate-csgo"/>
@@ -49,7 +49,7 @@
   </url>
   <url>
     <loc>https://tickrate.eu/csgo-legacy</loc>
-    <lastmod>2026-11-08</lastmod>
+    <lastmod>2026-11-09</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.9</priority>
     <xhtml:link rel="alternate" hreflang="fr" href="https://tickrate.eu/csgo-legacy"/>
@@ -57,7 +57,7 @@
   </url>
   <url>
     <loc>https://tickrate.eu/matchmaking-csgo</loc>
-    <lastmod>2026-11-08</lastmod>
+    <lastmod>2026-11-09</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.9</priority>
     <xhtml:link rel="alternate" hreflang="fr" href="https://tickrate.eu/matchmaking-csgo"/>
@@ -65,37 +65,37 @@
   </url>
   <url>
     <loc>https://tickrate.eu/classement-csgo</loc>
-    <lastmod>2026-11-08</lastmod>
+    <lastmod>2026-11-09</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
     <loc>https://tickrate.eu/commandes-csgo</loc>
-    <lastmod>2026-11-08</lastmod>
+    <lastmod>2026-11-09</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://tickrate.eu/wingman-csgo</loc>
-    <lastmod>2026-11-08</lastmod>
+    <lastmod>2026-11-09</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://tickrate.eu/1v1-csgo</loc>
-    <lastmod>2026-11-08</lastmod>
+    <lastmod>2026-11-09</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://tickrate.eu/maps-csgo</loc>
-    <lastmod>2026-11-08</lastmod>
+    <lastmod>2026-11-09</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://tickrate.eu/actualites</loc>
-    <lastmod>2026-11-08</lastmod>
+    <lastmod>2026-11-09</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
     <xhtml:link rel="alternate" hreflang="fr" href="https://tickrate.eu/actualites"/>
@@ -103,7 +103,7 @@
   </url>
   <url>
     <loc>https://tickrate.eu/en/csgo-server</loc>
-    <lastmod>2026-11-08</lastmod>
+    <lastmod>2026-11-09</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.9</priority>
     <xhtml:link rel="alternate" hreflang="en" href="https://tickrate.eu/en/csgo-server"/>
@@ -111,7 +111,7 @@
   </url>
   <url>
     <loc>https://tickrate.eu/en/csgo-server-list</loc>
-    <lastmod>2026-11-08</lastmod>
+    <lastmod>2026-11-09</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.9</priority>
     <xhtml:link rel="alternate" hreflang="en" href="https://tickrate.eu/en/csgo-server-list"/>
@@ -119,7 +119,7 @@
   </url>
   <url>
     <loc>https://tickrate.eu/en/tickrate</loc>
-    <lastmod>2026-11-08</lastmod>
+    <lastmod>2026-11-09</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.9</priority>
     <xhtml:link rel="alternate" hreflang="en" href="https://tickrate.eu/en/tickrate"/>
@@ -127,7 +127,7 @@
   </url>
   <url>
     <loc>https://tickrate.eu/en/csgo-legacy</loc>
-    <lastmod>2026-11-08</lastmod>
+    <lastmod>2026-11-09</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.9</priority>
     <xhtml:link rel="alternate" hreflang="en" href="https://tickrate.eu/en/csgo-legacy"/>
@@ -135,7 +135,7 @@
   </url>
   <url>
     <loc>https://tickrate.eu/en/csgo-matchmaking</loc>
-    <lastmod>2026-11-08</lastmod>
+    <lastmod>2026-11-09</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.9</priority>
     <xhtml:link rel="alternate" hreflang="en" href="https://tickrate.eu/en/csgo-matchmaking"/>
@@ -143,7 +143,7 @@
   </url>
   <url>
     <loc>https://tickrate.eu/en/news</loc>
-    <lastmod>2026-11-08</lastmod>
+    <lastmod>2026-11-09</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
     <xhtml:link rel="alternate" hreflang="en" href="https://tickrate.eu/en/news"/>
@@ -151,7 +151,7 @@
   </url>
   <url>
     <loc>https://tickrate.eu/guides</loc>
-    <lastmod>2026-11-08</lastmod>
+    <lastmod>2026-11-09</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
     <xhtml:link rel="alternate" hreflang="fr" href="https://tickrate.eu/guides"/>
@@ -159,7 +159,7 @@
   </url>
   <url>
     <loc>https://tickrate.eu/en/guides</loc>
-    <lastmod>2026-11-08</lastmod>
+    <lastmod>2026-11-09</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
     <xhtml:link rel="alternate" hreflang="en" href="https://tickrate.eu/en/guides"/>
@@ -167,13 +167,13 @@
   </url>
   <url>
     <loc>https://tickrate.eu/mentions-legales</loc>
-    <lastmod>2026-11-08</lastmod>
+    <lastmod>2026-11-09</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.3</priority>
   </url>
   <url>
     <loc>https://tickrate.eu/confidentialite</loc>
-    <lastmod>2026-11-08</lastmod>
+    <lastmod>2026-11-09</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.3</priority>
   </url>

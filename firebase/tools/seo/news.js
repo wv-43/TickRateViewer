@@ -1,5 +1,33 @@
 module.exports = [
   {
+    date: '2026-11-09',
+    fr: { title: 'Suivi du matchmaking en direct et alertes sur le bureau',
+          body: 'La file d\'attente, le compteur d\'acceptation, le veto et l\'adresse du serveur se mettent maintenant à jour en direct. Si tu changes d\'onglet ou réduis ton navigateur pendant la recherche, une alerte sur ton bureau te prévient dès qu\'un match est trouvé ou que le serveur est prêt à rejoindre.' },
+    en: { title: 'Live matchmaking updates and desktop alerts',
+          body: 'The queue, accept counter, map veto and server address now update live. If you switch tabs or minimize your browser while searching, a desktop alert lets you know as soon as a match is found or the server is ready to join.' }
+  },
+  {
+    date: '2026-11-09',
+    fr: { title: 'Vrai tableau des scores et carte de match à partager',
+          body: 'Le détail d\'une partie affiche désormais le tableau des scores réel de tous les joueurs du match : kills, assists, morts, ADR, HS %, rating et gain ou perte d\'ELO. Un bouton permet aussi de copier en un clic une image récapitulative du match pour la partager.' },
+    en: { title: 'Real scoreboard and shareable match card',
+          body: 'Match details now show the real scoreboard for every player in the match: kills, assists, deaths, ADR, HS%, rating and ELO gain or loss. A new button also lets you copy a summary card image in one click to share it.' }
+  },
+  {
+    date: '2026-11-09',
+    fr: { title: 'Suggestions de maps au capitaine et lien de groupe en un clic',
+          body: 'Pendant le veto, les coéquipiers peuvent cliquer sur une map pour suggérer à leur capitaine de la bannir dans le chat d\'équipe. Sur l\'écran Jouer, un bouton à côté du groupe copie directement ton lien d\'invitation en un clic.' },
+    en: { title: 'Map suggestions for captains and one-click party link',
+          body: 'During the map veto, teammates can click a map to suggest banning it to their captain in team chat. On the Play screen, a button next to the party bar copies your invite link in one click.' }
+  },
+  {
+    date: '2026-11-09',
+    fr: { title: 'Nouveau Discord et assistant d\'aide multilingue',
+          body: 'Le serveur Discord TICKRATE est réorganisé et accueille un assistant dans le salon d\'aide. Utilise la commande /ask ou mentionne le bot dans ta langue pour poser une question sur l\'installation de CS:GO, les modes de jeu, l\'ELO ou le fonctionnement des serveurs.' },
+    en: { title: 'New Discord layout and multilingual help bot',
+          body: 'The TICKRATE Discord server has been reorganized and now features a helper bot in the support channel. Use the /ask command or mention the bot in your own language to ask about installing CS:GO, game modes, ELO or how the servers work.' }
+  },
+  {
     date: '2026-11-08',
     fr: { title: 'Un lecteur de musique directement sur le site',
           body: 'Écoute SoundCloud sans quitter TICKRATE : morceaux, playlists et profils, avec une file qui s\'enchaîne toute seule. Le lecteur se range où tu veux, en barre, en colonne, dans un coin ou en fenêtre libre, et s\'aimante aux bords de la page. Tout est dans le menu Musique.' },

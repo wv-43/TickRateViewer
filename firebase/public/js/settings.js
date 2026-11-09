@@ -238,7 +238,7 @@ async function doDeleteAccount(){
     await doLogout();
   }catch(e){}
   try{
-    ['tr_fba','tr_auth','cs_profile','tr_eco','tr_shop','tr_load','tr_friends','tr_notifs','tr_dm','tr_ob','tr_cc','tr_plan','cs_csgocfg','tr_csgo_runtime_cvars'].forEach(k=>{
+    ['tr_known','tr_fba','tr_auth','cs_profile','tr_eco','tr_shop','tr_load','tr_friends','tr_notifs','tr_dm','tr_ob','tr_cc','tr_plan','cs_csgocfg','tr_csgo_runtime_cvars'].forEach(k=>{
       localStorage.removeItem(k);
       sessionStorage.removeItem(k);
     });

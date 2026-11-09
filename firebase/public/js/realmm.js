@@ -1,8 +1,25 @@
-Object.assign(I18N.fr,{rm_wait_srv:'Map choisie : on attend qu\'un serveur se libère…',rm_cap_turn:'{x}, ton capitaine, choisit la map à bannir',rm_no_leave:'Impossible de quitter un vrai match : rejoins le serveur, sinon tu seras banni {x}.',rm_done:'Match terminé · {s} · {d} ELO',rm_no_server:'Aucun serveur libre : match annulé, sans sanction. Relance la recherche.',rm_err:'Matchmaking indisponible ({e})',rm_banned:'Tu es banni du matchmaking encore {x}.',rm_restored:'Tu as un match en cours : retour au salon.'});
-Object.assign(I18N.en,{rm_wait_srv:'Map picked: waiting for a free server…',rm_cap_turn:'{x}, your captain, is picking the map to ban',rm_no_leave:'You can\'t leave a real match: join the server or you will be banned {x}.',rm_done:'Match over · {s} · {d} ELO',rm_no_server:'No free server: match cancelled, no penalty. Search again.',rm_err:'Matchmaking unavailable ({e})',rm_banned:'You are banned from matchmaking for {x}.',rm_restored:'You have a match in progress: back to the lobby.'});
-Object.assign(I18N.ru,{rm_wait_srv:'Карта выбрана: ждём свободный сервер…',rm_cap_turn:'{x}, твой капитан, выбирает карту для бана',rm_no_leave:'Нельзя покинуть настоящий матч: зайди на сервер, иначе бан на {x}.',rm_done:'Матч окончен · {s} · {d} ELO',rm_no_server:'Нет свободного сервера: матч отменён без штрафа. Начни поиск снова.',rm_err:'Матчмейкинг недоступен ({e})',rm_banned:'Ты забанен в матчмейкинге ещё на {x}.',rm_restored:'У тебя идёт матч: возвращаемся в лобби.'});
+Object.assign(I18N.fr,{rm_wait_srv:'Map choisie : on attend qu\'un serveur se libère…',rm_cap_turn:'{x}, ton capitaine, choisit la map à bannir',rm_no_leave:'Impossible de quitter un vrai match : rejoins le serveur, sinon tu seras banni {x}.',rm_done:'Match terminé · {s} · {d} ELO',rm_no_server:'Aucun serveur libre : match annulé, sans sanction. Relance la recherche.',rm_err:'Matchmaking indisponible ({e})',rm_banned:'Tu es banni du matchmaking encore {x}.',rm_restored:'Tu as un match en cours : retour au salon.',rm_sugg_msg:'Je suggère de bannir {m}',rm_sugg_sent:'Suggestion envoyée au capitaine ({m})',rm_sugg_hint:'clique sur une map pour la suggérer'});
+Object.assign(I18N.en,{rm_wait_srv:'Map picked: waiting for a free server…',rm_cap_turn:'{x}, your captain, is picking the map to ban',rm_no_leave:'You can\'t leave a real match: join the server or you will be banned {x}.',rm_done:'Match over · {s} · {d} ELO',rm_no_server:'No free server: match cancelled, no penalty. Search again.',rm_err:'Matchmaking unavailable ({e})',rm_banned:'You are banned from matchmaking for {x}.',rm_restored:'You have a match in progress: back to the lobby.',rm_sugg_msg:'I suggest banning {m}',rm_sugg_sent:'Suggestion sent to captain ({m})',rm_sugg_hint:'click a map to suggest it'});
+Object.assign(I18N.ru,{rm_wait_srv:'Карта выбрана: ждём свободный сервер…',rm_cap_turn:'{x}, твой капитан, выбирает карту для бана',rm_no_leave:'Нельзя покинуть настоящий матч: зайди на сервер, иначе бан на {x}.',rm_done:'Матч окончен · {s} · {d} ELO',rm_no_server:'Нет свободного сервера: матч отменён без штрафа. Начни поиск снова.',rm_err:'Матчмейкинг недоступен ({e})',rm_banned:'Ты забанен в матчмейкинге ещё на {x}.',rm_restored:'У тебя идёт матч: возвращаемся в лобби.',rm_sugg_msg:'Предлагаю забанить {m}',rm_sugg_sent:'Предложение отправлено капитану ({m})',rm_sugg_hint:'нажми на карту, чтобы предложить'});
 
-const RM={mid:null,m:null,acc:false,pw:'',key:'',timer:null,clk:null,ticked:0,sq:startQueue};
+const RM={mid:null,m:null,acc:false,pw:'',key:'',timer:null,clk:null,ticked:0,sq:startQueue,es:null,esPath:'',esT:null,sugAt:0,srvNotified:''};
+function rmCloseStream(){if(RM.es){try{RM.es.close()}catch(_){}}RM.es=null;RM.esPath='';clearTimeout(RM.esT)}
+function rmOpenStream(path,onRoot){
+  if(!realMM()||!window.EventSource||typeof fbUrl!=='function')return;
+  if(RM.es&&RM.esPath===path)return;
+  rmCloseStream();RM.esPath=path;
+  try{
+    RM.es=new EventSource(fbUrl(path));
+    const h=e=>{
+      try{
+        const d=JSON.parse(e.data);if(!d)return;
+        if(d.path==='/'&&onRoot&&d.data!==undefined){onRoot(d.data);return}
+        clearTimeout(RM.esT);RM.esT=setTimeout(rmPoll,70);
+      }catch(_){}
+    };
+    RM.es.addEventListener('put',h);RM.es.addEventListener('patch',h);
+  }catch(_){RM.es=null;RM.esPath=''}
+}
 const realMM=()=>typeof fbLive==='function'&&fbLive()&&typeof AUTH!=='undefined'&&AUTH.mode==='firebase'&&typeof FBA!=='undefined'&&!!FBA.uid;
 const rmMapName=s=>{const m=MAPS.find(x=>'de_'+x.slug===s);return m?m.n:s};
 const rmSrvMap=n=>{const m=MAPS.find(x=>x.n===n);return m?'de_'+m.slug:n};
@@ -26,7 +43,7 @@ function rmErr(e){
 }})();
 (()=>{const st=stopQueue;stopQueue=function(byUser){
   const was=state.searching;st.apply(this,arguments);
-  if(realMM()&&was&&!RM.mid)fbCall('queueLeave');
+  if(realMM()&&was&&!RM.mid){fbCall('queueLeave');rmCloseStream()}
 }})();
 function rmRequeued(){RM.sq(true);clearTimeout(qTo)}
 
@@ -42,7 +59,7 @@ async function rmSyncMe(){
   if(typeof prof.matches==='number')ME.matches=prof.matches;
   if(hist&&typeof hist==='object'){
     const MN=x=>(MAPS.find(m=>'de_'+m.slug===x||m.slug===String(x).replace('de_',''))||{n:String(x).replace('de_','')}).n;
-    ME.history=Object.entries(hist).map(([id,x])=>({id,date:new Date(x.at||Date.now()),map:MN(x.map),won:!!x.won,score:x.score||'0-0',k:x.k||0,d:x.d||0,a:x.a||0,hs:x.hs||0,adr:x.adr||0,kast:x.kast||0,rating:x.rating||1,delta:x.delta||0,elo:x.elo||prof.elo||1000,mode:x.mode||'ranked'})).sort((a,b)=>b.date-a.date);
+    ME.history=Object.entries(hist).map(([id,x])=>({id,date:new Date(x.at||Date.now()),map:MN(x.map),won:!!x.won,score:x.score||'0-0',k:x.k||0,d:x.d||0,a:x.a||0,hs:x.hs||0,adr:x.adr||0,kast:x.kast||0,rating:x.rating||1,delta:x.delta||0,elo:x.elo||prof.elo||1000,mode:x.mode||'ranked',sb:x.sb||null})).sort((a,b)=>b.date-a.date);
   }
   if(ME.elo===before&&(ME.history||[]).length===n0)return;
   if(typeof refreshMe==='function')refreshMe();
@@ -87,10 +104,18 @@ async function rmPoll(){
     try{
       const mid=await fbReq(`userMatch/${FBA.uid}`);
       const id=typeof mid==='string'?mid:RM.mid;
-      if(id){const m=await fbReq(`matches/${id}`);if(m&&m.players&&m.players[FBA.uid])rmShow(id,m);else if(!mid)RM.mid=null}
+      if(id){
+        const m=await fbReq(`matches/${id}`);
+        if(m&&m.players&&m.players[FBA.uid]){
+          rmOpenStream(`matches/${id}`,d=>{if(d&&d.players&&d.players[FBA.uid])rmShow(id,d)});
+          rmShow(id,m);
+        }else if(!mid){RM.mid=null;rmCloseStream()}
+      }else if(state.searching){
+        rmOpenStream(`userMatch/${FBA.uid}`,d=>{if(typeof d==='string')rmPoll()});
+      }else rmCloseStream();
     }catch(e){console.error(e)}
   }
-  RM.timer=setTimeout(rmPoll,state.searching||RM.mid?2000:8000);
+  RM.timer=setTimeout(rmPoll,state.searching||RM.mid?2500:8000);
 }
 function rmShow(mid,m){
   const restored=!RM.mid&&!state.searching&&m.status!=='accept';
@@ -110,12 +135,14 @@ function rmFound(m){
   if(!box.classList.contains('on')){
     mf={total:ids.length,ok:0,accepted:RM.acc,left:20,timers:[],done:false};
     $('#accepts').innerHTML='<div class="acc"></div>'.repeat(ids.length);
-    $('#fMode').textContent=`${(MODES.find(x=>x.id===m.mode)||modeObj()).n} · ${(REGIONS.find(r=>r.id===m.region)||regObj()).id}`;
+    const mName=(MODES.find(x=>x.id===m.mode)||modeObj()).n,rName=(REGIONS.find(r=>r.id===m.region)||regObj()).id;
+    $('#fMode').textContent=`${mName} · ${rName}`;
     const ab=$('#acceptBtn');ab.disabled=RM.acc;ab.textContent=t(RM.acc?'accepted':'accept');
     const db=$('#declineBtn');db.hidden=RM.acc;db.title=t('decline_free');
     box.classList.add('on');
     TRMatchSound.play();
     flashTitle(true);
+    if(typeof deskNotify==='function')deskNotify(t('match_found'),t('desk_found_d',{m:mName,r:rName}),'tr_found');
     clearInterval(RM.ring);
     RM.ring=setInterval(()=>{
       if(!RM.m||RM.m.status!=='accept')return;
@@ -194,6 +221,7 @@ function rmLobby(mid,m){
     ip=m.server.connect;
     cur.join={deadline:m.joinDeadline||0,joined:new Set(Object.values(P).filter(p=>p.joined).map(p=>p.name)),timers:[],done:m.status==='live',live:m.status==='live'};
     if(!RM.pw)fbReq(`matchSecrets/${mid}/password`).then(pw=>{if(typeof pw==='string'){RM.pw=pw;srvPass=pw;rmPatch()}});
+    if(m.status==='ready'&&RM.srvNotified!==mid){RM.srvNotified=mid;if(typeof deskNotify==='function')deskNotify(t('desk_ready_t',{m:cur.map?cur.map.n:rmMapName(m.map)}),t('desk_ready_d',{ip}),'tr_ready')}
   }else{ip='';srvPass='';cur.join=null}
   if(['ready','live'].includes(m.status)&&!first){
     const now=new Set(Object.entries(P).filter(([,p])=>p.leftAt&&!p.joined).map(([u])=>u));
@@ -211,7 +239,7 @@ function rmPatch(){
   $('#ip').textContent=ip?`${srvPass?'password '+srvPass+'; ':''}connect ${ip}`:'connect …';
   $('#connect').disabled=!ip||!!(cur.join&&cur.join.joined.has(ME.name));
   if(cur.server!==ip&&ip){cur.server=ip;$('#srv').textContent=ip}
-  if(!cur.map&&cur.veto.turn==='A'&&!cur.canVeto){const s=$('#veto .veto-s');if(s){s.classList.remove('me');s.textContent=t('rm_cap_turn',{x:cur.A[0].name})}$$('#veto .vmap.can').forEach(b=>b.classList.remove('can'))}
+  if(!cur.map&&!cur.canVeto){const s=$('#veto .veto-s');if(s&&cur.veto.turn==='A'){s.classList.remove('me');s.textContent=`${t('rm_cap_turn',{x:cur.A[0].name})} · ${t('rm_sugg_hint')}`}$$('#veto .vmap.can').forEach(b=>b.classList.remove('can'))}
   if(RM.m&&RM.m.status==='waiting_server'){const box=$('#joinBox');box.hidden=false;box.className='joinbox';box.innerHTML=`<b>${t('rm_wait_srv')}</b>`}
 }
 function rmClock(){
@@ -230,7 +258,15 @@ $('#veto').addEventListener('click',e=>{
   if(!cur||!cur.real)return;
   e.stopPropagation();
   const b=e.target.closest('[data-veto]');
-  if(!b||cur.map||cur.veto.turn!=='A'||!cur.canVeto||cur.veto.log.some(l=>l.m===b.dataset.veto))return;
+  if(!b||cur.map||cur.veto.log.some(l=>l.m===b.dataset.veto))return;
+  if(!cur.canVeto){
+    if(Date.now()-(RM.sugAt||0)<4000)return toast(t('chat_slow'));
+    RM.sugAt=Date.now();
+    const mm={from:ME.name,team:'A',ch:'team',text:t('rm_sugg_msg',{m:b.dataset.veto}),at:Date.now()};
+    chatPush(mm);lcfSend(mm);beep(660,.05);toast(t('rm_sugg_sent',{m:b.dataset.veto}));
+    return;
+  }
+  if(cur.veto.turn!=='A')return;
   beep(520,.07);
   fbCall('vetoBan',{matchId:RM.mid,map:rmSrvMap(b.dataset.veto)}).then(r=>{if(r.error)toast(rmErr(r.error));rmPoll()});
 },true);
@@ -274,7 +310,7 @@ function rmDrops(mid,d){
 }
 function rmEnd(m,mid){
   const me=m.players[FBA.uid],inLobby=cur&&cur.real,declined=RM.declined===RM.mid;
-  RM.mid=null;RM.m=null;
+  RM.mid=null;RM.m=null;rmCloseStream();
   if(inLobby){clearInterval(RM.clk);RM.clk=null;chatClear();cur=null;ip='';srvPass=''}
   if(m.status==='finished'){
     const r=(m.results||{})[FBA.uid];
@@ -295,9 +331,9 @@ function rmEnd(m,mid){
   if(!declined)toast(t('match_cancelled'));
 }
 
-Object.assign(I18N.fr,{beta_tag:'BÊTA',est_need:'Il manque {n}',est_tip:'Moyenne des dernières attentes réelles ({m}, {r}). « Il manque n » : joueurs encore nécessaires pour lancer un match.',reg_soon:'Bientôt',reg_soon_tip:'Pas encore disponible : aucun serveur dans cette région pour le moment.',e_region_closed:'Région pas encore disponible.'});
-Object.assign(I18N.en,{beta_tag:'BETA',est_need:'{n} more needed',est_tip:'Average of the latest real waits ({m}, {r}). “n more needed”: players still required to start a match.',reg_soon:'Soon',reg_soon_tip:'Not available yet: no server in this region for now.',e_region_closed:'Region not available yet.'});
-Object.assign(I18N.ru,{beta_tag:'БЕТА',est_need:'Нужно ещё {n}',est_tip:'Среднее последних реальных ожиданий ({m}, {r}). «Нужно ещё n»: столько игроков не хватает для матча.',reg_soon:'Скоро',reg_soon_tip:'Пока недоступно: в этом регионе ещё нет серверов.',e_region_closed:'Регион пока недоступен.'});
+Object.assign(I18N.fr,{beta_tag:'BÊTA',est_need:'Il manque {n}',est_tip:'Moyenne des dernières attentes réelles ({m}, {r}). « Il manque n » : joueurs encore nécessaires pour lancer un match.',reg_soon:'Bientôt',reg_soon_tip:'Le matchmaking n’est pas encore ouvert dans cette région.',e_region_closed:'Le matchmaking n’est pas encore ouvert dans cette région.'});
+Object.assign(I18N.en,{beta_tag:'BETA',est_need:'{n} more needed',est_tip:'Average of the latest real waits ({m}, {r}). “n more needed”: players still required to start a match.',reg_soon:'Soon',reg_soon_tip:'Matchmaking is not open in this region yet.',e_region_closed:'Matchmaking is not open in this region yet.'});
+Object.assign(I18N.ru,{beta_tag:'БЕТА',est_need:'Нужно ещё {n}',est_tip:'Среднее последних реальных ожиданий ({m}, {r}). «Нужно ещё n»: столько игроков не хватает для матча.',reg_soon:'Скоро',reg_soon_tip:'Матчмейкинг в этом регионе пока не открыт.',e_region_closed:'Матчмейкинг в этом регионе пока не открыт.'});
 $$('[data-i18n="beta_tag"]').forEach(e=>e.textContent=t('beta_tag'));
 const OPEN_REGIONS=['EU'];
 if(!OPEN_REGIONS.includes(state.region))state.region='EU';
@@ -337,7 +373,7 @@ $('#regions').addEventListener('click',e=>{
   const c=e.target.closest('.chip');
   if(c&&!OPEN_REGIONS.includes(c.dataset.id)){e.stopImmediatePropagation();toast(t('reg_soon_tip'))}
 },true);
-renderRegions();renderStats();
+renderRegions();renderStats();if(typeof renderQueueReady==='function')renderQueueReady();if(typeof refreshQueueStatus==='function')refreshQueueStatus();
 
 Object.assign(I18N.fr,{rm_left:'{n} s\'est déconnecté du serveur : 5 min pour revenir, sinon abandon.',rm_live_leave:'Le match est en cours : pour partir, quitte le serveur dans le jeu (5 min pour revenir, sinon ban pour abandon).',e_match_live:'Le match est déjà en direct.',rm_test_left:'Match de test abandonné : le serveur se libère.',rm_test:'Match de test (dev)',rm_test_rounds:'Nombre de rounds du match de test',rm_test_real:'Fin réelle (ELO + drops)',rm_test_real_tip:'Comme un vrai match : ELO enregistré sur ton profil (niveau, victoires, historique) et vrais drops.',rm_test_tip:'Toi seul contre des bots sur un vrai serveur, 2 rounds, sans ELO : pour tester toute la chaîne.',rm_test_go:'Match de test lancé : rejoins le serveur depuis le salon.',rm_test_done:'Match de test terminé · {s} · {k} kills / {d} morts (sans ELO)'});
 Object.assign(I18N.en,{rm_left:'{n} left the server: 5 min to come back, or it counts as an abandon.',rm_live_leave:'The match is live: to leave, quit the server in game (5 min to come back, or an abandon ban).',e_match_live:'The match is already live.',rm_test_left:'Test match abandoned: the server is being freed.',rm_test:'Test match (dev)',rm_test_rounds:'Test match rounds',rm_test_real:'Real ending (ELO + drops)',rm_test_real_tip:'Like a real match: ELO saved on your profile (level, wins, history) and real drops.',rm_test_tip:'You alone against bots on a real server, 2 rounds, no ELO: to test the whole chain.',rm_test_go:'Test match started: join the server from the lobby.',rm_test_done:'Test match over · {s} · {k} kills / {d} deaths (no ELO)'});

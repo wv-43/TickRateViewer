@@ -86,6 +86,25 @@
   .msh-legal{display:flex;justify-content:center;gap:14px;margin-top:16px;font-size:12px}
   .msh-legal a{color:#6b7383}
 }
+.auth-pitch{display:none}
+@media(min-width:901px){
+  .auth-side{justify-content:flex-start;padding-top:60px;padding-bottom:60px}
+  .auth-card{margin:auto 0}
+}
+@media(max-width:900px){
+  .auth-side{justify-content:flex-start;align-items:stretch;padding:0 0 calc(24px + var(--safe-b))}
+  .auth-langs{top:calc(14px + var(--safe-t));right:14px}
+  .auth-card{width:calc(100% - 36px);margin:0 auto}
+  .auth-pitch{display:block;margin-bottom:6px;padding:calc(18px + var(--safe-t)) 18px 22px;
+    background:linear-gradient(180deg,rgba(13,13,13,.55) 0%,rgba(13,13,13,.8) 62%,#0d0d0d 100%),url(maps/mirage.jpg?v=2.50) center 35%/cover}
+  #fReg h2{display:none}
+  .auth-pitch-brand{display:flex;align-items:center;gap:8px;margin-bottom:20px;font-family:var(--cond);font-size:19px;font-weight:800;letter-spacing:.04em;color:#fff}
+  .auth-pitch-brand svg{width:26px;height:26px;flex:none}
+  .auth-pitch-brand b{color:#8f8f8f}
+  .auth-pitch-title{margin:0 0 8px;font-family:var(--cond);font-size:clamp(28px,8.4vw,38px);font-weight:800;line-height:1;text-transform:uppercase;color:#fff}
+  .auth-pitch-text{max-width:420px;margin:0 0 6px;font-size:14.5px;line-height:1.45;color:#dcdcdc}
+  .auth-pitch-note{max-width:420px;margin:0;font-size:12.5px;line-height:1.4;color:#a3a3a3}
+}
 @media(max-width:360px){.msh-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.mnav button{font-size:10px}}
 /* app lancée depuis l'écran d'accueil : pas de barre d'adresse, on garde la place de l'encoche */
 @media(display-mode:standalone){body{overscroll-behavior-y:none}}

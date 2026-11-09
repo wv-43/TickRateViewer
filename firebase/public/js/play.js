@@ -1,3 +1,30 @@
+Object.assign(I18N.fr,{qf_preview:'Aperçu local · connecte-toi pour jouer en ligne',qf_region_open:'File ouverte · {region}',qf_region_closed:'File fermée · {region}',qf_server_free:'Serveurs libres : {n}',qf_server_busy:'Aucun serveur libre au dernier relevé',qf_server_unknown:'État des serveurs indisponible',qf_server_age:'Dernier relevé il y a {n} min',qf_steam_ok:'Steam lié · {n}/{total}',qf_steam_missing:'Compte(s) Steam à lier : {n}',qf_link_steam:'Lier Steam',qf_csgo:'CS:GO à rejoindre sur PC',qf_desk_ask:'Alertes bureau : activer',qf_desk_on:'Alertes bureau activées',desk_found_d:'{m} · {r} — 20 s pour accepter',desk_ready_t:'Serveur prêt · {m}',desk_ready_d:'Rejoins le serveur CS:GO ({ip})'});
+Object.assign(I18N.en,{qf_preview:'Local preview · sign in to play online',qf_region_open:'Queue open · {region}',qf_region_closed:'Queue closed · {region}',qf_server_free:'Free servers: {n}',qf_server_busy:'No free server in the latest status',qf_server_unknown:'Server status unavailable',qf_server_age:'Last status {n} min ago',qf_steam_ok:'Steam linked · {n}/{total}',qf_steam_missing:'Steam links missing: {n}',qf_link_steam:'Link Steam',qf_csgo:'Join CS:GO on PC',qf_desk_ask:'Desktop alerts: enable',qf_desk_on:'Desktop alerts enabled',desk_found_d:'{m} · {r} — 20 s to accept',desk_ready_t:'Server ready · {m}',desk_ready_d:'Join the CS:GO server ({ip})'});
+Object.assign(I18N.ru,{qf_preview:'Локальный просмотр · войди, чтобы играть онлайн',qf_region_open:'Очередь открыта · {region}',qf_region_closed:'Очередь закрыта · {region}',qf_server_free:'Свободные серверы: {n}',qf_server_busy:'В последнем статусе нет свободных серверов',qf_server_unknown:'Статус серверов недоступен',qf_server_age:'Последнее обновление: {n} мин назад',qf_steam_ok:'Steam привязан · {n}/{total}',qf_steam_missing:'Не привязан Steam у игроков: {n}',qf_link_steam:'Привязать Steam',qf_csgo:'Для игры нужен CS:GO на ПК',qf_desk_ask:'Уведомления на ПК: включить',qf_desk_on:'Уведомления на ПК включены',desk_found_d:'{m} · {r} — 20 с на принятие',desk_ready_t:'Сервер готов · {m}',desk_ready_d:'Заходи на сервер CS:GO ({ip})'});
+
+function deskNotify(title,body,tag='tr_mm'){
+  if(!('Notification' in window)||Notification.permission!=='granted')return;
+  if(typeof SET!=='undefined'&&SET.notif&&SET.notif.desktop===false)return;
+  if(!document.hidden&&document.hasFocus())return;
+  try{const n=new Notification(title,{body,tag,icon:'/favicon-192.png'});n.onclick=()=>{window.focus();n.close()}}catch(_){}
+}
+
+const QUEUE_STATUS={data:null,busy:false,at:0};
+async function refreshQueueStatus(){
+  if(QUEUE_STATUS.busy||Date.now()-QUEUE_STATUS.at<30e3||document.hidden||$('#play').hidden)return;
+  if(typeof realMM!=='function'||!realMM())return;
+  QUEUE_STATUS.busy=true;
+  try{
+    const r=await fetch('https://tickratecsgo-default-rtdb.europe-west1.firebasedatabase.app/publicStatus.json',{cache:'no-store'});
+    if(!r.ok)throw new Error('status_unavailable');
+    const data=await r.json();
+    if(!data||!data.servers||!Number.isFinite(Number(data.at)))throw new Error('status_invalid');
+    QUEUE_STATUS.data=data;
+  }catch(_){QUEUE_STATUS.data=null}
+  finally{QUEUE_STATUS.at=Date.now();QUEUE_STATUS.busy=false;renderQueueReady()}
+}
+setInterval(refreshQueueStatus,5e3);
+
 function renderModes(){
   $('#modes').innerHTML=MODES.map(m=>`<div class="mode ${state.mode===m.id?'active':''} ${m.id==='dz'?'dz-mode':''}" data-id="${m.id}"><div class="tag">${m.tag}${m.soon?` <span class="dz-pill">${t('m_dz_soon')}</span>`:''}</div><div class="nm">${m.n}</div><div class="ds">${m.d}</div></div>`).join('');
 }
@@ -199,13 +226,57 @@ function renderParty(){
   const tr=partyTier();
   $('#poolPill').innerHTML=`<span class="tf" style="--c:${tr.c}">${ICON.shield}${t('pool_pill',{x:tierName(tr)})}</span>`;
   admHydratePartyDebounced();
+  renderQueueReady();
 }
+function renderQueueReady(){
+  const box=$('#queueReady');
+  if(!box)return;
+  const realQueue=typeof realMM==='function'&&realMM();
+  const items=[];
+  if(!realQueue){
+    items.push(`<span class="queue-ready-item info">${t('qf_preview')}</span>`);
+  }else{
+    const isOpen=typeof OPEN_REGIONS==='undefined'||OPEN_REGIONS.includes(state.region);
+    items.push(`<span class="queue-ready-item ${isOpen?'ready':'pending'}">${t(isOpen?'qf_region_open':'qf_region_closed',{region:regObj().name})}</span>`);
+    if(isOpen){
+      const status=QUEUE_STATUS.data,age=status?Date.now()-Number(status.at):Infinity;
+      if(status&&age<=12*60e3){
+        const free=Object.values(status.servers).filter(s=>s&&s.state==='free'&&(!s.mode||s.mode===state.mode)).length;
+        const label=free?t('qf_server_free',{n:free}):t('qf_server_busy');
+        items.push(`<span class="queue-ready-item ${free?'ready':'pending'}" title="${t('qf_server_age',{n:Math.max(0,Math.floor(age/60e3))})}">${label}</span>`);
+      }else{
+        items.push(`<span class="queue-ready-item info">${t('qf_server_unknown')}</span>`);
+      }
+    }
+    const members=state.party?.length?state.party:[ME],total=members.length;
+    const isMe=p=>p.me||p.id===ME.id||p.name===ME.name;
+    const missing=members.filter(p=>isMe(p)?!(ME.steam&&ME.steam.linked):!(p.steam&&p.steam.linked));
+    const selfMissing=missing.some(isMe);
+    const steamText=missing.length?t('qf_steam_missing',{n:missing.length}):t('qf_steam_ok',{n:total,total});
+    items.push(`<span class="queue-ready-item ${missing.length?'pending':'ready'}">${steamText}${selfMissing?` <button type="button" class="queue-ready-link" data-qf-steam>${t('qf_link_steam')}</button>`:''}</span>`);
+  }
+  items.push(`<span class="queue-ready-item info">${t('qf_csgo')}</span>`);
+  if('Notification' in window&&(Notification.permission==='default'||(Notification.permission==='granted'&&typeof SET!=='undefined'&&SET.notif&&!SET.notif.desktop))){
+    items.push(`<span class="queue-ready-item info"><button type="button" class="queue-ready-link" data-qf-desk>${t('qf_desk_ask')}</button></span>`);
+  }
+  box.innerHTML=items.join('');
+}
+$('#queueReady').addEventListener('click',e=>{
+  if(e.target.closest('[data-qf-steam]'))setView('profile');
+  if(e.target.closest('[data-qf-desk]')){
+    Notification.requestPermission().then(r=>{
+      if(r==='granted'){if(typeof SET!=='undefined'&&SET.notif){SET.notif.desktop=true;if(typeof saveSet==='function')saveSet()}toast(t('qf_desk_on'))}
+      renderQueueReady();
+    });
+  }
+});
 function renderRegions(){
   $('#regions').innerHTML=REGIONS.map(r=>{
     const ok=r.pingState==='ok',c=!ok?'var(--dim)':r.ping<50?'var(--green)':r.ping<120?'var(--yellow)':'var(--red)';
     const txt=ok?`${r.ping} ms`:r.pingState==='wait'?'… ms':'— ms';
     return `<div class="chip ${state.region===r.id?'active':''}" data-id="${r.id}" title="${t('ping_'+(r.pingState||'wait'))}">${r.id}<small style="color:${c}">${txt}</small></div>`;
   }).join('');
+  renderQueueReady();
 }
 function renderStats(){
   if($('#sGap'))$('#sGap').innerHTML=mmSort?`±${MM[partyPlan()].gap} ${planBadge({plan:partyPlan()})}`:'—';
@@ -433,6 +504,7 @@ function matchFound(){
   $('#found').classList.add('on');
   TRMatchSound.play();
   flashTitle(true);
+  deskNotify(t('match_found'),t('desk_found_d',{m:modeObj().n,r:regObj().name}),'tr_found');
   mf.int=setInterval(()=>{mf.left-=.1;ring(Math.max(0,mf.left/20));$('#ringNum').textContent=Math.max(0,Math.ceil(mf.left));if(mf.left<=0)endFound('timeout')},100);
   const others=total-1,declineIdx=Math.random()<.12?rnd(0,others-1):-1;
   for(let i=0;i<others;i++)mf.timers.push(setTimeout(()=>{if(mf.done)return;i===declineIdx?markDecline():markOk()},rnd(700,9000)));

@@ -303,8 +303,21 @@ async function finish(db, mid, body, now = Date.now()) {
     upd[`profiles/${uid}/${f('peakElo')}`] = Math.max(prof[f('peakElo')] || 0, elo);
     upd[`profiles/${uid}/${f('matches')}`] = (prof[f('matches')] || 0) + 1; upd[`profiles/${uid}/${f('wins')}`] = (prof[f('wins')] || 0) + (won ? 1 : 0);
     upd[`profiles/${uid}/lastMatchAt`] = now;
-    upd[`history/${uid}/${mid}`] = { at: now, map: m.map, mode: m.mode, won, score: p.team === 'A' ? `${sA}-${sB}` : `${sB}-${sA}`, ...results[uid] };
     upd[`userMatch/${uid}`] = null;
+  }
+  const ids = Object.keys(results);
+  const mvp = ids.reduce((b, u) => (results[u].rating > (results[b] || {}).rating ? u : b), ids[0]);
+  const rowOf = (u, meUid) => {
+    const r = results[u], pl = m.players[u] || {};
+    return { n: pl.name || 'Joueur', k: r.k, a: r.a, d: r.d, adr: r.adr, hs: r.hs, r: r.rating, e: r.delta, me: u === meUid, mvp: u === mvp };
+  };
+  for (const [uid, p] of Object.entries(m.players)) {
+    const myT = p.team, oT = myT === 'A' ? 'B' : 'A';
+    const sb = {
+      A: (m[myT] || []).filter(u => results[u]).map(u => rowOf(u, uid)).sort((a, b) => b.r - a.r),
+      B: (m[oT] || []).filter(u => results[u]).map(u => rowOf(u, uid)).sort((a, b) => b.r - a.r)
+    };
+    upd[`history/${uid}/${mid}`] = { at: now, map: m.map, mode: m.mode, won: p.team === winner, score: p.team === 'A' ? `${sA}-${sB}` : `${sB}-${sA}`, ...results[uid], sb };
   }
   Object.assign(upd, { [`matches/${mid}/status`]: 'finished', [`matches/${mid}/score`]: [sA, sB], [`matches/${mid}/winner`]: winner, [`matches/${mid}/results`]: results, [`matches/${mid}/finishedAt`]: now, [`activeMatches/${mid}`]: null, [`liveMatches/${mid}`]: null });
   if (m.server?.id) Object.assign(upd, { [`servers/${m.server.id}/status`]: 'free', [`servers/${m.server.id}/match`]: null, [`servers/${m.server.id}/assignment`]: null });

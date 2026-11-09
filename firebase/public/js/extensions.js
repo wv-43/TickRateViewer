@@ -113,11 +113,11 @@ Object.assign(I18N.fr,{rk_tab_real:'Joueurs inscrits',rl_loading:'Chargement des
 Object.assign(I18N.en,{rk_tab_real:'Registered players',rl_loading:'Loading players from Firebase…',rl_err:'Cannot reach Firebase right now.',rl_none:'No registered player yet.',rl_you:'You',rl_src:'{n} real players (Firebase)',rl_upd:'updated {x}',rl_refresh:'Refresh',rl_lvl:'Level'});
 Object.assign(I18N.ru,{rk_tab_real:'Реальные игроки',rl_loading:'Загрузка игроков из Firebase…',rl_err:'Firebase сейчас недоступен.',rl_none:'Пока нет игроков.',rl_you:'Ты',rl_src:'{n} реальных игроков (Firebase)',rl_upd:'обновлено {x}',rl_refresh:'Обновить',rl_lvl:'Уровень'});
 
-Object.assign(I18N.fr,{md_title:'Détail du match',md_rounds:'Rounds',md_half:'Mi-temps',md_you:'Toi',md_demo:'Demo du match',md_copy:'Copier la commande',md_gen:'Match ancien : composition des équipes reconstituée.',md_open:'Voir le détail',md_elo:'ELO',md_mvp:'MVP',md_first:'1re mi-temps',md_second:'2e mi-temps',md_streak:'Plus longue série : {n} rounds',
+Object.assign(I18N.fr,{md_title:'Détail du match',md_rounds:'Rounds',md_half:'Mi-temps',md_you:'Toi',md_demo:'Demo du match',md_copy:'Copier la commande',md_share:'Copier la carte',md_shared:'Carte du match copiée dans le presse-papiers',md_downloaded:'Carte du match téléchargée',md_gen:'Match ancien : composition des équipes reconstituée.',md_open:'Voir le détail',md_elo:'ELO',md_mvp:'MVP',md_first:'1re mi-temps',md_second:'2e mi-temps',md_streak:'Plus longue série : {n} rounds',
   ob_t:'Bien démarrer sur TICKRATE',ob_s:'{a}/{b} étapes · +{c} pièces à la fin',ob_steam:'Lier ton compte Steam',ob_audio:'Régler ton micro et ton casque',ob_match:'Jouer ton premier match',ob_friends:'Trouver des amis',ob_vigie:'Découvrir la Vigie (fair-play)',ob_done:'Tout est prêt ! +{c} pièces',ob_hide:'Masquer'});
-Object.assign(I18N.en,{md_title:'Match details',md_rounds:'Rounds',md_half:'Half-time',md_you:'You',md_demo:'Match demo',md_copy:'Copy command',md_gen:'Older match: team line-ups reconstructed.',md_open:'See details',md_elo:'ELO',md_mvp:'MVP',md_first:'1st half',md_second:'2nd half',md_streak:'Longest streak: {n} rounds',
+Object.assign(I18N.en,{md_title:'Match details',md_rounds:'Rounds',md_half:'Half-time',md_you:'You',md_demo:'Match demo',md_copy:'Copy command',md_share:'Copy match card',md_shared:'Match card copied to clipboard',md_downloaded:'Match card downloaded',md_gen:'Older match: team line-ups reconstructed.',md_open:'See details',md_elo:'ELO',md_mvp:'MVP',md_first:'1st half',md_second:'2nd half',md_streak:'Longest streak: {n} rounds',
   ob_t:'Get started on TICKRATE',ob_s:'{a}/{b} steps · +{c} coins at the end',ob_steam:'Link your Steam account',ob_audio:'Set up your mic and headset',ob_match:'Play your first match',ob_friends:'Find friends',ob_vigie:'Discover Watch (fair play)',ob_done:'All set! +{c} coins',ob_hide:'Hide'});
-Object.assign(I18N.ru,{md_title:'Детали матча',md_rounds:'Раунды',md_half:'Смена сторон',md_you:'Ты',md_demo:'Демка матча',md_copy:'Скопировать команду',md_gen:'Старый матч: составы восстановлены.',md_open:'Подробнее',md_elo:'ELO',md_mvp:'MVP',md_first:'1-я половина',md_second:'2-я половина',md_streak:'Лучшая серия: {n} раундов',
+Object.assign(I18N.ru,{md_title:'Детали матча',md_rounds:'Раунды',md_half:'Смена сторон',md_you:'Ты',md_demo:'Демка матча',md_copy:'Скопировать команду',md_share:'Скопировать карточку',md_shared:'Карточка матча скопирована',md_downloaded:'Карточка матча скачана',md_gen:'Старый матч: составы восстановлены.',md_open:'Подробнее',md_elo:'ELO',md_mvp:'MVP',md_first:'1-я половина',md_second:'2-я половина',md_streak:'Лучшая серия: {n} раундов',
   ob_t:'Начало на TICKRATE',ob_s:'{a}/{b} шагов · +{c} монет в конце',ob_steam:'Привязать Steam',ob_audio:'Настроить микрофон и наушники',ob_match:'Сыграть первый матч',ob_friends:'Найти друзей',ob_vigie:'Узнать про Дозор (фейр-плей)',ob_done:'Всё готово! +{c} монет',ob_hide:'Скрыть'});
 
 function mdPack(A,B,mvp){const f=r=>({n:r.p.name,c:r.p.color,k:r.k,a:r.a,d:r.d,adr:r.adr,hs:r.hs,r:+r.rating.toFixed(2),e:r.ch.d,me:!!r.p.me,mvp:r===mvp});return {A:A.map(f),B:B.map(f)}}
@@ -130,16 +130,33 @@ function mdSeeded(seed){let s=seed>>>0||1;return()=>{s^=s<<13;s^=s>>>17;s^=s<<5;
 function mdFill(x,P){
   if(x.sb&&x.rs)return x;
   const R=mdSeeded(+new Date(x.date)||7),pk=a=>a[Math.floor(R()*a.length)],[sa,sb]=String(x.score).split('-').map(Number);
+  if(x.sb){const R2=Math.random;Math.random=R;const rs=x.rs||mdRounds(Math.max(sa,sb),Math.min(sa,sb),sa>sb);Math.random=R2;return {...x,rs,gen:false}}
   const mk=(me)=>{const k=me?x.k:Math.round(8+R()*18),d=me?x.d:Math.round(10+R()*12);return {n:me?P.name:pk(NAMES)+(R()<.3?Math.floor(R()*99):''),c:me?P.color:pk(COLORS),k,a:me?x.a:Math.round(R()*8),d,adr:me?x.adr:Math.round(55+R()*45),hs:me?x.hs:Math.round(25+R()*40),r:me?x.rating:+(0.7+R()*0.7).toFixed(2),e:me?x.delta:(x.won?1:-1)*Math.round(15+R()*14),me}};
   const A=[mk(true),mk(),mk(),mk(),mk()].sort((a,b)=>b.r-a.r),B=[mk(),mk(),mk(),mk(),mk()].map(r=>({...r,e:-r.e})).sort((a,b)=>b.r-a.r);
   const all=[...A,...B],best=all.reduce((m,r)=>r.r>m.r?r:m);best.mvp=true;
   const R2=Math.random;Math.random=R;const rs=mdRounds(Math.max(sa,sb),Math.min(sa,sb),sa>sb);Math.random=R2;
   return {...x,sb:{A,B},rs,gen:true};
 }
-let MD=null;
+let MD=null,MD_P=null;
+async function mdFetchRealSb(x0,P){
+  if(x0.sb||typeof fbReq!=='function'||!String(x0.id||'').startsWith('m_'))return false;
+  try{
+    const m=await fbReq(`matches/${x0.id}`);
+    if(!m||!m.players||!m.results)return false;
+    const ids=Object.keys(m.results);if(!ids.length)return false;
+    const mvp=ids.reduce((b,u)=>(m.results[u].rating>(m.results[b]||{}).rating?u:b),ids[0]);
+    const meUid=ids.find(u=>(m.players[u]?.name||'').toLowerCase()===(P.name||'').toLowerCase())||(P===ME&&typeof FBA!=='undefined'?FBA.uid:null);
+    const myT=(meUid&&m.players[meUid]?.team)||'A',oT=myT==='A'?'B':'A';
+    const rowOf=u=>{const r=m.results[u],pl=m.players[u]||{};return {n:pl.name||'Joueur',c:lvColor(pl.name||u),k:r.k||0,a:r.a||0,d:r.d||0,adr:r.adr||0,hs:r.hs||0,r:+(r.rating||1).toFixed(2),e:r.delta||0,me:u===meUid,mvp:u===mvp}};
+    x0.sb={A:(m[myT]||[]).filter(u=>m.results[u]).map(rowOf).sort((a,b)=>b.r-a.r),B:(m[oT]||[]).filter(u=>m.results[u]).map(rowOf).sort((a,b)=>b.r-a.r)};
+    x0.gen=false;return true;
+  }catch(_){return false}
+}
 function openMatchDetail(P,i){
   const x0=P.history[i];if(!x0)return;
-  const x=mdFill(x0,P);MD=x;
+  if(x0.sb)x0.sb.A.concat(x0.sb.B).forEach(r=>{if(!r.c)r.c=r.me?P.color:lvColor(r.n)});
+  const x=mdFill(x0,P);MD=x;MD_P=P;
+  if(!x0.sb&&String(x0.id||'').startsWith('m_'))mdFetchRealSb(x0,P).then(ok=>{if(ok&&$('#mdModal')?.classList.contains('on'))openMatchDetail(P,i)});
   const [sa,sb]=String(x.score).split('-').map(Number),win=Math.max(sa,sb),half=win>=16?15:win>=13?12:8;
   const map=MAPS.find(m=>m.n===x.map)||MAPS[0];
   const rs=[...x.rs];let best=0,cur=0,prev='';rs.forEach(r=>{cur=r===prev?cur+1:1;prev=r;if(r==='A')best=Math.max(best,cur)});
@@ -154,12 +171,59 @@ function openMatchDetail(P,i){
       <div class="md-score"><span class="${x.won?'w':''}">${sa}</span><i>:</i><span class="${x.won?'':'w'}">${sb}</span></div></div>
     <div class="md-sec"><div class="md-st"><b>${t('md_rounds')}</b><small>${t('md_streak',{n:best})}</small></div><div class="md-rounds">${dots}</div></div>
     ${board(x.sb.A,true)}${board(x.sb.B,false)}
-    <div class="md-foot"><div class="vg-cmd" style="flex:1;margin:0"><code>${demo}</code><button class="btn sm" data-mdcopy="${demo}">${t('md_copy')}</button></div></div>
+    <div class="md-foot" style="display:flex;gap:10px;align-items:center;flex-wrap:wrap"><div class="vg-cmd" style="flex:1;margin:0"><code>${demo}</code><button class="btn sm" data-mdcopy="${demo}">${t('md_copy')}</button></div><button class="btn primary sm" data-mdcard>${t('md_share')}</button></div>
     ${x.gen?`<p class="m-hint">${t('md_gen')}</p>`:''}`;
   openModal('mdModal');
 }
+async function mdShareCard(x,P){
+  if(!x)return;
+  const W=800,H=420,cv=document.createElement('canvas');cv.width=W;cv.height=H;
+  const g=cv.getContext('2d'),ac=x.won?'#3fcf8e':'#ff4d5e';
+  g.fillStyle='#0d0e12';g.fillRect(0,0,W,H);
+  const grd=g.createLinearGradient(0,0,W,H);grd.addColorStop(0,x.won?'rgba(63,207,142,0.14)':'rgba(255,77,94,0.14)');grd.addColorStop(1,'rgba(255,178,31,0.04)');
+  g.fillStyle=grd;g.fillRect(0,0,W,H);
+  g.strokeStyle='#262830';g.lineWidth=2;g.strokeRect(1,1,W-2,H-2);
+  g.fillStyle='#ffb21f';g.font='800 18px system-ui,-apple-system,sans-serif';g.fillText('TICKRATE · 128 TICK',36,44);
+  const modeLbl=x.mode==='duel'?'1V1 AIM ARENA':x.mode==='wingman'?'WINGMAN 2V2':'COMPETITIVE 5V5';
+  g.fillStyle='#8c909c';g.font='600 13px system-ui,-apple-system,sans-serif';g.fillText(`${modeLbl} · ${String(x.map||'').toUpperCase()} · ${fmtDate(new Date(x.date))}`,36,68);
+  g.fillStyle=ac;g.font='900 38px system-ui,-apple-system,sans-serif';g.fillText((x.won?t('victory'):t('defeat')).toUpperCase(),36,124);
+  const [sa,sb]=String(x.score||'0-0').split('-');
+  g.fillStyle='#f3f4f6';g.font='900 54px system-ui,-apple-system,sans-serif';g.textAlign='right';g.fillText(`${sa} : ${sb}`,W-36,118);g.textAlign='left';
+  g.fillStyle='#16181f';g.fillRect(36,150,W-72,82);g.strokeStyle='#262830';g.lineWidth=1;g.strokeRect(36,150,W-72,82);
+  g.fillStyle='#f3f4f6';g.font='800 22px system-ui,-apple-system,sans-serif';g.fillText(String((P&&P.name)||ME.name||'Player'),56,188);
+  const dTxt=(x.delta>=0?'+':'')+x.delta+' ELO';
+  g.fillStyle=x.delta>=0?'#3fcf8e':'#ff4d5e';g.font='700 15px system-ui,-apple-system,sans-serif';g.fillText(`${x.elo||1000} ELO (${dTxt})`,56,214);
+  const kd=(x.d?x.k/x.d:x.k).toFixed(2);
+  const stats=[['K / D / A',`${x.k} / ${x.d} / ${x.a}`],['K/D',kd],['ADR',String(x.adr||0)],['HS %',`${x.hs||0}%`],[t('rating').toUpperCase(),(+x.rating||1).toFixed(2)]];
+  stats.forEach(([k,v],idx)=>{
+    const sx=310+idx*90;
+    g.fillStyle='#8c909c';g.font='600 11px system-ui,-apple-system,sans-serif';g.fillText(k,sx,180);
+    g.fillStyle='#f3f4f6';g.font='800 20px system-ui,-apple-system,sans-serif';g.fillText(v,sx,210);
+  });
+  const drawT=(rows,ox,title)=>{
+    g.fillStyle='#8c909c';g.font='700 12px system-ui,-apple-system,sans-serif';g.fillText(title,ox,264);
+    (rows||[]).slice(0,5).forEach((r,idx)=>{
+      const y=288+idx*22;
+      g.fillStyle=r.me?'#ffb21f':'#d5d8e0';g.font=(r.me?'700':'500')+' 13px system-ui,-apple-system,sans-serif';
+      g.fillText(String(r.n||'').slice(0,16),ox,y);
+      g.fillStyle='#8c909c';g.textAlign='right';g.fillText(`${r.k}/${r.d}/${r.a} · ${(+r.r).toFixed(2)}`,ox+330,y);g.textAlign='left';
+    });
+  };
+  drawT(x.sb?.A,36,'TEAM A');drawT(x.sb?.B,430,'TEAM B');
+  g.fillStyle='#5c606c';g.font='600 12px system-ui,-apple-system,sans-serif';g.textAlign='right';g.fillText('tickrate.eu',W-36,H-16);g.textAlign='left';
+  cv.toBlob(async blob=>{
+    if(!blob)return;
+    try{
+      if(navigator.clipboard&&window.ClipboardItem){await navigator.clipboard.write([new ClipboardItem({'image/png':blob})]);toast(t('md_shared'));beep(880,.06);return}
+    }catch(_){}
+    const u=URL.createObjectURL(blob),a=document.createElement('a');a.href=u;a.download=`tickrate-${x.id||'match'}.png`;a.click();setTimeout(()=>URL.revokeObjectURL(u),3000);toast(t('md_downloaded'));
+  },'image/png');
+}
 document.body.insertAdjacentHTML('beforeend',`<div class="overlay" id="mdModal"><div class="modal md-modal"><div class="m-h"><h3 data-i18n="md_title">${t('md_title')}</h3><button class="x2" data-close>×</button></div><div id="mdBody"></div></div></div>`);
-$('#mdModal').addEventListener('click',async e=>{const c=e.target.closest('[data-mdcopy]');if(c){try{await navigator.clipboard.writeText(c.dataset.mdcopy)}catch(_){}toast(t('vg_copied'))}});
+$('#mdModal').addEventListener('click',async e=>{
+  const c=e.target.closest('[data-mdcopy]');if(c){try{await navigator.clipboard.writeText(c.dataset.mdcopy)}catch(_){}toast(t('vg_copied'));return}
+  if(e.target.closest('[data-mdcard]'))mdShareCard(MD,MD_P||ME);
+});
 $('#profile').addEventListener('click',e=>{
   const tr=e.target.closest('tr[data-md]');if(!tr||e.target.closest('button,[data-profile]'))return;
   openMatchDetail(profileTarget||ME,+tr.dataset.md);
@@ -198,15 +262,15 @@ $('#play').addEventListener('click',e=>{
 document.addEventListener('click',e=>{if(e.target.closest('[data-sttab="audio"]')&&!OB.audio){OB.audio=1;obSave()}},true);
 renderOnboard();
 
-Object.assign(I18N.fr,{pl_btn:'Lien d\'invitation',pl_title:'Inviter avec un lien',pl_sub:'Envoie ce lien à tes amis : en l\'ouvrant, ils rejoignent directement ton groupe.',pl_copy:'Copier',pl_copied:'Lien copié',pl_exp:'Expire dans {x}',pl_new:'Nouveau lien',pl_joined:'Arrivés par le lien',pl_none:'Personne pour l\'instant.',pl_off:'Firebase injoignable : en démo, un ami simulé rejoindra dans quelques secondes.',pl_full:'Le groupe est complet.',
+Object.assign(I18N.fr,{pl_btn:'Lien d\'invitation',pl_qcopy_t:'Copier le lien d\'invitation en 1 clic',pl_title:'Inviter avec un lien',pl_sub:'Envoie ce lien à tes amis : en l\'ouvrant, ils rejoignent directement ton groupe.',pl_copy:'Copier',pl_copied:'Lien copié',pl_exp:'Expire dans {x}',pl_new:'Nouveau lien',pl_joined:'Arrivés par le lien',pl_none:'Personne pour l\'instant.',pl_off:'Firebase injoignable : en démo, un ami simulé rejoindra dans quelques secondes.',pl_full:'Le groupe est complet.',
   pl_join_ok:'Tu as rejoint le groupe de {n}',pl_join_bad:'Ce lien d\'invitation a expiré ou n\'existe pas.',pl_join_full:'Le groupe de {n} est complet.',pl_in:'{n} a rejoint ton groupe par le lien',
   cmp_btn:'Comparer',cmp_title:'Comparaison',cmp_elo:'Courbe d\'ELO (20 derniers matchs)',cmp_maps:'Win rate par map',cmp_better:'{n} devant sur {k}/{t} stats',cmp_none:'Pas de map en commun sur les derniers matchs.',
   lv_title:'Matchs en direct',lv_sub:'Regarde les meilleurs matchs du moment en spectateur (GOTV, 90 s de délai).',lv_watch:'Regarder',lv_round:'Round {n}',lv_friend:'{n} joue',lv_feed:'Fil des kills',lv_gotv:'Regarder dans CS:GO',lv_gotv_go:'Ouverture de CS:GO en spectateur… (commande aussi copiée : colle-la dans la console si rien ne se passe)',lv_gotv_t:'Ouvre CS:GO en spectateur sur le serveur (GOTV). Le direct a 90 s de délai pour éviter la triche.',lv_end:'Match terminé',lv_next:'Nouveau match dans quelques secondes',lv_viewers:'{n} spectateurs',lv_avg:'{n} ELO moy.',lv_none:'Aucun match en direct pour le moment.',lv_none_off:'Connecte-toi pour voir les matchs en direct.'});
-Object.assign(I18N.en,{pl_btn:'Invite link',pl_title:'Invite with a link',pl_sub:'Send this link to your friends: opening it puts them straight into your party.',pl_copy:'Copy',pl_copied:'Link copied',pl_exp:'Expires in {x}',pl_new:'New link',pl_joined:'Joined via link',pl_none:'Nobody yet.',pl_off:'Firebase unreachable: in demo, a simulated friend will join in a few seconds.',pl_full:'The party is full.',
+Object.assign(I18N.en,{pl_btn:'Invite link',pl_qcopy_t:'One-click copy invite link',pl_title:'Invite with a link',pl_sub:'Send this link to your friends: opening it puts them straight into your party.',pl_copy:'Copy',pl_copied:'Link copied',pl_exp:'Expires in {x}',pl_new:'New link',pl_joined:'Joined via link',pl_none:'Nobody yet.',pl_off:'Firebase unreachable: in demo, a simulated friend will join in a few seconds.',pl_full:'The party is full.',
   pl_join_ok:'You joined {n}\'s party',pl_join_bad:'This invite link expired or does not exist.',pl_join_full:'{n}\'s party is full.',pl_in:'{n} joined your party via the link',
   cmp_btn:'Compare',cmp_title:'Comparison',cmp_elo:'ELO curve (last 20 matches)',cmp_maps:'Win rate by map',cmp_better:'{n} ahead on {k}/{t} stats',cmp_none:'No common map in recent matches.',
   lv_title:'Live matches',lv_sub:'Watch the best matches right now as a spectator (GOTV, 90 s delay).',lv_watch:'Watch',lv_round:'Round {n}',lv_friend:'{n} is playing',lv_feed:'Kill feed',lv_gotv:'Watch in CS:GO',lv_gotv_go:'Opening CS:GO as a spectator… (command also copied: paste it in the console if nothing happens)',lv_gotv_t:'Opens CS:GO as a spectator on the server (GOTV). The stream has a 90 s delay to prevent cheating.',lv_end:'Match over',lv_next:'New match in a few seconds',lv_viewers:'{n} viewers',lv_avg:'{n} avg ELO',lv_none:'No live matches right now.',lv_none_off:'Log in to see live matches.'});
-Object.assign(I18N.ru,{pl_btn:'Ссылка-приглашение',pl_title:'Пригласить по ссылке',pl_sub:'Отправь ссылку друзьям: открыв её, они сразу попадут в твою группу.',pl_copy:'Копировать',pl_copied:'Ссылка скопирована',pl_exp:'Истекает через {x}',pl_new:'Новая ссылка',pl_joined:'Пришли по ссылке',pl_none:'Пока никого.',pl_off:'Firebase недоступен: в демо симулированный друг присоединится через несколько секунд.',pl_full:'Группа заполнена.',
+Object.assign(I18N.ru,{pl_btn:'Ссылка-приглашение',pl_qcopy_t:'Скопировать ссылку в 1 клик',pl_title:'Пригласить по ссылке',pl_sub:'Отправь ссылку друзьям: открыв её, они сразу попадут в твою группу.',pl_copy:'Копировать',pl_copied:'Ссылка скопирована',pl_exp:'Истекает через {x}',pl_new:'Новая ссылка',pl_joined:'Пришли по ссылке',pl_none:'Пока никого.',pl_off:'Firebase недоступен: в демо симулированный друг присоединится через несколько секунд.',pl_full:'Группа заполнена.',
   pl_join_ok:'Ты в группе {n}',pl_join_bad:'Ссылка устарела или не существует.',pl_join_full:'Группа {n} заполнена.',pl_in:'{n} присоединился по ссылке',
   cmp_btn:'Сравнить',cmp_title:'Сравнение',cmp_elo:'ELO (последние 20 матчей)',cmp_maps:'Винрейт по картам',cmp_better:'{n} впереди по {k}/{t} показателям',cmp_none:'Нет общих карт в последних матчах.',
   lv_title:'Матчи в прямом эфире',lv_sub:'Смотри лучшие матчи как зритель (GOTV, задержка 90 с).',lv_watch:'Смотреть',lv_round:'Раунд {n}',lv_friend:'{n} играет',lv_feed:'Лента убийств',lv_gotv:'Смотреть в CS:GO',lv_gotv_go:'Открываем CS:GO в режиме зрителя… (команда скопирована: вставь её в консоль, если ничего не произошло)',lv_gotv_t:'Открывает CS:GO в режиме зрителя (GOTV). Задержка 90 с против читов.',lv_end:'Матч окончен',lv_next:'Новый матч через несколько секунд',lv_viewers:'{n} зрителей',lv_avg:'Ср. ELO {n}',lv_none:'Сейчас нет матчей в эфире.',lv_none_off:'Войди, чтобы смотреть матчи в эфире.'});
@@ -328,8 +392,13 @@ function renderPL(){
 }
 document.addEventListener('click',e=>{if(e.target.closest('[data-pl-friends]')){closeModal('plModal');setView('friends')}});
 if(!$('#plModal')) document.body.insertAdjacentHTML('beforeend',`<div class="overlay" id="plModal"><div class="modal pl-modal"><div class="m-h"><h3 data-i18n="pl_title">${t('pl_title')}</h3><button class="x2" data-close>×</button></div><div id="plBody"></div></div></div>`);
-$('.stage-head .right').insertAdjacentHTML('afterbegin',`<button class="btn ghost sm pl-btn" data-plopen aria-label="${t('pl_btn')||'Inviter'}"><svg class="ic" aria-hidden="true" fill="currentColor" viewBox="0 0 512 512"><path d="M288 256c52.79 0 99.43-49.71 104-110.82 2.27-30.7-7.36-59.33-27.12-80.6C345.33 43.57 318 32 288 32c-30.24 0-57.59 11.5-77 32.38-19.63 21.11-29.2 49.8-27 80.78C188.49 206.28 235.12 256 288 256zM495.38 439.76c-8.44-46.82-34.79-86.15-76.19-113.75C382.42 301.5 335.83 288 288 288s-94.42 13.5-131.19 38c-41.4 27.6-67.75 66.93-76.19 113.75-1.93 10.73.69 21.34 7.19 29.11A30.94 30.94 0 00112 480h352a30.94 30.94 0 0024.21-11.13c6.48-7.77 9.1-18.38 7.17-29.11zM104 288v-40h40a16 16 0 000-32h-40v-40a16 16 0 00-32 0v40H32a16 16 0 000 32h40v40a16 16 0 0032 0z"/></svg><span data-i18n="pl_btn">${t('pl_btn')||'Inviter'}</span></button>`);
+$('.stage-head .right').insertAdjacentHTML('afterbegin',`<button class="btn ghost sm pl-btn" data-plquickcopy title="${escA(t('pl_qcopy_t'))}" aria-label="${escA(t('pl_qcopy_t'))}"><svg class="ic" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="40" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 512 512"><path d="M208 352h-64a96 96 0 010-192h64M304 160h64a96 96 0 010 192h-64M163.29 256h185.42"/></svg></button><button class="btn ghost sm pl-btn" data-plopen aria-label="${t('pl_btn')||'Inviter'}"><svg class="ic" aria-hidden="true" fill="currentColor" viewBox="0 0 512 512"><path d="M288 256c52.79 0 99.43-49.71 104-110.82 2.27-30.7-7.36-59.33-27.12-80.6C345.33 43.57 318 32 288 32c-30.24 0-57.59 11.5-77 32.38-19.63 21.11-29.2 49.8-27 80.78C188.49 206.28 235.12 256 288 256zM495.38 439.76c-8.44-46.82-34.79-86.15-76.19-113.75C382.42 301.5 335.83 288 288 288s-94.42 13.5-131.19 38c-41.4 27.6-67.75 66.93-76.19 113.75-1.93 10.73.69 21.34 7.19 29.11A30.94 30.94 0 00112 480h352a30.94 30.94 0 0024.21-11.13c6.48-7.77 9.1-18.38 7.17-29.11zM104 288v-40h40a16 16 0 000-32h-40v-40a16 16 0 00-32 0v40H32a16 16 0 000 32h40v40a16 16 0 0032 0z"/></svg><span data-i18n="pl_btn">${t('pl_btn')||'Inviter'}</span></button>`);
 document.addEventListener('click',async e=>{
+  if(e.target.closest('[data-plquickcopy]')){
+    if(!PL.code||Date.now()>PL.exp)await plCreate();
+    try{await navigator.clipboard.writeText(plLink())}catch(_){}
+    beep(880,.06);toast(t('pl_copied'));return;
+  }
   if(e.target.closest('[data-plopen]')){
     if(typeof triggerFastInvitePoll==='function')triggerFastInvitePoll(20000);
     if(!PL.code||Date.now()>PL.exp)await plCreate();else{ if(typeof plPoll==='function')plPoll(); renderPL(); }
@@ -722,7 +791,8 @@ async function fbBuildSession(){
       rating:x.rating||1.0,
       delta:x.delta||0,
       elo:x.elo||prof.elo||1000,
-      mode:x.mode||'ranked'
+      mode:x.mode||'ranked',
+      sb:x.sb||null
     })).sort((a,b)=>b.date-a.date);
     ME.history=h;
   }else{
@@ -927,7 +997,7 @@ async function fbEnter(msg){
   }
   const old=typeof dSessionGet==='function'&&dSessionGet();
   try{localStorage.removeItem('tr_auth');sessionStorage.removeItem('tr_auth')}catch(e){}
-  AUTH.mode='demo';AUTH.session=null;showAuth('login');
+  AUTH.mode='demo';AUTH.session=null;showAuth(old||sp?'login':authFirstTab());
   if(old&&old.account){$('#liLogin')&&($('#liLogin').value=old.account.email||old.account.username);$('#liErr')&&($('#liErr').textContent=t('au_migrate'))}
   if(sp==='error')$('#liErr')&&($('#liErr').textContent=t('au_steam_err'));
   if(sp==='cancel')$('#liErr')&&($('#liErr').textContent=t('e_steam_cancel'));

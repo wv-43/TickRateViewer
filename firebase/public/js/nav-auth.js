@@ -478,6 +478,11 @@ function backFromVerify(){
   showAuth('login');
 }
 
+const authNarrow=()=>matchMedia('(max-width:900px)').matches;
+function authFirstTab(){
+  try{if(Object.keys(localStorage).some(k=>/^(tr_known|tr_fba|tr_ob|cs_profile_)/.test(k)))return 'login'}catch(e){return 'login'}
+  return 'register';
+}
 function showAuth(tab){
   hideVerifyScreen();
   authTab=tab||authTab;
@@ -488,11 +493,12 @@ function showAuth(tab){
   $('#authMode').textContent='';
   $('#authLangs').innerHTML=['fr','en','ru'].map(l=>`<button class="${lang===l?'on':''}" data-alang="${l}">${l.toUpperCase()}</button>`).join('');
   pwRules();
-  setTimeout(()=>{const f=authTab==='login'?$('#liLogin'):$('#reUser');if(f&&!f.value)f.focus()},50);
+  if(!authNarrow())setTimeout(()=>{const f=authTab==='login'?$('#liLogin'):$('#reUser');if(f&&!f.value)f.focus()},50);
 }
 function hideAuth(){$('#auth').hidden=true;document.body.style.overflow=''}
 function applySession(sess){
   AUTH.session=sess;const a=sess.account;
+  try{localStorage.setItem('tr_known','1')}catch(e){}
   const old=ME.name;
   const uKey=(typeof FBA!=='undefined'&&FBA&&FBA.uid)?FBA.uid:(typeof fbUserKey==='function'?fbUserKey():String(a.id));
 
@@ -723,7 +729,7 @@ async function authInit(){
     else if(sp==='taken')toast(t('au_steam_taken'));
     else if(q.has('welcome'))toast(t('au_hello',{n:ME.name}));
   } else {
-    showAuth('login');
+    showAuth(sp?'login':authFirstTab());
     if(typeof fbSyncOnline==='function')fbSyncOnline(false);
     if(sp==='error'||sp==='cancel')$('#liErr')&&($('#liErr').textContent=t('au_steam_err'));
   }

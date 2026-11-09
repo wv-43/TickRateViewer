@@ -27,9 +27,9 @@ class PingProbe{
   }
 }
 
-Object.assign(I18N.fr,{ping_wait:'Mesure du ping…',ping_ok:'Ping mesuré vers le serveur le plus proche',ping_none:'Aucun serveur dans cette région pour le moment',ping_down:'Les serveurs de cette région ne répondent pas'});
-Object.assign(I18N.en,{ping_wait:'Measuring ping…',ping_ok:'Ping measured to the closest server',ping_none:'No server in this region yet',ping_down:'Servers in this region are not responding'});
-Object.assign(I18N.ru,{ping_wait:'Измеряем пинг…',ping_ok:'Пинг до ближайшего сервера',ping_none:'В этом регионе пока нет серверов',ping_down:'Серверы региона не отвечают'});
+Object.assign(I18N.fr,{ping_wait:'Mesure du ping…',ping_ok:'Ping mesuré vers la sonde la plus proche',ping_none:'Ping non mesuré : aucune cible disponible. La région peut rester ouverte au matchmaking.',ping_down:'La sonde ping ne répond pas. Cela ne signifie pas que la file est fermée.'});
+Object.assign(I18N.en,{ping_wait:'Measuring ping…',ping_ok:'Ping measured to the closest probe',ping_none:'Ping not measured: no probe is available. The region may still be open for matchmaking.',ping_down:'The ping probe is not responding. This does not mean the queue is closed.'});
+Object.assign(I18N.ru,{ping_wait:'Измеряем пинг…',ping_ok:'Пинг до ближайшей контрольной точки',ping_none:'Пинг не измерен: контрольная точка недоступна. Регион может быть открыт для матчмейкинга.',ping_down:'Контрольная точка пинга не отвечает. Это не означает, что очередь закрыта.'});
 const PING={probe:new PingProbe(),timer:null,busy:false,at:0,EVERY:30e3};
 REGIONS.forEach(r=>{r.ping=null;r.pingState='wait'});
 async function pingRefresh(force=false){

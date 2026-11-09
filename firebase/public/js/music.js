@@ -55,8 +55,10 @@
 #trMusic.open .trm-col-links{animation-delay:.14s}
 @keyframes trmBreath{0%,100%{box-shadow:0 0 0 0 rgba(var(--acc-rgb),.28)}50%{box-shadow:0 0 0 7px rgba(var(--acc-rgb),0)}}
 #trMusic.playing .trm-play{animation:trmBreath 3.6s ease-in-out infinite}
-.trm-line{display:none;height:2px;background:var(--line)}
-.trm-line i{display:block;height:100%;width:0;background:var(--acc);transition:width .25s linear}
+.trm-line{display:none;position:relative;height:18px;background:transparent;touch-action:pan-y;cursor:pointer}
+.trm-line::before{content:'';position:absolute;left:10px;right:10px;top:8px;height:2px;border-radius:2px;background:var(--line2)}
+.trm-line i{position:absolute;left:10px;top:8px;display:block;height:2px;width:0;border-radius:2px;background:var(--acc);pointer-events:none}
+.trm-line:focus-visible{outline:2px solid var(--acc);outline-offset:-2px;border-radius:4px}
 .trm-bar{cursor:grab;user-select:none;-webkit-user-select:none;touch-action:none;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,2fr) minmax(0,1fr);align-items:center;gap:16px;height:68px;padding:0 16px}
 .trm-left,.trm-center,.trm-right{display:flex;align-items:center;min-width:0}
 .trm-left{gap:10px}
@@ -297,7 +299,11 @@ html.rm #trMusic,html.rm #trMusic *,html.rm .dock{animation:none!important;trans
   const fill=(r,part)=>r.style.setProperty('--p',(part*100).toFixed(1)+'%');
   function showTime(){
     const part=S.dur?Math.min(1,S.pos/S.dur):0;
-    $q('.trm-line i').style.width=(part*100).toFixed(1)+'%';
+    const line=$q('.trm-line'),lineWidth=Math.max(0,line.clientWidth-20);
+    line.querySelector('i').style.width=(lineWidth*part).toFixed(1)+'px';
+    line.setAttribute('aria-valuemax',String(Math.max(1,Math.floor(S.dur/1000))));
+    line.setAttribute('aria-valuenow',String(Math.floor(S.pos/1000)));
+    line.setAttribute('aria-valuetext',`${fmt(S.pos)} / ${fmt(S.dur)}`);
     $q('.trm-now').textContent=fmt(S.pos);
     $q('.trm-len').textContent=fmt(S.dur);
     if(!seeking){const r=$q('.trm-range');r.max=Math.max(1,Math.floor(S.dur/1000));r.value=Math.floor(S.pos/1000);drawWave()}
@@ -837,7 +843,7 @@ html.rm #trMusic,html.rm #trMusic *,html.rm .dock{animation:none!important;trans
   function mount(){
     const css=document.createElement('style');css.id='trMusicCss';css.textContent=CSS;document.head.appendChild(css);
     box=document.createElement('section');box.id='trMusic';box.setAttribute('aria-label',t('mu_title'));
-    box.innerHTML=`<canvas class="trm-aura" aria-hidden="true"></canvas><div class="trm-line"><i></i></div>
+    box.innerHTML=`<canvas class="trm-aura" aria-hidden="true"></canvas><div class="trm-line" role="slider" tabindex="0" aria-label="${t('mu_seek')}" aria-valuemin="0" aria-valuemax="1" aria-valuenow="0" aria-valuetext="0:00 / 0:00"><i></i></div>
       <div class="trm-bar">
         <div class="trm-left">
           <button class="trm-art"><img alt="" hidden>${ic(IC.note)}<span class="trm-eq"><i></i><i></i><i></i></span></button>
@@ -903,6 +909,33 @@ html.rm #trMusic,html.rm #trMusic *,html.rm .dock{animation:none!important;trans
     const range=$q('.trm-range');
     range.oninput=()=>{seeking=true;$q('.trm-now').textContent=fmt(range.value*1000);drawWave(range.value*1000)};
     range.onchange=()=>{seeking=false;if(engine)engine.seek(Number(range.value))};
+    const mobileSeek=$q('.trm-line');
+    const seekAt=e=>{
+      const r=mobileSeek.getBoundingClientRect(),usable=Math.max(1,r.width-20);
+      const part=Math.max(0,Math.min(1,(e.clientX-r.left-10)/usable));
+      S.pos=Math.round(S.dur*part);showTime();drawWave(S.pos);
+    };
+    mobileSeek.onpointerdown=e=>{
+      if(!S.dur)return;
+      seeking=true;mobileSeek.setPointerCapture(e.pointerId);seekAt(e);e.preventDefault();
+    };
+    mobileSeek.onpointermove=e=>{if(seeking&&mobileSeek.hasPointerCapture(e.pointerId))seekAt(e)};
+    mobileSeek.onpointerup=e=>{
+      if(!seeking)return;
+      seeking=false;if(mobileSeek.hasPointerCapture(e.pointerId))mobileSeek.releasePointerCapture(e.pointerId);
+      if(engine)engine.seek(Math.floor(S.pos/1000));
+    };
+    mobileSeek.onpointercancel=()=>{seeking=false};
+    mobileSeek.onkeydown=e=>{
+      if(!S.dur)return;
+      const step=e.shiftKey?30000:5000;let next=null;
+      if(e.key==='ArrowLeft')next=Math.max(0,S.pos-step);
+      else if(e.key==='ArrowRight')next=Math.min(S.dur,S.pos+step);
+      else if(e.key==='Home')next=0;
+      else if(e.key==='End')next=S.dur;
+      if(next===null)return;
+      e.preventDefault();S.pos=next;showTime();drawWave(next);if(engine)engine.seek(Math.floor(next/1000));
+    };
     $q('.trm-v').oninput=e=>{cfg.vol=clampVol(e.target.value);fill(e.target,cfg.vol/100);writeCfg();applyVol()};
     $q('.trm-form').onsubmit=e=>{
       e.preventDefault();
