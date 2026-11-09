@@ -1,0 +1,43 @@
+# BASE DE CONNAISSANCES OFFICIELLE : TICKRATE.EU (CS:GO / CS2)
+Plateforme créée et développée par @404 (ID Discord : 920353166078410782).
+Site web officiel : https://tickrate.eu (ou https://tickratecsgo.web.app).
+
+## 1. À propos de Tickrate.eu
+Tickrate.eu est une plateforme de matchmaking compétitif et d'entraînement pour Counter-Strike avec serveurs 128 ticks haute performance, système de rangs ELO (1 à 10) et statistiques avancées.
+
+## 2. Système de Rangs et ELO (Paliers 1 à 10)
+Le niveau d'un joueur est déterminé par son score ELO :
+- Niveau 1 : 100 à 500 ELO (Gris)
+- Niveau 2 : 501 à 750 ELO (Vert)
+- Niveau 3 : 751 à 900 ELO (Vert)
+- Niveau 4 : 901 à 1050 ELO (Jaune)
+- Niveau 5 : 1051 à 1200 ELO (Jaune)
+- Niveau 6 : 1201 à 1350 ELO (Jaune)
+- Niveau 7 : 1351 à 1530 ELO (Jaune)
+- Niveau 8 : 1531 à 1850 ELO (Orange)
+- Niveau 9 : 1851 à 2000 ELO (Orange)
+- Niveau 10 : 2001+ ELO (Rouge, le rang ultime des meilleurs joueurs)
+
+## 3. Modes de Jeu Disponibles
+- 5v5 Compétitif Classé : MR12, Overtime, serveurs 128 Ticks, équilibrage par ELO et poste préférentiel.
+- Retake Classé : 15 rounds intenses, stuff équilibré.
+- Wingman 2v2 Classé : MR8, bomb site unique, file en duo.
+- Duels 1v1 Classé : Entraînement au duel et à la précision.
+
+## 4. Localisations des Serveurs & Ping
+- Paris (France) : Ping ~9ms
+- Francfort (Allemagne) : Ping ~14ms
+- Amsterdam (Pays-Bas) : Ping ~16ms
+- Varsovie (Pologne) : Ping ~28ms
+- Stockholm (Suède) : Ping ~32ms
+
+## 5. Comment Jouer & Inscription
+1. Rendez-vous sur https://tickrate.eu
+2. Connectez-vous avec votre compte Steam.
+3. Choisissez votre mode de jeu (5v5, Retake, Wingman) et lancez la file d'attente.
+4. Dès qu'un match est trouvé, copiez l'adresse de connexion ou rejoignez le serveur directement.
+
+## 6. Problèmes Fréquents & Support
+- Bug ou problème de connexion : Signaler dans le salon Discord `#💡・bugs-et-suggestions` avec des détails ou une capture d'écran.
+- Triche ou comportement toxique : Tolérance zéro ! Les bans sont immédiats et définitifs.
+- Contacter un administrateur : Pour un problème sérieux ou urgent, mentionner le rôle Staff ou faire un @404 (le fondateur et développeur).

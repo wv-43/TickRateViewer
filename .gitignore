@@ -45,6 +45,13 @@
 /server-cs/addons/sourcemod/scripting/tickrate_vigie.sp
 /firebase/functions/test/run.js
 
+!/discord-bot/
+/discord-bot/*
+!/discord-bot/bot.py
+!/discord-bot/knowledge.txt
+!/discord-bot/requirements.txt
+!/discord-bot/.env.example
+
 node_modules/
 .env
 *.pem
