@@ -1,6 +1,3 @@
-// Pages FR. kw[0] = recherche principale visée (doit être dans le titre, le h1 et la description),
-// les autres kw = variantes qui doivent apparaître au moins une fois dans la page.
-// tags = thèmes : sert au choix automatique des liens « À lire aussi ».
 module.exports = [
   {
     slug: 'serveur-csgo', alt: { en: 'en/csgo-server' }, main: true,
@@ -492,7 +489,6 @@ bind "c" "use weapon_smokegrenade"  // smoke directe</code></pre>
   }
 ];
 
-// --- Actualités (contenu dans tools/seo/news.js)
 const NEWS = require('./news');
 const frDate = d => new Date(d + 'T12:00:00Z').toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' });
 module.exports.push({

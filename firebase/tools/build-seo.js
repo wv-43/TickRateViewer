@@ -1,21 +1,9 @@
-// =====================================================
-// TICKRATE - pages pour les moteurs de recherche (FR + EN)
-// Contenu : tools/seo/fr.js et tools/seo/en.js. Ce script :
-//   1. génère chaque page (servie sans .html grâce à cleanUrls), plus une page « Guides » par langue ;
-//   2. relie les pages entre elles : « À lire aussi » choisi par thèmes communs, liens FR <-> EN (hreflang) ;
-//   3. contrôle les mots-clés : la recherche principale (kw[0]) doit être dans le titre, le h1, la description
-//      et le début de la page ; chaque variante au moins une fois ; longueurs du titre et de la description ;
-//      deux pages qui visent la même recherche (elles se feraient concurrence) ; pages trop courtes ;
-//   4. réécrit public/sitemap.xml (accueil, pages, mentions légales) avec les liens de langue.
-// Relancer après modification :  node tools/build-seo.js      (sort en erreur si un contrôle échoue)
-// =====================================================
 const fs = require('fs'), path = require('path');
 const { footer } = require('./footer');
 const OUT = path.join(__dirname, '..', 'public');
 const SITE = 'https://tickrate.eu';
 const V = '3.6.0';
 const TODAY = new Date().toISOString().slice(0, 10);
-// réseaux de TICKRATE : pied de page de chaque page et sameAs (Google relie ces profils au site)
 const SOCIAL = [['Instagram', 'https://www.instagram.com/tickrate.eu/'], ['TikTok', 'https://www.tiktok.com/@tickrate.eu'], ['Discord', 'https://discord.gg/KNXbGrTDj']];
 
 const UI = {
@@ -36,13 +24,11 @@ const UI = {
 const PAGES = [...require('./seo/fr').map(p => ({ ...p, lang: 'fr' })), ...require('./seo/en').map(p => ({ ...p, lang: 'en' }))];
 const esc = s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 const strip = s => String(s).replace(/<[^>]+>/g, ' ').replace(/&[a-z]+;/g, ' ');
-// forme comparable : minuscules, sans accents, « cs:go » / « csgo » / « cs-go » = « cs go », sans pluriel en -s
 const norm = s => ' ' + strip(s).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '')
   .replace(/\bcs[\s:-]?go\b/g, 'cs go').replace(/[^a-z0-9_.]+/g, ' ')
   .split(' ').filter(Boolean).map(w => w.length > 3 ? w.replace(/s$/, '') : w).join(' ') + ' ';
 const has = (text, kw) => norm(text).includes(norm(kw));
 
-// --- « À lire aussi » : pages de la même langue qui partagent le plus de thèmes, puis les pages principales
 function related(p) {
   return PAGES.filter(q => q.lang === p.lang && q.slug !== p.slug)
     .map(q => ({ q, s: q.tags.filter(t => p.tags.includes(t)).length * 2 + (q.main ? 1 : 0) }))
@@ -64,6 +50,8 @@ function shell(p, { body, ld, related: rel, cur }) {
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <script src="/js/canon.js?v=${V}"></script>
 <script src="/js/user-bg.js?v=1"></script>
+<script defer src="/js/ambient.js?v=1"></script>
+<script defer src="/js/player-page.js?v=1"></script>
 <title>${esc(p.title)}</title>
 <meta name="description" content="${esc(p.desc)}">
 <link rel="canonical" href="${url}">
@@ -77,9 +65,9 @@ ${hreflang}<meta name="robots" content="index,follow,max-snippet:-1,max-image-pr
 <meta property="og:url" content="${url}">
 <meta property="og:image" content="${SITE}/og.jpg?v=2">
 <meta name="twitter:card" content="summary_large_image">
-<link rel="icon" type="image/svg+xml" href="/favicon.svg?v=3">
-<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png?v=3">
-<link rel="apple-touch-icon" href="/apple-touch-icon.png?v=3">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg?v=4">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png?v=4">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png?v=4">
 <link rel="stylesheet" href="/seo.css?v=${V}">
 <link rel="stylesheet" href="/footer.css?v=${V}">
 <script type="application/ld+json">${JSON.stringify(ld)}</script>
@@ -87,7 +75,7 @@ ${p.script ? `<script src="/js/${p.script}?v=${V}" defer></script>
 ` : ''}</head>
 <body>
 <header class="sx-top"><div class="sx-top-in">
-  <a class="sx-brand" href="/"><img src="/logo.png?v=3" alt="" width="30" height="30"><span>TICK<b>RATE</b></span></a>
+  <a class="sx-brand" href="/"><img src="/logo.png?v=4" alt="" width="30" height="30"><span>TICK<b>RATE</b></span></a>
   <nav class="sx-nav" aria-label="${u.nav}">${main.map(q => `<a href="/${q.slug}"${q.slug === p.slug ? ' aria-current="page"' : ''}>${q.nav}</a>`).join('')}<a href="/${u.hub}"${p.slug === u.hub ? ' aria-current="page"' : ''}>${u.hubNav}</a></nav>
   <a class="sx-cta" href="/">${u.play}</a>
 </div></header>
@@ -133,7 +121,6 @@ function hubPage(lang) {
   return { p, html: shell(p, { body, ld, related: [], cur: u.hubNav }) };
 }
 
-// --- contrôles
 const errors = [], warns = [];
 const seen = {};
 for (const p of PAGES) {
@@ -148,7 +135,6 @@ for (const p of PAGES) {
   if (p.desc.length < 110 || p.desc.length > 165) warns.push(`${id} : description de ${p.desc.length} car. (viser 120 à 160)`);
   const words = strip(text).split(/\s+/).filter(Boolean).length;
   if (words < 350) warns.push(`${id} : ${words} mots seulement`);
-  // pages du site qu'il ne faut pas écraser (tickrate.html = copie de l'accueil, servie sur /tickrate)
   if (['index', 'tickrate', 'mentions-legales', 'confidentialite', '404'].includes(p.slug)) errors.push(`${id} : adresse réservée, elle écraserait une page du site`);
   const key = p.lang + ':' + norm(k0);
   if (seen[key]) errors.push(`${id} et ${seen[key]} visent la même recherche « ${k0} »`); else seen[key] = id;
@@ -165,7 +151,6 @@ for (const p of PAGES) {
   p.words = words;
 }
 
-// --- écriture
 const written = [];
 for (const p of PAGES) {
   const f = path.join(OUT, p.slug + '.html');
@@ -176,17 +161,15 @@ for (const p of PAGES) {
 const hubs = Object.keys(UI).map(hubPage);
 for (const { p, html } of hubs) { fs.writeFileSync(path.join(OUT, p.slug + '.html'), html); written.push(p); }
 
-// --- pied de page commun recopié dans les pages du site (entre <!--FOOTER--> et <!--/FOOTER-->)
 for (const [file, lang, i18n] of [['index.html', 'fr', true], ['mentions-legales.html', 'fr', true], ['confidentialite.html', 'fr', true], ['404.html', 'fr', false]]) {
   const f = path.join(OUT, file), src = fs.readFileSync(f, 'utf8');
   const a = src.indexOf('<!--FOOTER-->'), b = src.indexOf('<!--/FOOTER-->');
   if (a < 0 || b < a) { errors.push(`${file} : marqueurs <!--FOOTER--> absents`); continue; }
   const out = src.slice(0, a + 13) + '\n' + footer(lang, { i18n }) + '\n' + src.slice(b);
   if (out !== src) fs.writeFileSync(f, out);
-  if (file === 'index.html') fs.writeFileSync(path.join(OUT, 'tickrate.html'), out);   // tickrate.html = copie de l'accueil
+  if (file === 'index.html') fs.writeFileSync(path.join(OUT, 'tickrate.html'), out);
 }
 
-// --- sitemap
 const alt = p => Object.entries(p.alt || {}).length
   ? [`    <xhtml:link rel="alternate" hreflang="${p.lang}" href="${SITE}/${p.slug}"/>`,
      ...Object.entries(p.alt).map(([l, s]) => `    <xhtml:link rel="alternate" hreflang="${l}" href="${SITE}/${s}"/>`)].join('\n') + '\n' : '';
@@ -211,7 +194,6 @@ ${['mentions-legales', 'confidentialite'].map(s => entry(`${SITE}/${s}`, '0.3', 
 `;
 fs.writeFileSync(path.join(OUT, 'sitemap.xml'), sitemap);
 
-// --- rapport
 console.log('\nPage                      mots  recherche principale');
 for (const p of PAGES) console.log(`${p.slug.padEnd(25)} ${String(p.words).padStart(4)}  ${p.kw[0]}`);
 console.log(`\n${written.length} pages écrites, sitemap : ${written.length + 3} adresses`);

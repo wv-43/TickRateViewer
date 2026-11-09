@@ -1,16 +1,3 @@
-// =====================================================================
-//  Compétition par équipes : équipes, ligue d'équipes (divisions) et tournois organisés par les joueurs.
-//  Tout est écrit ici (le site ne fait que lire) ; les matchs passent par les serveurs comme les rooms :
-//  match « privé » sans ELO (test) avec m.comp = { kind:'league'|'tourney', … } ; mm.finish / mm.cancel
-//  appellent onEnd / onCancel pour faire avancer la ligue ou le bracket.
-//
-//  teams/<tid>        { name, tag, color, captain, members:{uid:{name,at}}, lineup:[uid…], invited:{uid:name},
-//                       div, season:{w,l,rd}, total:{w,l}, at }
-//  teamOf/<uid>       tid           teamTags/<TAG>  tid           teamInv/<uid>/<tid>  { name, tag, at }
-//  teamChal/<tid>/<fromTid>  { name, tag, at }   défi de ligue reçu (accepté par le capitaine : le match part)
-//  tourneys/<id>      { name, org, orgName, size, rounds, minElo, prize, desc, date, status:'open'|'live'|'done'|'cancelled',
-//                       teams:{tid:{name,tag,color,elo,at}}, bracket:[[{a,b,w,s,mid}]], winner, at }
-// =====================================================================
 const val = async ref => (await ref.get()).val();
 const { rid } = require('./core');
 const trades = require('./trades');
@@ -18,7 +5,6 @@ const key = x => String(x || '').replace(/[.#$/[\]]/g, '_').slice(0, 64);
 
 const MAX_MEMBERS = 7, LINEUP = 5;
 const COLORS = ['#c4562a', '#3b6fd6', '#2e9d6c', '#7a5cc4', '#c9424d', '#c08a1e', '#2b8f80', '#b0447a', '#5d6775'];
-// divisions de la ligue d'équipes : on monte en gagnant winsToUp matchs de ligue dans la saison
 const DIVS = [
   { id: 'open', winsToUp: 5 }, { id: 'inter', winsToUp: 6 }, { id: 'main', winsToUp: 7 }, { id: 'adv', winsToUp: 8 }, { id: 'pro', winsToUp: null }
 ];
@@ -30,16 +16,14 @@ const isCap = (t, uid) => t && t.captain === uid;
 const lineupOf = t => {
   const ids = Object.keys(t.members || {});
   const lu = (t.lineup || []).filter(u => ids.includes(u));
-  for (const u of ids) if (lu.length < LINEUP && !lu.includes(u)) lu.push(u);   // complétée par ordre d'arrivée
+  for (const u of ids) if (lu.length < LINEUP && !lu.includes(u)) lu.push(u);
   return lu.slice(0, LINEUP);
 };
-// une équipe est occupée si elle a un match en cours ou est inscrite dans un tournoi pas terminé
 async function busy(db, tid) {
   const all = (await val(db.ref('tourneys'))) || {};
   return Object.values(all).some(x => x && (x.status === 'open' || x.status === 'live') && (x.teams || {})[tid]);
 }
 
-// ---------- équipes ----------
 async function create(db, uid, d = {}, now = Date.now()) {
   if (await val(db.ref(`teamOf/${uid}`))) return { error: 'team_already' };
   const name = String(d.name || '').trim(), tag = String(d.tag || '').trim().toUpperCase();
@@ -106,7 +90,7 @@ async function leave(db, uid) {
   if (!others.length) await disbandTeam(db, t);
   else {
     await removeMember(db, t, uid);
-    if (t.captain === uid) await db.ref(`teams/${t.id}/captain`).set(others[0][0]);   // le plus ancien devient capitaine
+    if (t.captain === uid) await db.ref(`teams/${t.id}/captain`).set(others[0][0]);
   }
   return get(db, uid);
 }
@@ -136,7 +120,6 @@ async function captain(db, uid, d = {}) {
   return get(db, uid);
 }
 
-// titulaires (5) qui jouent les matchs de ligue et de tournoi
 async function lineup(db, uid, d = {}) {
   const t = await teamOf(db, uid); if (!isCap(t, uid)) return { error: 'forbidden' };
   const ids = [...new Set((Array.isArray(d.lineup) ? d.lineup : []).map(key))].filter(u => (t.members || {})[u]).slice(0, LINEUP);
@@ -144,8 +127,6 @@ async function lineup(db, uid, d = {}) {
   return get(db, uid);
 }
 
-// ---------- matchs d'équipe (ligue et tournoi) ----------
-// crée un match privé avec les titulaires des deux équipes et lui attribue un serveur
 async function startMatch(db, tA, tB, comp, map, rounds, now = Date.now()) {
   const mm = require('./mm');
   const players = {}, A = [], B = [];
@@ -173,7 +154,6 @@ async function startMatch(db, tA, tB, comp, map, rounds, now = Date.now()) {
   return { ok: true, matchId: mid };
 }
 
-// ---------- ligue d'équipes ----------
 async function challenge(db, uid, d = {}, now = Date.now()) {
   const t = await teamOf(db, uid); if (!isCap(t, uid)) return { error: 'forbidden' };
   const rl = await require('./rate').limit(db, uid, 'challenge', now); if (rl) return rl;
@@ -195,7 +175,6 @@ async function chalAnswer(db, uid, d = {}, now = Date.now()) {
   const r = await startMatch(db, o, t, { kind: 'league' }, d.map, 24, now);
   return r.error ? r : { ...(await get(db, uid)), matchId: r.matchId };
 }
-// classement d'une division : points (3 par victoire) puis écart de rounds
 async function standings(db, div) {
   const all = (await val(db.ref('teams'))) || {};
   return Object.entries(all).filter(([, x]) => x && x.members && (x.div || 'open') === div)
@@ -203,7 +182,6 @@ async function standings(db, div) {
     .sort((a, b) => b.w * 3 - a.w * 3 || b.rd - a.rd || a.l - b.l).slice(0, 100);
 }
 
-// ---------- tournois ----------
 async function tCreate(db, uid, d = {}, now = Date.now()) {
   const p = (await val(db.ref(`profiles/${uid}`))) || {};
   if (!p.steamLinked) return { error: 'tn_need_steam' };
@@ -249,7 +227,6 @@ async function tUnregister(db, uid, d = {}) {
   await db.ref(`tourneys/${tn.id}/teams/${t.id}`).remove();
   return tGet(db, uid, d);
 }
-// bracket à élimination directe ; têtes de série par ELO moyen, exempts (bye) qualifiés d'office
 function makeBracket(teams) {
   const ids = Object.entries(teams).sort((a, b) => (b[1].elo || 0) - (a[1].elo || 0)).map(([id]) => id);
   let n = 2; while (n < ids.length) n *= 2;
@@ -287,7 +264,6 @@ async function tLaunch(db, uid, d = {}, now = Date.now()) {
   await db.ref(`tourneys/${tn.id}/bracket/${r}/${i}/mid`).set(res.matchId);
   return { ...(await tGet(db, uid, d)), matchId: res.matchId };
 }
-// résultat d'un match du bracket (fin du match, ou décision de l'organisateur : forfait)
 async function setResult(db, tnId, r, i, w, score) {
   let done = null;
   await db.ref(`tourneys/${tnId}`).transaction(tn => {
@@ -329,9 +305,8 @@ async function tGet(db, uid, d = {}) {
   return { ok: true, tourney: { ...tn, org: undefined, mine: tn.org === uid }, team: await teamOf(db, uid) };
 }
 
-// ---------- fin / annulation d'un match d'équipe (appelé par mm) ----------
 async function onEnd(db, mid, m, winner, score) {
-  const c = m.comp; if (!c || !winner) return;                         // égalité : rien ne bouge, l'organisateur relance
+  const c = m.comp; if (!c || !winner) return;
   const wT = winner === 'A' ? c.teamA : c.teamB, lT = winner === 'A' ? c.teamB : c.teamA, diff = Math.abs((score[0] || 0) - (score[1] || 0));
   await db.ref(`teams/${lT}`).transaction(t => { if (!t) return t; t.total = t.total || { w: 0, l: 0 }; t.total.l++; if (c.kind === 'league') { t.season = t.season || { w: 0, l: 0, rd: 0 }; t.season.l++; t.season.rd -= diff; } return t; });
   await db.ref(`teams/${wT}`).transaction(t => {
@@ -339,7 +314,7 @@ async function onEnd(db, mid, m, winner, score) {
     if (c.kind === 'league') {
       t.season = t.season || { w: 0, l: 0, rd: 0 }; t.season.w++; t.season.rd += diff;
       const di = divIdx(t.div || 'open'), dv = DIVS[di];
-      if (dv.winsToUp && t.season.w >= dv.winsToUp) { t.div = DIVS[di + 1].id; t.season = { w: 0, l: 0, rd: 0 }; t.promotedAt = Date.now(); }   // montée de division
+      if (dv.winsToUp && t.season.w >= dv.winsToUp) { t.div = DIVS[di + 1].id; t.season = { w: 0, l: 0, rd: 0 }; t.promotedAt = Date.now(); }
     }
     return t;
   });
@@ -347,10 +322,9 @@ async function onEnd(db, mid, m, winner, score) {
 }
 async function onCancel(db, mid, m) {
   const c = m.comp; if (!c || c.kind !== 'tourney') return;
-  await db.ref(`tourneys/${c.id}/bracket/${c.r}/${c.i}`).transaction(s => { if (s && s.mid === mid) delete s.mid; return s; });   // l'organisateur peut relancer ou déclarer un forfait
+  await db.ref(`tourneys/${c.id}/bracket/${c.r}/${c.i}`).transaction(s => { if (s && s.mid === mid) delete s.mid; return s; });
 }
 
-// ---------- état pour le site ----------
 async function get(db, uid, d = {}) {
   const [team, inv] = await Promise.all([teamOf(db, uid), val(db.ref(`teamInv/${uid}`))]);
   const div = DIVS.some(x => x.id === d?.div) ? d.div : (team?.div || 'open');

@@ -1,14 +1,4 @@
 #!/bin/bash
-# =====================================================
-# TICKRATE - installe les maps 5v5 hors CS:GO de base (Cache, Cobblestone, Tuscan)
-# Usage (root, sur le VPS) :  bash /root/server-cs/install/add-maps.sh
-#
-# 1) Pour chaque map : déjà dans le jeu ? sinon copie du .bsp posé dans server-cs/maps/ (et du .nav s'il existe).
-# 2) Téléchargement rapide pour les joueurs (FastDL) : Caddy s'il tourne, sinon nginx, sert les maps compressées (.bsp.bz2) sur le port 80,
-#    et sv_downloadurl l'indique au jeu. Sans ça, un joueur sans la map la télécharge depuis le serveur de jeu,
-#    très lentement, et peut dépasser le délai d'absence du match.
-# Les serveurs ne sont pas redémarrés ici : la commande à lancer pour chacun est affichée (pas pendant un match).
-# =====================================================
 set -euo pipefail
 SRC="$(cd "$(dirname "$0")/.." && pwd)"
 CS=/home/csgo/csgo-ds/csgo
@@ -38,7 +28,6 @@ chown csgo:csgo "$CS"/maps/*.bsp "$CS"/maps/*.nav 2>/dev/null || true
 say "Téléchargement rapide (FastDL)"
 command -v bzip2 >/dev/null || DEBIAN_FRONTEND=noninteractive apt-get install -y bzip2 >/dev/null
 mkdir -p "$WEB/maps"
-# toutes les maps qui ne viennent pas du jeu de base : celles de server-cs/maps (1v1 compris) et les 3 ci-dessus
 for f in "$SRC"/maps/*.bsp; do
   [ -f "$f" ] || continue
   b=$(basename "$f")
@@ -48,8 +37,6 @@ for f in "$SRC"/maps/*.bsp; do
 done
 chmod -R a+rX "$WEB"
 if systemctl is-active --quiet caddy; then
-  # Caddy (install/ping.sh) tient déjà le port 80 : nginx ne pourrait pas démarrer, c'est donc Caddy qui sert les maps.
-  # Le jeu ne suit pas la redirection HTTPS de Caddy : il faut un vrai service en HTTP simple sur le port 80.
   systemctl disable --now nginx >/dev/null 2>&1 || true
   F=/etc/caddy/Caddyfile
   if ! grep -qF "$WEB" "$F"; then

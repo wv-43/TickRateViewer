@@ -1,12 +1,3 @@
-/* =====================================================
- * TICKRATE - Équipes, ligue d'équipes et tournois (leagues.js)
- * Tout passe par le serveur (Cloud Functions « team » et « tourney », lib/comp.js) :
- *  - équipe : création, invitations, titulaires (5), capitaine, départ ;
- *  - ligue : divisions Open -> Pro League, défis entre équipes de la même division,
- *    le match part sur un serveur, la victoire compte et l'équipe monte au bout de N victoires ;
- *  - tournois : n'importe quel joueur (Steam lié) en organise un, les capitaines inscrivent leur équipe,
- *    l'organisateur lance le bracket puis chaque match (ou déclare un forfait).
- * ===================================================== */
 const LEAGUE_DIVS=[
   {id:'open',name:'OPEN DIVISION',winsToUp:5},{id:'inter',name:'INTERMEDIATE',winsToUp:6},{id:'main',name:'MAIN DIVISION',winsToUp:7},
   {id:'adv',name:'ADVANCED DIVISION',winsToUp:8},{id:'pro',name:'PRO LEAGUE',winsToUp:null}
@@ -120,7 +111,6 @@ Object.assign(I18N.ru,{
 });
 const divName=id=>(LEAGUE_DIVS.find(d=>d.id===id)||LEAGUE_DIVS[0]).name;
 
-/* ---------- équipe + ligue (onglet « Ligues d'équipes ») ---------- */
 async function tqLoad(force=false){
   if(!tqOn()){TQ.me=null;TQ.league=[];TQ.loaded=true;return}
   if(TQ.loading)return;
@@ -280,7 +270,6 @@ $('#leagues').addEventListener('submit',async e=>{
   if(e.target.id==='tqInv'){const n=$('#tqInvName').value.trim();if(!n)return;return tqAfter(await tqCall('team',{action:'invite',name:n}))}
 });
 
-/* ---------- tournois (onglet « Tournois ») ---------- */
 const TZ={list:null,cur:null,id:null,raw:null,loading:false,at:0};
 try{
   const c=JSON.parse(localStorage.getItem('tr_tz_cache')||'null');

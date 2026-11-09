@@ -1,10 +1,4 @@
-/* =====================================================
- * TICKRATE - Programme Influenceur (influencer.js)
- * Le joueur envoie une demande (Cloud Function influencerApply), un dev
- * (roles/<uid> = "dev" dans la Realtime Database) l'accepte ou la refuse
- * (influencerReview). Acceptée : PREMIUM offert + badge INFLUENCEUR.
- * ===================================================== */
-const INF_RULES={minFollowers:1000,minAvgViews:200,minAccountDays:7};   // identique à functions/lib/influencer.js
+const INF_RULES={minFollowers:1000,minAvgViews:200,minAccountDays:7};
 const INF_PLATFORMS={
   twitch:{n:'Twitch',ph:'https://twitch.tv/pseudo',re:/^https:\/\/(www\.)?twitch\.tv\/[A-Za-z0-9_]{3,25}\/?$/},
   youtube:{n:'YouTube',ph:'https://youtube.com/@chaine',re:/^https:\/\/(www\.)?youtube\.com\/(@[\w.-]{3,30}|channel\/[\w-]{10,40}|c\/[\w.-]{2,40})\/?$/},
@@ -53,7 +47,6 @@ Object.assign(I18N.en,{
   e_inf_already:'You are already in the program.',e_inf_account_young:'Your account must be at least 7 days old.',e_inf_pending:'You already have a pending application.',e_inf_cooldown:'Your last application was declined less than 14 days ago.',e_inf_bad_platform:'Unsupported platform.',e_inf_bad_url:'This link is not a channel on that platform.',e_inf_low_followers:'You need at least 1,000 followers.',e_inf_low_views:'You need at least 200 average views.',e_inf_missing_checks:'Tick both confirmation boxes.',e_forbidden:'TICKRATE team only.',e_inf_not_pending:'This application was already processed.'
 });
 
-// le menu a été traduit avant le chargement de ce fichier : on rafraîchit ses textes (inf_nav…)
 if(typeof applyStatic==='function')applyStatic();
 (()=>{const o=setLang;setLang=function(){const r=o.apply(this,arguments);if(!$('#influencer').hidden)renderInfluencer();return r}})();
 
@@ -72,7 +65,6 @@ Object.assign(I18N.ru,{inf_nav:'Программа инфлюенсеров',inf
   inf_login:'Войди в аккаунт TICKRATE, чтобы подать заявку.',
   inf_rv_empty:'Заявок пока нет.',inf_rv_pending:'Ожидают',inf_rv_done:'Обработаны',inf_approve:'Принять',inf_reject:'Отклонить',inf_revoke:'Снять статус',inf_note_ph:'Причина (видна игроку)',inf_open:'Открыть канал',inf_rv_ok:'Решение сохранено',
   e_inf_already:'Ты уже в программе.',e_inf_account_young:'Аккаунту должно быть не меньше 7 дней.',e_inf_pending:'У тебя уже есть заявка на проверке.',e_inf_cooldown:'Последняя заявка была отклонена меньше 14 дней назад.',e_inf_bad_platform:'Платформа не поддерживается.',e_inf_bad_url:'Ссылка не ведёт на канал этой платформы.',e_inf_low_followers:'Нужно не меньше 1 000 подписчиков.',e_inf_low_views:'Нужно не меньше 200 средних просмотров.',e_inf_missing_checks:'Отметь оба флажка подтверждения.',e_forbidden:'Только для команды TICKRATE.',e_inf_not_pending:'Эта заявка уже обработана.'});
-// comme fbCall, mais garde le code d'erreur renvoyé par la fonction (inf_*, forbidden…)
 async function infCall(name,data){
   await fbAuthEnsure();
   try{const r=await fetch(`${FB_FN()}/${name}`,{method:'POST',headers:{'Content-Type':'application/json',...(FBA.idToken?{Authorization:'Bearer '+FBA.idToken}:{})},body:JSON.stringify({data})});
@@ -128,7 +120,6 @@ function infApplyHTML(){
 }
 function infReviewHTML(){
   const all=Object.entries(INF.all||{}).map(([uid,r])=>({...r,uid}));
-  // donner le statut directement, sans demande du joueur
   const grantForm=`<form class="card inf-grant" id="infGrant" novalidate><div class="h3">${t('inf_grant_t')}<span>${t('inf_grant_d')}</span></div>
     <div class="inf-grant-row"><input type="text" id="igName" maxlength="25" placeholder="${t('inf_grant_name')}" autocomplete="off" required>
       <select id="igPlatform"><option value="">${t('inf_grant_noplat')}</option>${Object.entries(INF_PLATFORMS).map(([k,v])=>`<option value="${k}">${v.n}</option>`).join('')}</select>
@@ -184,7 +175,6 @@ $('#influencer').addEventListener('submit',async e=>{
   const err=$('#infErr'),show=c=>{err.textContent=infErr(c);err.hidden=false};err.hidden=true;
   const d={platform:INF.platform,url:$('#infUrl').value.trim(),handle:$('#infHandle').value.trim(),followers:+$('#infFollowers').value||0,avgViews:+$('#infViews').value||0,
     message:$('#infMsg').value.trim(),lang,csContent:$('#infCs').checked,codeAdded:$('#infCodeOk').checked};
-  // mêmes contrôles que le serveur, pour répondre tout de suite
   if(!INF_PLATFORMS[d.platform].re.test(d.url))return show('inf_bad_url');
   if(d.followers<INF_RULES.minFollowers)return show('inf_low_followers');
   if(d.avgViews<INF_RULES.minAvgViews)return show('inf_low_views');

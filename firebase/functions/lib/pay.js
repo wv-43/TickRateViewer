@@ -1,24 +1,13 @@
-// Paiements réels avec Stripe Checkout
-// - le navigateur ne voit jamais la carte : il est redirigé vers la page de paiement Stripe
-// - les prix sont fixés ICI (jamais envoyés par le site) ; le site ne choisit qu'un produit du catalogue
-// - le plan / les pièces ne sont accordés que par le webhook signé de Stripe (handleEvent)
-//
-// Base :
-//   billing/<uid>          { customerId, subId, subStatus }        (serveur uniquement)
-//   purchases/<uid>/<sid>  { kind, coins?, plan?, status, at }     (lisible par le joueur : suivi après paiement)
-//   stripeEvents/<eventId> true                                     (anti-doublon : un événement n'est traité qu'une fois)
-//   stripePI/<paymentIntent> { uid, sid }                            (retrouver un achat de pièces lors d'un remboursement / litige)
 const CATALOG = {
-  plans: {   // centimes d'euro : DOIVENT correspondre aux prix affichés (PRICES, premium.js + extensions.js)
+  plans: {
     plus: { m: 299, y: 2499, name: 'TICKRATE Plus' },
-    premium: { m: 547, y: 4599, name: 'TICKRATE Premium' }   // = PRICES.premium dans public/js/extensions.js
+    premium: { m: 547, y: 4599, name: 'TICKRATE Premium' }
   },
-  packs: { 500: 499, 1100: 999, 2400: 1999, 6500: 4999 }   // Tick Coins -> prix (shop.js)
+  packs: { 500: 499, 1100: 999, 2400: 1999, 6500: 4999 }
 };
-const GRACE_MS = 3 * 864e5;   // marge après la fin de période (renouvellement en cours de traitement)
+const GRACE_MS = 3 * 864e5;
 const val = async ref => (await ref.get()).val();
 
-// adresse de retour : seulement une des adresses autorisées du site (pas de redirection ouverte)
 const siteBase = (origin, allowed) => (allowed.includes(origin) ? origin : allowed[0]).replace(/\/$/, '');
 
 async function customerOf(db, stripe, uid) {
@@ -30,7 +19,6 @@ async function customerOf(db, stripe, uid) {
   return c.id;
 }
 
-// data : { kind:'plan', plan:'plus'|'premium', period:'m'|'y' } | { kind:'coins', pack:500 } ; origin = adresse du site
 async function checkout(db, stripe, uid, data, origin, allowed) {
   if (process.env.PAYMENTS_DISABLED === 'true') return { error: 'pay_coming_soon' };
   const base = siteBase(String(origin || ''), allowed);
@@ -46,7 +34,7 @@ async function checkout(db, stripe, uid, data, origin, allowed) {
     if (!P) return { error: 'pay_bad_item' };
     if (prof.planSource === 'influencer') return { error: 'pay_influencer' };
     const b = (await val(db.ref(`billing/${uid}`))) || {};
-    if (b.subId && ['active', 'trialing', 'past_due'].includes(b.subStatus)) return { error: 'pay_has_sub' };   // changer de formule : portail
+    if (b.subId && ['active', 'trialing', 'past_due'].includes(b.subStatus)) return { error: 'pay_has_sub' };
     const meta = { uid, kind: 'plan', plan: data.plan, period };
     const s = await stripe.checkout.sessions.create({
       ...common, mode: 'subscription', metadata: meta, subscription_data: { metadata: meta },
@@ -69,7 +57,6 @@ async function checkout(db, stripe, uid, data, origin, allowed) {
   return { error: 'pay_bad_item' };
 }
 
-// portail client Stripe : changer de formule, moyen de paiement, factures, résiliation
 async function portal(db, stripe, uid, origin, allowed) {
   const b = (await val(db.ref(`billing/${uid}`))) || {};
   if (!b.customerId) return { error: 'pay_no_customer' };
@@ -77,7 +64,6 @@ async function portal(db, stripe, uid, origin, allowed) {
   return { ok: true, url: s.url };
 }
 
-// ---------- webhook ----------
 const periodEnd = sub => (sub.current_period_end || sub.items?.data?.[0]?.current_period_end || 0) * 1000;
 async function applySubscription(db, sub) {
   const uid = sub.metadata?.uid, plan = sub.metadata?.plan;
@@ -88,7 +74,7 @@ async function applySubscription(db, sub) {
   if (live) {
     upd[`profiles/${uid}/plan`] = plan; upd[`profiles/${uid}/planSource`] = 'stripe';
     upd[`profiles/${uid}/planUntil`] = periodEnd(sub) ? periodEnd(sub) + GRACE_MS : null;
-  } else if (prof.planSource === 'stripe') {        // résilié / impayé : retour au gratuit (sans toucher au plan influenceur)
+  } else if (prof.planSource === 'stripe') {
     upd[`profiles/${uid}/plan`] = 'free'; upd[`profiles/${uid}/planSource`] = null; upd[`profiles/${uid}/planUntil`] = null;
   }
   await db.ref().update(upd);
@@ -98,7 +84,7 @@ async function applySession(db, s, addCoins) {
   const ref = db.ref(`purchases/${uid}/${s.id}`);
   if (s.metadata?.kind === 'coins') {
     if (s.payment_status !== 'paid') return ref.update({ status: s.payment_status || 'unpaid' });
-    let first = false;   // créditer une seule fois, même si Stripe renvoie l'événement
+    let first = false;
     await ref.transaction(p => { first = !p || p.status !== 'paid'; return { ...(p || {}), kind: 'coins', coins: +s.metadata.coins, status: 'paid', paidAt: Date.now() }; });
     if (first) await addCoins(db, uid, +s.metadata.coins);
     if (s.payment_intent) await db.ref(`stripePI/${s.payment_intent}`).set({ uid, sid: s.id });
@@ -106,7 +92,6 @@ async function applySession(db, s, addCoins) {
     await ref.update({ status: 'paid', paidAt: Date.now(), subId: s.subscription || null });
   }
 }
-// remboursement ou litige sur un achat de pièces : on reprend la part remboursée (sans passer sous 0)
 async function reverseCoins(db, pi, share, status) {
   const link = pi && (await val(db.ref(`stripePI/${pi}`)));
   if (!link) return;
@@ -132,7 +117,7 @@ async function handleEvent(db, ev, addCoins) {
       case 'charge.dispute.created': await reverseCoins(db, o.payment_intent, 1, 'disputed'); break;
       default: break;
     }
-  } catch (e) {          // échec : on oublie l'événement pour que la nouvelle tentative de Stripe soit traitée
+  } catch (e) {
     await db.ref(`stripeEvents/${ev.id}`).remove();
     throw e;
   }

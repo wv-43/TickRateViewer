@@ -1,7 +1,3 @@
-/* =====================================================
- * TICKRATE - textes qui étaient écrits en dur (i18n-extra.js)
- * Chargé juste après core.js : Danger Zone, groupe, config CS:GO, ligues d'équipes, thèmes, profil.
- * ===================================================== */
 Object.assign(I18N.fr,{bg_title:'Fond de profil',lg_legal:'Mentions légales',lg_privacy:'Politique de confidentialité',au_cgu_html:'J’accepte les <a href="/mentions-legales" target="_blank" rel="noopener">conditions d’utilisation</a> et la <a href="/confidentialite" target="_blank" rel="noopener">politique de confidentialité</a>',lg_data:'Tes données',lg_data_d:'Ce que TICKRATE collecte, pourquoi, et comment exercer tes droits (accès, suppression…).',
   dz_soon:'BIENTÔT DISPONIBLE',dz_desc:'Le Battle Royale de CS:GO arrive bientôt sur nos serveurs. Tablette, livraisons par drone, contrats et Bump Mines avec les règles d\'origine.',
   dz_players:'Joueurs',dz_formats:'Formats',dz_rules:'Règles',dz_classic:'CS:GO CLASSIQUE',dz_notified:'Prévenu à l\'ouverture',dz_notify:'Me prévenir à l\'ouverture',dz_back:'← Retour au 5v5',

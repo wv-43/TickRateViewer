@@ -1,23 +1,13 @@
-/* =====================================================================
-   TICKRATE — moteur d'économie des skins (partagé site + Cloud Functions)
-   - Ouverture de caisse avec les vraies probabilités de Valve
-   - Usure (float) et pattern (paint seed 0–1000) comme dans CS:GO
-   - Prix en pièces TICKRATE : rareté × arme × ancienneté × usure × StatTrak × pattern
-   Aucune caisse payante, aucune clé : les caisses se gagnent (fin de match, pass).
-   ===================================================================== */
 (function (root, factory) {
   const api = factory();
   if (typeof module === 'object' && module.exports) module.exports = api; else root.ECO_CORE = api;
 })(typeof self !== 'undefined' ? self : this, function () {
-  // ---------- probabilités officielles d'une caisse ----------
-  const ODDS = [0.7992, 0.1598, 0.0320, 0.0064, 0.0026];        // Mil-Spec, Restricted, Classified, Covert, ★ rare
+  const ODDS = [0.7992, 0.1598, 0.0320, 0.0064, 0.0026];
   const RARITY = [
     { n: 'Mil-Spec', c: '#4b69ff' }, { n: 'Restricted', c: '#8847ff' }, { n: 'Classified', c: '#d32ce6' },
     { n: 'Covert', c: '#eb4b4b' }, { n: '★ Rare', c: '#e4ae39' }
   ];
-  const ST_CHANCE = 0.10;                                          // 10 % de StatTrak™
-  // Usure : on tire d'abord une catégorie (distribution observée sur les vraies ouvertures),
-  // puis une valeur dans la catégorie, puis on la ramène dans la plage min–max du skin.
+  const ST_CHANCE = 0.10;
   const WEAR = [
     { k: 'fn', n: 'Factory New', a: 0, b: 0.07, w: 0.03 }, { k: 'mw', n: 'Minimal Wear', a: 0.07, b: 0.15, w: 0.24 },
     { k: 'ft', n: 'Field-Tested', a: 0.15, b: 0.38, w: 0.33 }, { k: 'ww', n: 'Well-Worn', a: 0.38, b: 0.45, w: 0.24 },
@@ -26,7 +16,6 @@
   const wearOf = f => WEAR.find(x => f < x.b) || WEAR[4];
   const PHASE_W = { 'Phase 1': 22, 'Phase 2': 22, 'Phase 3': 22, 'Phase 4': 22, Ruby: 4, Sapphire: 4, 'Black Pearl': 2, Emerald: 4 };
 
-  // ---------- hasard (injectable pour les tests / le serveur) ----------
   function mulberry(seed) { let a = seed >>> 0; return () => { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
   const hash = s => { let h = 2166136261; for (const c of String(s)) { h ^= c.charCodeAt(0); h = Math.imul(h, 16777619); } return h >>> 0; };
   const weighted = (list, wOf, rnd) => { const tot = list.reduce((s, x) => s + wOf(x), 0); let r = rnd() * tot; for (const x of list) { r -= wOf(x); if (r <= 0) return x; } return list[list.length - 1]; };
@@ -34,7 +23,7 @@
   function rollFloat(it, rnd, wearKey) {
     const cat = wearKey ? WEAR.find(w => w.k === wearKey) : weighted(WEAR, w => w.w, rnd);
     let f;
-    if (wearKey) {                          // usure choisie (PREMIUM) : directement dans la catégorie, bornée au skin
+    if (wearKey) {
       const a = Math.max(cat.a, it.mn), b = Math.min(cat.b, it.mx);
       f = a < b ? a + rnd() * (b - a) : Math.min(Math.max(it.mn, cat.a), it.mx);
     } else {
@@ -43,21 +32,18 @@
     }
     return +Math.min(it.mx, Math.max(it.mn, f)).toFixed(12);
   }
-  // usures possibles pour un skin (pour le choix PREMIUM)
   const wearsFor = it => WEAR.filter(w => w.b > it.mn && w.a < it.mx);
 
   function makeItem(DB, key, rnd, opts = {}) {
     const it = DB.items[key];
     return { k: key, f: rollFloat(it, rnd, opts.wear), s: Math.floor(rnd() * 1001), st: !!(opts.st ?? (it.st && rnd() < ST_CHANCE)) };
   }
-  // ouverture d'une caisse
   function openCase(DB, caseId, rnd = Math.random) {
     const C = DB.cases.find(c => c.id === String(caseId)); if (!C) throw new Error('caisse inconnue');
     const tier = weighted([0, 1, 2, 3, 4], t => ODDS[t], rnd);
     let key;
     if (tier === 4) {
       const pool = DB.rare[C.r] || [];
-      // d'abord la finition (toutes les phases d'un Doppler = 1 finition), puis la phase selon sa rareté
       const fin = new Map(); pool.forEach(k => { const i = DB.items[k], id = i.w + '|' + i.n; (fin.get(id) || fin.set(id, []).get(id)).push(k); });
       const group = [...fin.values()][Math.floor(rnd() * fin.size)];
       key = group.length > 1 ? weighted(group, k => PHASE_W[DB.items[k].ph] || 10, rnd) : group[0];
@@ -68,7 +54,6 @@
     }
     return { ...makeItem(DB, key, rnd), c: C.id };
   }
-  // bande de l'animation (objets « factices » + le gagnant à l'index win)
   function reel(DB, caseId, winner, rnd = Math.random, len = 56, win = 48) {
     const C = DB.cases.find(c => c.id === String(caseId)), out = [];
     for (let i = 0; i < len; i++) {
@@ -79,20 +64,17 @@
     return out;
   }
 
-  // ---------- drops de fin de match ----------
   const DROP = {
     caseChance: { free: 0.25, plus: 0.45, premium: 0.45 }, caseWeek: { free: 3, plus: 6, premium: 6 },
     itemChance: { free: 0.12, plus: 0.20, premium: 0.20 }, itemWeek: { free: 3, plus: 5, premium: 5 },
-    itemOdds: [0.80, 0.16, 0.04]                                    // les drops d'armes ne donnent jamais de Covert ni de ★
+    itemOdds: [0.80, 0.16, 0.04]
   };
-  // pool actif : les 10 caisses les plus récentes tombent souvent, les anciennes rarement
   function dropCase(DB, rnd) { const list = [...DB.cases].sort((a, b) => b.y - a.y || +b.id - +a.id); return weighted(list, c => (list.indexOf(c) < 10 ? 3 : 0.3), rnd).id; }
   function dropItem(DB, rnd, opts = {}) {
     const tier = weighted([0, 1, 2], t => DROP.itemOdds[t], rnd);
     const all = [...new Set(DB.cases.flatMap(c => c.c))].filter(k => DB.items[k].t === tier);
     return makeItem(DB, all[Math.floor(rnd() * all.length)], rnd, { st: false, wear: opts.wear });
   }
-  // plan = free|plus|premium ; week = { cases, items } déjà reçus cette semaine
   function matchDrops(DB, plan, week, rnd = Math.random) {
     const out = { cases: [], items: [] }, p = DROP.caseChance[plan] != null ? plan : 'free';
     if ((week.cases || 0) < DROP.caseWeek[p] && rnd() < DROP.caseChance[p]) out.cases.push(dropCase(DB, rnd));
@@ -100,11 +82,10 @@
     return out;
   }
 
-  // ---------- pattern ----------
-  const CH_T1 = [661, 670, 321, 151, 555, 179, 387, 868, 592, 955, 828, 617, 760, 442, 809];   // « blue gem » (approximation)
+  const CH_T1 = [661, 670, 321, 151, 555, 179, 387, 868, 592, 955, 828, 617, 760, 442, 809];
   const CH_T2 = [4, 13, 32, 92, 103, 112, 147, 168, 182, 189, 209, 230, 278, 363, 463, 468, 494, 509, 541, 601, 689, 690, 695, 703, 750, 770, 811, 853, 905, 922];
-  const FI = [412, 16, 146, 241, 359, 393, 541, 602, 649, 688, 701];                          // Marble Fade « Fire & Ice »
-  const SL_H = [92, 187, 404, 597, 659, 813];                                                  // Slaughter « cœur »
+  const FI = [412, 16, 146, 241, 359, 393, 541, 602, 649, 688, 701];
+  const SL_H = [92, 187, 404, 597, 659, 813];
   const PH_M = { 'Phase 1': 1, 'Phase 2': 1.25, 'Phase 3': 0.95, 'Phase 4': 1.15, Ruby: 4.5, Sapphire: 5, 'Black Pearl': 3.5, Emerald: 5 };
   function pattern(DB, item) {
     const it = DB.items[item.k], s = item.s;
@@ -123,19 +104,18 @@
     if (!DB._co) { const m = {}; DB.cases.forEach(c => { c.c.forEach(x => { m[x] = m[x] || c; }); (DB.rare[c.r] || []).forEach(x => { m[x] = m[x] || c; }); }); Object.defineProperty(DB, '_co', { value: m, enumerable: false }); }
     return DB._co[k];
   }
-  // ---------- prix ----------
   const BASE = [[20, 60], [90, 320], [450, 1600], [1800, 8000], [16000, 120000]];
   const POPULAR = { 'AK-47': 2.6, AWP: 2.8, 'M4A4': 2.1, 'M4A1-S': 2.2, 'Desert Eagle': 1.6, 'USP-S': 1.6, 'Glock-18': 1.4, 'Karambit': 1.5, 'Butterfly Knife': 1.6, 'M9 Bayonet': 1.35, 'Sport Gloves': 1.4, 'Specialist Gloves': 1.2 };
   const WEAR_M = { fn: 1.3, mw: 1, ft: 0.75, ww: 0.62, bs: 0.52 };
   function price(DB, item) {
     const it = DB.items[item.k], C = caseOfKey(DB, item.k);
     const [lo, hi] = BASE[it.t], h = (hash(item.k) % 1000) / 1000;
-    const base = lo + (hi - lo) * h * h;                                   // la plupart des skins valent peu, quelques-uns beaucoup
+    const base = lo + (hi - lo) * h * h;
     const weapon = POPULAR[it.w] || (it.g ? 1 : ['SG 553', 'Negev', 'MAG-7', 'Sawed-Off', 'PP-Bizon', 'R8 Revolver', 'Nova'].includes(it.w) ? 0.6 : 1);
     const age = C ? 1 + Math.max(0, 2023 - +C.y) * 0.08 : 1;
     const w = wearOf(item.f), onlyOne = it.mx - it.mn < 0.08;
     let wear = onlyOne ? 1 : WEAR_M[w.k];
-    if (!onlyOne && item.f < 0.01) wear *= item.f < 0.001 ? 3 : 1.5;      // « low float »
+    if (!onlyOne && item.f < 0.01) wear *= item.f < 0.001 ? 3 : 1.5;
     const st = item.st ? (it.t === 4 ? 1.3 : 1.8) : 1;
     const pat = pattern(DB, item);
     const v = Math.max(5, Math.round(base * weapon * age * wear * st * pat.m));
@@ -144,9 +124,6 @@
   const name = (DB, item) => { const it = DB.items[item.k]; return `${it.t === 4 ? '★ ' : ''}${item.st ? 'StatTrak™ ' : ''}${it.w}${it.n !== 'Vanilla' ? ' | ' + it.n : ''}${it.ph ? ' (' + it.ph + ')' : ''}`; };
   const img = (DB, k) => { const i = DB.items[k] ? DB.items[k].i : k; return i && i[0] === '~' ? DB.pre + i.slice(1) : i; };
 
-  // ---------- skins débloqués par le rôle « Bêta testeur » : une partie seulement ----------
-  // 1 skin Classified ou Covert par arme, 4 couteaux (4 modèles différents), 3 paires de gants.
-  // Tirage fixe (hash des clés) : identique pour tous les testeurs, sur le site comme sur le serveur.
   let BETA = null;
   function betaSet(DB) {
     if (BETA) return BETA;
@@ -155,7 +132,7 @@
       for (const k of keys.sort((a, b) => hash('beta:' + a) - hash('beta:' + b))) { const w = DB.items[k][group]; if (!g.has(w)) g.set(w, k); }
       return [...g.values()].slice(0, n);
     };
-    const ks = Object.keys(DB.items).filter(k => !/^(sk|stm)_/.test(k));   // seulement les skins des caisses (le site en ajoute d'autres)
+    const ks = Object.keys(DB.items).filter(k => !/^(sk|stm)_/.test(k));
     const guns = by(ks.filter(k => DB.items[k].t === 2 || DB.items[k].t === 3), 'w', 999);
     const knives = by(ks.filter(k => DB.items[k].t === 4 && !DB.items[k].g), 'w', 4);
     const gloves = by(ks.filter(k => DB.items[k].t === 4 && DB.items[k].g), 'w', 3);

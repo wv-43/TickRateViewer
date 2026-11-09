@@ -1,15 +1,9 @@
-/* =====================================================
- * TICKRATE - Menu Boutique : Tick Coins, Pass de combat, Missions & Analyse (shop.js)
- * ===================================================== */
-/* =====================================================
-   PORTEFEUILLE (Tick Coins) · BOUTIQUE · PASS DE COMBAT · LADDER
-   ===================================================== */
 let SHOP={coins:1200,skins:[],agents:[],cards:[],pass:{xp:2350,prem:false,claimed:{f:[],p:[]}},ladder:420};
 try{const v=JSON.parse(localStorage.getItem('tr_shop')||'null');if(v&&typeof v.coins==='number')SHOP=Object.assign(SHOP,v);if(!Array.isArray(SHOP.cards))SHOP.cards=[]}catch(e){}
 const saveShop=()=>{try{localStorage.setItem('tr_shop',JSON.stringify(SHOP))}catch(e){}};
 const tcHTML=n=>`<span class="tcv"><span class="tc">T</span>${Number(n).toLocaleString(LOC[lang])}</span>`;
 const boughtSkin=(wid,p)=>SHOP.skins.includes(wid+':'+p);
-const boughtAgent=def=>SHOP.agents.includes(def)||(typeof devItems==='function'&&devItems().length>0);   // compte dev : tous les agents, pour tester
+const boughtAgent=def=>SHOP.agents.includes(def)||(typeof devItems==='function'&&devItems().length>0);
 const PRICE_R={'Consumer Grade':100,'Industrial Grade':120,'Mil-Spec Grade':150,'Restricted':300,'Classified':600,'Covert':1200,'Extraordinary':1200,'Contraband':2500,'Distinguished':400,'Exceptional':600,'Superior':900,'Master':1400};
 const skinPrice=(W,sk)=>W.cat==='knife'?4000:W.cat==='gloves'?3500:(PRICE_R[sk.rn]||300);
 const agentPrice=a=>PRICE_R[a.rn]||900;
@@ -25,7 +19,6 @@ function featured(){
   return {list,ag};
 }
 function untilMidnight(){const n=new Date(),m=new Date(n);m.setHours(24,0,0,0);const s=Math.floor((m-n)/1000);return `${Math.floor(s/3600)} h ${String(Math.floor(s%3600/60)).padStart(2,'0')}`}
-// ---------- Pass de combat ----------
 const PASS_TIERS=30,XP_TIER=1000,PASS_PRICE=950;
 const PASS=(()=>{const r=seeded(4242),out=[];const NORMAL=['Mil-Spec Grade','Restricted','Classified'];const ws=SKDB.weapons.filter(w=>w.cat!=='knife'&&w.cat!=='gloves').map(w=>({...w,skins:w.skins.filter(x=>NORMAL.includes(x.rn))})).filter(w=>w.skins.length);
   for(let i=1;i<=PASS_TIERS;i++){
@@ -130,7 +123,6 @@ $('#shop').addEventListener('click',e=>{
     $('#coBody').innerHTML=`<div class="co-line"><span>${t('shop_coins')}</span><b>${tcHTML(n)}</b></div><div class="co-line" style="border:none"><span>${t('total')}</span><span class="co-total">${eur(+eu)}</span></div><div class="m-hint">${t('secure')}</div>`;
     const b=$('#coPay');b.disabled=false;b.textContent=t('pay');openModal('checkoutModal')}
 });
-// ---------- Ladder hebdomadaire (par paliers de niveau : Niv 9-10, 6-8, 4-5, 1-3) ----------
 let rkTab='elo',ladBracket=null;
 const LADDER_BRACKETS=[
   {id:'b9_10',name:'Palier Master · Niv. 9 – 10',minL:9,maxL:10,eloTxt:'1851+ ELO',mult:1.0},
@@ -170,9 +162,6 @@ function ladderHTML(){
         <div class="m-hint" style="margin-top:10px"><b style="color:var(--text)">${my>0?t('your_points',{n:SHOP.ladder,r:my}):`Tu es classé dans ${myBr.name} (${SHOP.ladder} pts)`}</b></div></div></div>`;
 }
 
-/* =====================================================
-   MISSIONS DU JOUR (3 en gratuit, +1 bonus en PLUS/PREMIUM)
-   ===================================================== */
 const MISSIONS={play:{n:3,xp:150,tc:0,k:'ms_play'},win:{n:2,xp:200,tc:50,k:'ms_win'},kills:{n:40,xp:150,tc:0,k:'ms_kills'},
   mvp:{n:1,xp:120,tc:50,k:'ms_mvp'},rating:{n:1.2,xp:150,tc:0,k:'ms_rating',once:true},adr:{n:90,xp:150,tc:30,k:'ms_adr',once:true}};
 function todayMissions(){
@@ -210,9 +199,6 @@ $('#missions').addEventListener('click',e=>{
 });
 renderMissions();
 
-/* =====================================================
-   ANALYSE DE MATCH (PREMIUM)
-   ===================================================== */
 const EICON={
   elim:'<svg class="ic" aria-hidden="true" fill="currentColor" viewBox="0 0 512 512"><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="48" d="M256 96V56M256 456v-40M256 112a144 144 0 10144 144 144 144 0 00-144-144zM416 256h40M56 256h40"/></svg>',
   bomb:'<svg class="ic" aria-hidden="true" fill="currentColor" viewBox="0 0 512 512"><path d="M394.23 197.56a300.43 300.43 0 00-53.37-90C301.2 61.65 249.05 32 208 32a16 16 0 00-15.48 20c13.87 53-14.88 97.07-45.31 143.72C122 234.36 96 274.27 96 320c0 88.22 71.78 160 160 160s160-71.78 160-160c0-43.3-7.32-84.49-21.77-122.44zm-105.9 221.13C278 429.69 265.05 432 256 432s-22-2.31-32.33-13.31S208 390.24 208 368c0-25.14 8.82-44.28 17.34-62.78 4.95-10.74 10-21.67 13-33.37a8 8 0 0112.49-4.51A126.48 126.48 0 01275 292c18.17 24 29 52.42 29 76 0 22.24-5.42 39.77-15.67 50.69z"/></svg>',
@@ -220,9 +206,6 @@ const EICON={
   time:'<svg class="ic" aria-hidden="true" fill="currentColor" viewBox="0 0 512 512"><path d="M256 48C141.13 48 48 141.13 48 256s93.13 208 208 208 208-93.13 208-208S370.87 48 256 48zm96 240h-96a16 16 0 01-16-16V128a16 16 0 0132 0v128h80a16 16 0 010 32z"/></svg>'
 };
 function hashStr(x){let h=0;for(const c of x)h=(h*31+c.charCodeAt(0))|0;return Math.abs(h)}
-/* Positions des duels sur le radar CS:GO de la map.
-   En ligne : le plugin du serveur enverra les vraies coordonnées (x, y) de chaque kill ; radarXY() les place sur le radar.
-   En démo : on tire des positions réalistes autour des sites et des chemins (données radar-data.js). */
 const _radarGrid={};
 function radarWalk(slug,u,v){const R=window.RADAR&&RADAR[slug];if(!R)return true;
   if(!_radarGrid[slug]){const b=atob(R.grid),bits=[];for(let i=0;i<b.length;i++){const c=b.charCodeAt(i);for(let k=7;k>=0;k--)bits.push((c>>k)&1)}_radarGrid[slug]=bits}
@@ -294,9 +277,6 @@ function refreshViews2(){
   if(cur&&cur.res)renderReview();
 }
 
-/* =====================================================
-   CARTES DE PROFIL (Décorations de carte d'accueil / groupe & profil · 28 modèles + Effets Animés)
-   ===================================================== */
 function isDevUser(){
   if(typeof window!=='undefined'&&window.IS_DEV_TEST)return true;
   if(typeof ME!=='undefined'&&ME&&(ME.dev||ME.isDev||ME.role==='dev'||ME.admin))return true;
@@ -788,7 +768,6 @@ function cardFrameHTML(p,overrideId){
   </div>`;
 }
 
-// Synchronisation immédiate sur le groupe actif (parties/), la présence en ligne et le profil
 async function syncPartyCardStyle(cid){
   const vc=validCardId(cid);
   try{
@@ -959,9 +938,6 @@ function shopCardsHTML(){
   <div class="sh-pcard-grid">${cardsGrid}</div>`;
 }
 
-/* =====================================================
-   FONDS DE PROFIL STEAM (Arrière-plans animés, statiques & interactifs pour la page profil)
-   ===================================================== */
 const PROFILE_BGS=[
   {id:'default',cat:'classic',name:'Néant Standard',tier:'Standard',tierCol:'#7a7e87',price:0,anim:false,interactive:false,desc:'Fond d\'origine sombre et épuré gris anthracite mat.'},
   {id:'cyber_city',cat:'animated',name:'Mégalopole Cyberpunk',tier:'Animé · Néo-Tokyo',tierCol:'#06b6d4',price:1500,anim:true,interactive:false,desc:'Nuit pluvieuse sous les néons cyan et pourpre, gratte-ciels holographiques et halos lumineux.'},
@@ -1325,7 +1301,6 @@ document.addEventListener('click',e=>{
   if(cardTile&&!e.target.closest('button')){cardPreviewId=validCardId(cardTile.dataset.prevcard);renderShop();return}
   if(e.target.closest('[data-go-play-preview]')){setView('play');return}
 
-  // Fonds de profil
   const bgCatB=e.target.closest('[data-bgcat]');
   if(bgCatB){bgCatFilter=bgCatB.dataset.bgcat;renderShop();return}
   const buyBgB=e.target.closest('[data-buybg]');

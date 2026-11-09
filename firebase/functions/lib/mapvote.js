@@ -1,23 +1,14 @@
-// =====================================================
-// Vote de la rotation compétitive (5v5)
-// Chaque mois (UTC), chaque joueur avec un compte Steam lié choisit jusqu'à 7 maps parmi celles présentes
-// dans CS:GO legacy (COMP_CANDIDATES). Le 1er du mois, mapRotate compte les votes du mois écoulé :
-// les 7 maps les plus votées deviennent le pool compétitif (config/mapPool), lu par le veto et les matchs.
-// Égalité : une map déjà dans le pool passe devant, puis l'ordre de COMP_CANDIDATES.
-// Moins de MIN_VOTERS votants : le pool ne change pas.
-// =====================================================
 const { MAP_POOL, COMP_CANDIDATES } = require('./core');
 const val = async ref => (await ref.get()).val();
 const POOL_SIZE = 7, MIN_VOTERS = 3;
 
-const period = (now = Date.now()) => new Date(now).toISOString().slice(0, 7);          // « 2026-11 »
+const period = (now = Date.now()) => new Date(now).toISOString().slice(0, 7);
 const prevPeriod = (now = Date.now()) => { const d = new Date(now); d.setUTCDate(1); d.setUTCMonth(d.getUTCMonth() - 1); return period(d.getTime()); };
 const cleanPool = maps => {
   const arr = Array.isArray(maps) ? maps : maps && typeof maps === 'object' ? Object.values(maps) : [];
   const ok = [...new Set(arr)].filter(m => COMP_CANDIDATES.includes(m));
   return ok.length === POOL_SIZE ? ok : null;
 };
-// pool compétitif en vigueur (repli : pool par défaut du code)
 async function curPool(db) {
   return cleanPool(await val(db.ref('config/mapPool/maps'))) || MAP_POOL.slice();
 }
@@ -32,7 +23,6 @@ async function vote(db, uid, data, now = Date.now()) {
   const per = period(now), ref = db.ref(`mapVotes/${per}/${uid}`);
   const old = ((await val(ref)) || {}).maps || [];
   await ref.set({ maps, at: now });
-  // totaux publics (les votes de chacun restent privés) : on retire l'ancien vote, on ajoute le nouveau
   await db.ref(`mapVoteCounts/${per}`).transaction(c => {
     c = c || { voters: 0, maps: {} }; c.maps = c.maps || {};
     if (!old.length) c.voters = (c.voters || 0) + 1;
@@ -43,7 +33,6 @@ async function vote(db, uid, data, now = Date.now()) {
   return { ok: true, period: per, maps };
 }
 
-// compte les votes d'une période ; current = pool en vigueur (départage)
 function tally(votes, current = []) {
   const counts = Object.fromEntries(COMP_CANDIDATES.map(m => [m, 0]));
   let voters = 0;
@@ -57,7 +46,6 @@ function tally(votes, current = []) {
   return { counts, voters, top: rank.slice(0, POOL_SIZE) };
 }
 
-// 1er du mois : applique le vote du mois écoulé
 async function rotate(db, now = Date.now()) {
   const per = prevPeriod(now), current = await curPool(db);
   const done = await val(db.ref('config/mapPool/period'));
@@ -66,7 +54,6 @@ async function rotate(db, now = Date.now()) {
   const changed = r.voters >= MIN_VOTERS;
   const maps = changed ? r.top : current;
   const added = maps.filter(m => !current.includes(m)), removed = current.filter(m => !maps.includes(m));
-  // publicNews/maps/<mois> : résultat public du vote, affiché sur la page Actualités du site (lisible sans compte)
   await db.ref().update({
     'config/mapPool': { maps, period: per, voters: r.voters, counts: r.counts, applied: changed, at: now, added, removed },
     [`publicNews/maps/${per}`]: { maps, voters: r.voters, counts: r.counts, applied: changed, at: now, added, removed }

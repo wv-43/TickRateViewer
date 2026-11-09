@@ -1,49 +1,3 @@
-/*
- * TICKRATE — déroulé d'un match sur le serveur
- * ---------------------------------------------
- * Le site crée le match (file, acceptation, veto) puis le confie à un serveur libre.
- * Ce plugin fait le reste, en parlant à gameApi (Cloud Function) avec la clé SERVER_KEY :
- *   1. toutes les 5 s, GET /assignment?server=<id> : y a-t-il un match pour moi ?
- *   2. match reçu : mot de passe, changement de map (et du mode Wingman), échauffement ;
- *      seuls les 10 SteamID du match peuvent entrer, chacun est placé dans son équipe ;
- *   3. chaque joueur qui entre : POST /joined (le site affiche « connecté ») ; qui sort : POST /left
- *      (5 min pour revenir, sinon le site le banni pour abandon) ; absent depuis 2 rounds en plein match :
- *      un bot « BOT pseudo » prend sa place (contrôlable par ses coéquipiers morts), retiré s'il revient ;
- *   4. tout le monde est là et a tapé !r (prêt ; !ur pour annuler, !forcestart pour un admin ;
- *      sans les !r, départ automatique 2 min après l'arrivée du dernier joueur) : knife round, l'équipe gagnante choisit son côté (!stay / !switch),
- *      puis le match démarre (Vigie + vocal) ;
- *   5. chaque fin de round : POST /round (score et stats pour « Matchs en direct ») ;
- *   6. fin du match : POST /end (ELO, historique, drops) ; chaque joueur voit en jeu sa victoire ou défaite,
- *      l'ELO gagné ou perdu et ses drops (caisses, skins) sur l'écran de fin natif du jeu : panneau des drops
- *      (SendPlayerItemDrops, comme l'ancien CS:GO) et panneau de rang (ServerRankUpdate : rang, victoires, ELO) ;
- *      puis le serveur se vide et redevient libre.
- * Si le site annule le match pendant l'échauffement (un joueur absent), /assignment ne renvoie
- * plus rien : le serveur prévient les joueurs, les déconnecte et redevient libre.
- *
- * Dépendances : SourceMod 1.11+, REST in Pawn (ripext), cstrike.
- * ConVars (cfg/sourcemod/tickrate_match.cfg, créé au premier lancement) :
- *   tr_match_url     URL de gameApi, ex. https://europe-west1-tickratecsgo.cloudfunctions.net/gameApi
- *   tr_match_key     SERVER_KEY du back-end
- *   tr_server_id     identifiant du serveur dans la base (servers/<id>), ex. s1
- *   tr_match_voice   vocal en jeu : rounds | alltalk | team (exécute cfg/tickrate/voice_<mode>.cfg)
- *   tr_match_admins  1 = les admins SourceMod peuvent entrer en spectateur pendant un match
- *   tr_match_knife   1 = knife round avant le match (0 = départ direct)
- *   tr_match_restart 1 = après un match, le serveur redémarre dès qu'il est vide (CS:GO ne rend pas la RAM
- *                    qu'il a prise ; le service systemd le relance en ~20 s, un match en attente est repris)
- *   tr_match_password 0 = pas de mot de passe serveur (défaut) : la liste blanche des SteamID suffit,
- *                    et CS:GO legacy refuse parfois la connexion à un serveur protégé sans dire pourquoi ;
- *                    1 = mot de passe du match (donné par le site) en plus de la liste blanche
- * Match de test (lancé par un compte dev sur le site) : un seul joueur, l'équipe adverse est remplie
- * de bots, pas de knife round, nombre de rounds choisi sur le site (2 par défaut) ; ELO jamais enregistré.
- * Fin « réelle » (option du site) : écran de fin avec l'ELO calculé et de vrais drops.
- * Dans le TAB, chaque joueur du match a l'icône de rang CS:GO qui correspond à son ELO TICKRATE
- * (le tag de clan n'est pas touché : chacun garde le sien).
- * Plusieurs serveurs sur la même machine (même dossier csgo/) : chacun lit en plus
- * cfg/sourcemod/tickrate_match_<port>.cfg, ex. tickrate_match_27016.cfg avec « tr_server_id s2 ».
- * Langue : chaque joueur du match reçoit les messages de tous les plugins dans la langue du site
- * (envoyée avec le match : fr, en, ru ; translations/tickrate.phrases.txt), sinon celle de son jeu.
- * À son arrivée : message de bienvenue de la bêta ; !help liste les commandes, !feedback envoie un avis à l'équipe.
- */
 #include <sourcemod>
 #include <sdktools>
 #include <sdkhooks>
@@ -65,48 +19,43 @@ ConVar g_cvUrl, g_cvKey, g_cvServer, g_cvVoice, g_cvAdmins, g_cvKnife, g_cvPassw
 Handle g_restartTimer;
 MatchState g_state = S_Idle;
 
-// match chargé
 char g_matchId[40], g_map[64], g_mode[16];
-bool g_test;                       // match de test : un joueur contre des bots
-int g_testRounds = 2;              // nombre de rounds d'un match de test (choisi sur le site)
-bool g_room;                       // room privée (dev) : joueurs invités, équipes et map choisies sur le site
-bool g_fill;                       // room privée : places vides complétées par des bots
-int g_slots = 10;                  // room privée : nombre total de joueurs (10 en 5v5, 4 en Wingman)
-char g_password[32];               // mot de passe du match en cours (réappliqué s'il saute)
-bool g_warmupReady;                // échauffement préparé : le match peut démarrer (sinon match.cfg l'écraserait)
+bool g_test;
+int g_testRounds = 2;
+bool g_room;
+bool g_fill;
+int g_slots = 10;
+char g_password[32];
+bool g_warmupReady;
 int g_rosterN;
 char g_rSteam[MAXROSTER][24], g_rName[MAXROSTER][64];
-int g_rTeam[MAXROSTER];            // 0 = équipe A, 1 = équipe B
-int g_rElo[MAXROSTER];             // ELO TICKRATE -> icône de rang dans le TAB
+int g_rTeam[MAXROSTER];
+int g_rElo[MAXROSTER];
 bool g_rJoined[MAXROSTER];
-char g_rLang[MAXROSTER][4];         // langue du site : fr, en, ru
-char g_rClan[MAXROSTER][8];         // tag de clan équipé sur le site (2 à 5 lettres/chiffres), vide = aucun
-bool g_welcomed[MAXROSTER];        // message de bienvenue déjà montré pendant ce match
-float g_fbAt[MAXPLAYERS + 1];      // dernier !feedback (1 par minute)
-bool g_ready[MAXROSTER];           // a tapé !r
-float g_allInAt;                   // tout le monde est sur le serveur depuis (0 : il manque quelqu'un)
-#define AUTO_READY 120.0           // sans tous les !r, le match part tout seul après ce délai
-int g_leftAt[MAXROSTER];           // round où le joueur a quitté (-1 = présent)
-char g_botName[MAXROSTER][40];     // bot qui le remplace (vide = aucun)
-int g_botPending = -1;             // joueur pour qui un bot est en train d'arriver
-int g_clientIdx[MAXPLAYERS + 1] = { -1, ... };   // index dans le roster, -1 = pas un joueur du match
-int g_sideA = CS_TEAM_CT;          // côté actuel de l'équipe A (change à la mi-temps)
+char g_rLang[MAXROSTER][4];
+char g_rClan[MAXROSTER][8];
+bool g_welcomed[MAXROSTER];
+float g_fbAt[MAXPLAYERS + 1];
+bool g_ready[MAXROSTER];
+float g_allInAt;
+#define AUTO_READY 120.0
+int g_leftAt[MAXROSTER];
+char g_botName[MAXROSTER][40];
+int g_botPending = -1;
+int g_clientIdx[MAXPLAYERS + 1] = { -1, ... };
+int g_sideA = CS_TEAM_CT;
 
-// stats (totaux depuis le début du match)
 int g_k[MAXROSTER], g_a[MAXROSTER], g_d[MAXROSTER], g_dmg[MAXROSTER], g_hs[MAXROSTER], g_kast[MAXROSTER], g_rounds;
-bool g_rndKast[MAXROSTER];         // KAST du round : kill, assist, survie ou mort « échangée »
+bool g_rndKast[MAXROSTER];
 int g_hp[MAXPLAYERS + 1];
-int g_killedBy[MAXROSTER];         // pour les échanges : qui m'a tué, et quand
+int g_killedBy[MAXROSTER];
 float g_killedAt[MAXROSTER];
-float g_ignoreUntil;               // pendant le redémarrage du match, les événements ne comptent pas
+float g_ignoreUntil;
 
-// knife round
-int g_knifeWinner = -1;            // 0 = équipe A, 1 = équipe B
+int g_knifeWinner = -1;
 Handle g_knifeTimer;
-// icônes de rang
 int g_oldButtons[MAXPLAYERS + 1];
 
-// kills depuis la dernière fin de round (fil « Matchs en direct »)
 int g_feedN;
 char g_feedK[FEED_MAX][24], g_feedV[FEED_MAX][24], g_feedW[FEED_MAX][32];
 bool g_feedHs[FEED_MAX];
@@ -146,19 +95,16 @@ public void OnPluginStart() {
 	RegAdminCmd("sm_tr_reset", Cmd_Reset, ADMFLAG_ROOT, "Abandonne le match en cours et libère le serveur");
 
 	CreateTimer(5.0, Timer_Poll, _, TIMER_REPEAT);
-	CreateTimer(1.0, Timer_HookRanks);                   // chargement en cours de map
+	CreateTimer(1.0, Timer_HookRanks);
 	RandomPassword();
 }
 
-// réglages propres à ce serveur (identifiant s1, s2…), après le fichier commun
 public void OnConfigsExecuted() {
 	ConVar port = FindConVar("hostport");
 	if (port != null) ServerCommand("exec sourcemod/tickrate_match_%d.cfg", port.IntValue);
 	EnforcePassword();
-	SetHostname();                                         // server.cfg remet un nom fixe à chaque chargement de map
+	SetHostname();
 }
-// le serveur peut recharger la map tout seul (changement de mode de jeu, premier joueur qui arrive…) et perdre
-// le mot de passe : on vérifie à chaque chargement et toutes les 5 s, sinon les joueurs du match sont refusés
 void EnforcePassword() {
 	if (g_state == S_Idle) return;
 	ConVar cv = FindConVar("sv_password");
@@ -170,7 +116,6 @@ void EnforcePassword() {
 	cv.SetString(g_password);
 }
 
-// ---------- HTTP ----------
 HTTPRequest Api(const char[] path) {
 	char url[320], key[128];
 	g_cvUrl.GetString(url, sizeof url); g_cvKey.GetString(key, sizeof key);
@@ -189,12 +134,10 @@ public void OnPosted(HTTPResponse r, any data, const char[] err) {
 	if (r.Status != HTTPStatus_OK) LogError("[TICKRATE] réponse %d %s", view_as<int>(r.Status), err);
 }
 
-// ---------- 1. attente d'un match ----------
 int g_pollTick;
 public Action Timer_Poll(Handle t) {
 	EnforcePassword();
-	if (g_state == S_Over) return Plugin_Continue;        // fin envoyée : on attend que le serveur se vide
-	// en plein match, l'affectation ne sert qu'à voir une annulation : toutes les 30 s au lieu de 5 (moins d'appels au back-end)
+	if (g_state == S_Over) return Plugin_Continue;
 	if ((g_state == S_Knife || g_state == S_Live) && ++g_pollTick % 6 != 0) return Plugin_Continue;
 	char path[96], sid[32];
 	g_cvServer.GetString(sid, sizeof sid);
@@ -206,7 +149,6 @@ public Action Timer_Poll(Handle t) {
 
 public void OnAssignment(HTTPResponse r, any data, const char[] err) {
 	if (r.Status == HTTPStatus_NoContent) {
-		// plus d'affectation : le site a annulé le match (joueur absent, match de test abandonné…)
 		if (g_state == S_Warmup) EndAndFree("Kick cancelled missing");
 		else if (g_state == S_Knife || g_state == S_Live) EndAndFree("Kick cancelled");
 		return;
@@ -219,20 +161,18 @@ public void OnAssignment(HTTPResponse r, any data, const char[] err) {
 	LoadMatch(j);
 }
 
-// nom du serveur affiché en jeu : mode et map du match en cours (« TICKRATE | Wingman 2v2 · Shortdust »)
 void SetHostname() {
 	char name[128], map[64];
 	if (g_state == S_Idle) { ServerCommand("hostname \"TICKRATE | Matchmaking\""); return; }
 	strcopy(map, sizeof map, g_map);
 	ReplaceString(map, sizeof map, "de_", "");
 	ReplaceString(map, sizeof map, "gd_", "");
-	if (map[0] >= 'a' && map[0] <= 'z') map[0] -= 32;      // « mirage » -> « Mirage »
+	if (map[0] >= 'a' && map[0] <= 'z') map[0] -= 32;
 	Format(name, sizeof name, "TICKRATE | %s%s · %s", StrEqual(g_mode, "wingman") ? "Wingman 2v2" : StrEqual(g_mode, "duel") ? "Aim 1v1" : "5v5 Compétitif",
 		g_room ? " · Match privé" : g_test ? " · Test" : "", map);
 	ServerCommand("hostname \"%s\"", name);
 }
 
-// ---------- 2. chargement du match ----------
 void LoadMatch(JSONObject j) {
 	char pw[32];
 	j.GetString("matchId", g_matchId, sizeof g_matchId);
@@ -274,17 +214,15 @@ void LoadMatch(JSONObject j) {
 
 	strcopy(g_password, sizeof g_password, g_cvPassword.BoolValue ? pw : "");
 	ServerCommand("sv_password \"%s\"", g_password);
-	ServerCommand("tr_match_id %s", g_matchId);          // lu par tickrate_vigie
+	ServerCommand("tr_match_id %s", g_matchId);
 	SetHostname();
 	for (int c = 1; c <= MaxClients; c++) if (IsClientInGame(c) && !IsFakeClient(c)) CheckClient(c);
 
-	// Wingman et 1v1 : mode de jeu 2 et version courte de Nuke
 	bool wingman = StrEqual(g_mode, "wingman"), duel = StrEqual(g_mode, "duel");
 	char want[64];
 	strcopy(want, sizeof want, g_map);
 	if (wingman && StrEqual(want, "de_nuke")) strcopy(want, sizeof want, "de_shortnuke");
 	if (wingman && StrEqual(want, "de_cbble")) strcopy(want, sizeof want, "gd_cbble");
-	// map absente de ce serveur : une map Wingman (ou 5v5) qui existe toujours, plutôt qu'un match bloqué
 	if (!IsMapValid(want)) {
 		static const char WM_SAFE[][] = { "de_shortdust", "de_lake", "de_inferno", "de_overpass", "de_vertigo" };
 		static const char CO_SAFE[][] = { "de_mirage", "de_inferno", "de_dust2" };
@@ -300,35 +238,33 @@ void LoadMatch(JSONObject j) {
 	GetCurrentMap(cur, sizeof cur);
 	if (!StrEqual(cur, want) || (gm != null && gm.IntValue != mode)) {
 		ServerCommand("game_type 0; game_mode %d", mode);
-		ServerCommand("changelevel %s", want);            // l'échauffement démarre dans OnMapStart
+		ServerCommand("changelevel %s", want);
 	} else StartWarmup();
 }
 
 public void OnMapStart() {
 	CreateTimer(1.0, Timer_HookRanks, _, TIMER_FLAG_NO_MAPCHANGE);
 	if (g_state == S_Warmup) CreateTimer(3.0, Timer_Warmup, _, TIMER_FLAG_NO_MAPCHANGE);
-	else if (g_state != S_Idle) FreeServer();             // changement de map en plein match : on abandonne
+	else if (g_state != S_Idle) FreeServer();
 }
 public Action Timer_Warmup(Handle t) { if (g_state == S_Warmup) StartWarmup(); return Plugin_Stop; }
 
-// règles du mode de jeu : base CS:GO, réglages TICKRATE, puis particularités Wingman / 1v1
 void ExecModeRules() {
 	bool small = StrEqual(g_mode, "wingman") || StrEqual(g_mode, "duel");
 	ServerCommand("exec %s", small ? "gamemode_competitive2v2" : "gamemode_competitive");
 	ServerCommand("exec tickrate/match.cfg");
 	ServerCommand("exec tickrate/live.cfg");
-	if (StrEqual(g_mode, "wingman")) ServerCommand("mp_roundtime 1.5; mp_roundtime_defuse 1.5");   // Wingman : rounds de 1:30
-	if (StrEqual(g_mode, "duel")) ServerCommand("exec tickrate/duel.cfg");                          // 1v1 : premier à 9, départ en 2 s
+	if (StrEqual(g_mode, "wingman")) ServerCommand("mp_roundtime 1.5; mp_roundtime_defuse 1.5");
+	if (StrEqual(g_mode, "duel")) ServerCommand("exec tickrate/duel.cfg");
 }
 
 void StartWarmup() {
-	// règles du mode de jeu remises à neuf (un match de test précédent a pu changer le nombre de rounds)
 	ExecModeRules();
 	ServerCommand("mp_warmup_pausetimer 1; mp_warmup_start");
 	CreateTimer(15.0, Timer_WaitMsg, _, TIMER_REPEAT | TIMER_FLAG_NO_MAPCHANGE);
 	CreateTimer(5.0, Timer_AutoReady, _, TIMER_REPEAT | TIMER_FLAG_NO_MAPCHANGE);
 	g_warmupReady = true;
-	CheckAllJoined();                                      // joueurs déjà sur le serveur : départ maintenant, après l'échauffement
+	CheckAllJoined();
 }
 public Action Timer_WaitMsg(Handle t) {
 	if (g_state != S_Warmup) return Plugin_Stop;
@@ -337,7 +273,6 @@ public Action Timer_WaitMsg(Handle t) {
 	return Plugin_Continue;
 }
 
-// tout le monde est là mais pas prêt : départ automatique au bout de AUTO_READY (une partie ne reste jamais bloquée)
 bool AllPresent() {
 	if (!g_warmupReady || g_rosterN == 0 || JoinedCount() < g_rosterN) return false;
 	for (int i = 0; i < g_rosterN; i++) if (ClientOf(i) == -1) return false;
@@ -354,7 +289,6 @@ public Action Timer_AutoReady(Handle t) {
 	return Plugin_Stop;
 }
 
-// ---------- 3. joueurs : liste blanche et équipes ----------
 public void OnClientPostAdminCheck(int client) {
 	if (IsFakeClient(client) || IsClientSourceTV(client)) return;
 	CheckClient(client);
@@ -363,7 +297,7 @@ public void OnClientDisconnect(int client) {
 	int idx = g_clientIdx[client];
 	g_clientIdx[client] = -1;
 	if (idx < 0 || IsFakeClient(client) || (g_state != S_Warmup && g_state != S_Knife && g_state != S_Live)) return;
-	g_rJoined[idx] = false;                                // à son retour, /joined est renvoyé
+	g_rJoined[idx] = false;
 	g_ready[idx] = false;
 	if (g_state == S_Live && !g_test) g_leftAt[idx] = g_rounds;
 	JSONObject b = new JSONObject();
@@ -392,7 +326,7 @@ void CheckClient(int client) {
 	ApplyLang(client);
 	ApplyClan(client);
 	if (!g_welcomed[idx]) { g_welcomed[idx] = true; CreateTimer(4.0, Timer_Welcome, GetClientUserId(client), TIMER_FLAG_NO_MAPCHANGE); }
-	if (g_botName[idx][0]) {                               // revenu : son bot repart
+	if (g_botName[idx][0]) {
 		ServerCommand("bot_kick \"%s\"", g_botName[idx]);
 		TrChatAll("%t", "Player back", g_rName[idx]);
 		g_botName[idx][0] = '\0';
@@ -409,14 +343,12 @@ void CheckClient(int client) {
 	CreateTimer(1.0, Timer_Team, GetClientUserId(client), TIMER_FLAG_NO_MAPCHANGE);
 	CheckAllJoined();
 }
-// langue du site pour tous les messages des plugins (le jeu peut la remettre à chaque changement de réglages : réappliquée au spawn)
 void ApplyLang(int client) {
 	int idx = g_clientIdx[client];
 	if (idx < 0 || !g_rLang[idx][0]) return;
 	int l = GetLanguageByCode(g_rLang[idx]);
 	if (l >= 0 && GetClientLanguage(client) != l) SetClientLanguage(client, l);
 }
-// tag de clan du site devant le nom (tableau des scores) ; réappliqué au spawn, sinon le jeu remet celui du groupe Steam
 void ApplyClan(int client) {
 	int idx = g_clientIdx[client];
 	if (idx < 0 || !g_rClan[idx][0] || !IsClientInGame(client) || IsFakeClient(client)) return;
@@ -447,7 +379,6 @@ public Action Timer_Spec(Handle t, any userid) {
 	if (client > 0) ChangeClientTeam(client, CS_TEAM_SPECTATOR);
 	return Plugin_Stop;
 }
-// pas de changement d'équipe à la main : chacun reste dans l'équipe du site
 public Action Cmd_JoinTeam(int client, const char[] cmd, int argc) {
 	if (client < 1 || g_state == S_Idle) return Plugin_Continue;
 	if (g_clientIdx[client] < 0) return IsAdmin(client) ? Plugin_Continue : Plugin_Handled;
@@ -458,18 +389,17 @@ public Action Cmd_JoinTeam(int client, const char[] cmd, int argc) {
 
 int JoinedCount() { int n = 0; for (int i = 0; i < g_rosterN; i++) if (g_rJoined[i]) n++; return n; }
 
-// ---------- 4. tout le monde est là : le match démarre ----------
 void CheckAllJoined() {
 	if (g_state != S_Warmup || !g_warmupReady || g_rosterN == 0 || JoinedCount() < g_rosterN) return;
-	for (int i = 0; i < g_rosterN; i++) if (ClientOf(i) == -1) return;   // connecté une fois mais pas en jeu (changement de map)
-	if (ReadyCount() < g_rosterN) { ReadyMessage(); return; }            // chacun doit taper !r
+	for (int i = 0; i < g_rosterN; i++) if (ClientOf(i) == -1) return;
+	if (ReadyCount() < g_rosterN) { ReadyMessage(); return; }
 	if (g_test) { StartTest(); return; }
 	if (g_cvKnife.BoolValue && !StrEqual(g_mode, "duel")) { StartKnife(); return; }
 	TrChatAll("%t", "Match starts");
 	ServerCommand("mp_warmup_pausetimer 0; mp_warmup_end");
 	StartLive();
 }
-#define END_DELAY 30   // écran de fin : temps avant que le jeu relance une partie (mp_match_restart_delay)
+#define END_DELAY 30
 void StartLive() {
 	g_state = S_Live;
 	ServerCommand("tv_delay 90");
@@ -479,34 +409,30 @@ void StartLive() {
 	char voice[16];
 	g_cvVoice.GetString(voice, sizeof voice);
 	ServerCommand("exec tickrate/voice_%s.cfg", voice);
-	ServerCommand("tr_vigie_start");                       // sans effet si tickrate_vigie n'est pas installé
+	ServerCommand("tr_vigie_start");
 }
 
-// ---------- match de test : contre des bots, 2 rounds ----------
 void StartTest() {
 	int half = StrEqual(g_mode, "duel") ? 1 : StrEqual(g_mode, "wingman") ? 2 : 5;
 	LogMessage("[TICKRATE] match de test %s : %d bots côté %s", g_matchId, half, g_sideA == CS_TEAM_CT ? "T" : "CT");
 	if (g_room) TrChatAll("%t", "Private match", g_testRounds);
 	else TrChatAll("%t", "Test match", g_testRounds);
-	// économie RAM (VPS 4 Go) : coupe le tampon GOTV 90 s (300-400 Mo en 128 tick) et les voix radio des bots pendant les parties bots/privées
 	ServerCommand("tv_stoprecord; tv_delay 0; bot_chatter off; sv_forcepreload 0");
-	// pas d'égalité, même en test : prolongations courtes (2 rounds) jusqu'à un vainqueur
 	ServerCommand("mp_maxrounds %d; mp_overtime_enable 1; mp_overtime_maxrounds 2; mp_overtime_limit 0; mp_halftime %d; mp_freezetime 15", g_testRounds, g_testRounds >= 4 ? 1 : 0);
-	if (g_room && g_fill)        // room privée : les bots complètent les deux équipes jusqu'au nombre de joueurs du mode
+	if (g_room && g_fill)
 		ServerCommand("bot_difficulty 1; bot_join_after_player 0; bot_join_team any; bot_quota_mode fill; bot_quota %d", g_slots);
-	else if (g_room)             // room privée sans bots : seulement les joueurs invités
+	else if (g_room)
 		ServerCommand("bot_quota 0; bot_kick");
-	else                         // match de test : seul contre une équipe de bots
+	else
 		ServerCommand("bot_difficulty 1; bot_join_after_player 0; bot_join_team %s; bot_quota_mode normal; bot_quota %d", g_sideA == CS_TEAM_CT ? "T" : "CT", half);
 	ServerCommand("mp_warmup_pausetimer 0; mp_warmup_end");
-	ServerCommand("tr_skins_test 1");                      // StatTrak : kills de bots affichés (non enregistrés)
+	ServerCommand("tr_skins_test 1");
 	ServerCommand("mp_match_restart_delay %d", END_DELAY);
 	g_state = S_Live;
 	ResetStats();
 	g_ignoreUntil = GetGameTime() + 6.0;
 }
 
-// ---------- knife round : le gagnant choisit son côté ----------
 void StartKnife() {
 	g_state = S_Knife; g_knifeWinner = -1;
 	g_ignoreUntil = GetGameTime() + 6.0;
@@ -514,7 +440,6 @@ void StartKnife() {
 	ServerCommand("exec tickrate/knife.cfg");
 	ServerCommand("mp_warmup_pausetimer 0; mp_warmup_end");
 }
-// couteau seulement (au cas où une arme serait donnée au spawn ou ramassée)
 public Action Timer_KnifeOnly(Handle t, any userid) {
 	int c = GetClientOfUserId(userid);
 	if (c < 1 || g_state != S_Knife || !IsPlayerAlive(c)) return Plugin_Stop;
@@ -539,7 +464,7 @@ void KnifeRoundWon(int winnerSide) {
 }
 public Action Timer_KnifeChoice(Handle t) {
 	g_knifeTimer = null;
-	if (g_state == S_Knife) KnifeDecide(false);            // pas de choix : on garde le côté
+	if (g_state == S_Knife) KnifeDecide(false);
 	return Plugin_Stop;
 }
 public Action Cmd_Stay(int client, int args) { KnifeVote(client, false); return Plugin_Handled; }
@@ -554,7 +479,6 @@ void KnifeVote(int client, bool sw) {
 void KnifeDecide(bool sw) {
 	delete g_knifeTimer;
 	if (sw) g_sideA = g_sideA == CS_TEAM_CT ? CS_TEAM_T : CS_TEAM_CT;
-	// retour aux règles normales (mode de jeu, puis réglages TICKRATE), puis redémarrage
 	ExecModeRules();
 	if (sw) ServerCommand("mp_swapteams");
 	ServerCommand("mp_unpause_match; mp_restartgame 3");
@@ -568,9 +492,6 @@ void CaptainName(int team, char[] name, int len) {
 	if (best != -1) strcopy(name, len, g_rName[best]);
 }
 
-// ---------- icônes de rang dans le TAB ----------
-// rang CS:GO de 1 (Silver I) à 18 (Global Elite) selon l'ELO : 600 ELO -> Silver I, 2100+ -> Global Elite
-// mêmes seuils que le site (js/ranks.js) : rang 1 (Silver I) à 18 (Global Elite)
 int g_rankMin[18] = { 0, 600, 700, 800, 900, 1000, 1100, 1200, 1300, 1400, 1500, 1600, 1700, 1800, 1950, 2100, 2250, 2400 };
 int RankOf(int elo) {
 	if (elo <= 0) return 0;
@@ -578,7 +499,6 @@ int RankOf(int elo) {
 	for (int k = 1; k < 18; k++) if (elo >= g_rankMin[k]) r = k + 1;
 	return r;
 }
-// changement de rang : son de montée / descente et message (l'animation, c'est le panneau de rang natif de l'écran de fin)
 void RankAnnounce(int c, int rOld, int rNew) {
 	if (rOld == rNew || rNew < 1) return;
 	char rk[16];
@@ -622,12 +542,10 @@ public void OnResourceThink(int ent) {
 		if (!IsClientInGame(c) || g_clientIdx[c] < 0) continue;
 		int rank = RankOf(g_rElo[g_clientIdx[c]]);
 		if (!rank) continue;
-		// écrit seulement si la valeur change : évite de renvoyer la table des joueurs à chaque tick
 		if (GetEntProp(ent, Prop_Send, "m_iCompetitiveRanking", _, c) != rank) SetEntProp(ent, Prop_Send, "m_iCompetitiveRanking", rank, _, c);
-		if (wingman && GetEntProp(ent, Prop_Send, "m_iCompetitiveRankType", _, c) != 7) SetEntProp(ent, Prop_Send, "m_iCompetitiveRankType", 7, _, c);   // icônes Wingman
+		if (wingman && GetEntProp(ent, Prop_Send, "m_iCompetitiveRankType", _, c) != 7) SetEntProp(ent, Prop_Send, "m_iCompetitiveRankType", 7, _, c);
 	}
 }
-// le jeu ne montre les rangs qu'en fin de match compétitif : on les révèle quand le joueur ouvre le TAB
 public Action OnPlayerRunCmd(int client, int &buttons, int &impulse, float vel[3], float angles[3], int &weapon, int &subtype, int &cmdnum, int &tickcount, int &seed, int mouse[2]) {
 	if ((buttons & IN_SCORE) && !(g_oldButtons[client] & IN_SCORE) && g_state != S_Idle && !IsFakeClient(client)) {
 		Handle msg = StartMessageOne("ServerRankRevealAll", client, USERMSG_BLOCKHOOKS);
@@ -636,11 +554,10 @@ public Action OnPlayerRunCmd(int client, int &buttons, int &impulse, float vel[3
 	g_oldButtons[client] = buttons;
 	return Plugin_Continue;
 }
-// ---------- remplacement d'un joueur parti par un bot ----------
 void AddBot(int i) {
 	UpdateSideA();
 	g_botPending = i;
-	ServerCommand("bot_add_%s", SideOf(i) == CS_TEAM_CT ? "ct" : "t");   // le bot arrive dans OnClientPutInServer
+	ServerCommand("bot_add_%s", SideOf(i) == CS_TEAM_CT ? "ct" : "t");
 	CreateTimer(3.0, Timer_BotPendingClear, _, TIMER_FLAG_NO_MAPCHANGE);
 }
 public Action Timer_BotPendingClear(Handle t) { g_botPending = -1; return Plugin_Stop; }
@@ -654,7 +571,6 @@ public void OnClientPutInServer(int client) {
 	TrChatAll("%t", "Bot replaces", g_rName[i], g_botName[i]);
 }
 
-// ---------- !r : prêt ----------
 int ReadyCount() { int n = 0; for (int i = 0; i < g_rosterN; i++) if (g_ready[i]) n++; return n; }
 void ReadyMessage() {
 	char wait[256];
@@ -690,7 +606,6 @@ int ClientOf(int idx) {
 	return -1;
 }
 
-// ---------- 5. stats et fins de round ----------
 void ResetStats() {
 	g_rounds = 0; g_feedN = 0;
 	for (int i = 0; i < MAXROSTER; i++) { g_k[i] = 0; g_a[i] = 0; g_d[i] = 0; g_dmg[i] = 0; g_hs[i] = 0; g_kast[i] = 0; g_rndKast[i] = false; g_killedBy[i] = -1; }
@@ -709,7 +624,7 @@ public void Ev_Hurt(Event e, const char[] name, bool dontBroadcast) {
 	int v = GetClientOfUserId(e.GetInt("userid")), a = GetClientOfUserId(e.GetInt("attacker"));
 	if (v < 1) return;
 	int dmg = e.GetInt("dmg_health");
-	if (dmg > g_hp[v]) dmg = g_hp[v];                    // l'ADR compte les dégâts réels, pas l'excédent
+	if (dmg > g_hp[v]) dmg = g_hp[v];
 	g_hp[v] = e.GetInt("health");
 	if (a < 1 || a == v || g_clientIdx[a] < 0 || GetClientTeam(a) == GetClientTeam(v)) return;
 	g_dmg[g_clientIdx[a]] += dmg;
@@ -723,7 +638,6 @@ public void Ev_Death(Event e, const char[] name, bool dontBroadcast) {
 	if (enemy) {
 		g_k[ai]++; g_rndKast[ai] = true;
 		if (e.GetBool("headshot")) g_hs[ai]++;
-		// échange : le tueur abat celui qui venait de tuer un coéquipier -> le coéquipier compte dans le KAST
 		float now = GetGameTime();
 		for (int i = 0; i < g_rosterN; i++)
 			if (g_killedBy[i] == vi && g_rTeam[i] == g_rTeam[ai] && now - g_killedAt[i] <= TRADE_SEC) g_rndKast[i] = true;
@@ -751,13 +665,12 @@ public void Ev_RoundEnd(Event e, const char[] name, bool dontBroadcast) {
 		int c = ClientOf(i);
 		if (g_rndKast[i] || (c != -1 && IsPlayerAlive(c))) g_kast[i]++;
 	}
-	CreateTimer(0.5, Timer_SendRound, _, TIMER_FLAG_NO_MAPCHANGE);   // laisse le jeu compter le round dans le score
+	CreateTimer(0.5, Timer_SendRound, _, TIMER_FLAG_NO_MAPCHANGE);
 	if (!g_test) for (int i = 0; i < g_rosterN; i++)
 		if (g_leftAt[i] >= 0 && !g_botName[i][0] && g_botPending == -1 && ClientOf(i) == -1 && g_rounds - g_leftAt[i] >= 2) AddBot(i);
 }
 public Action Timer_SendRound(Handle t) { if (g_state == S_Live) SendRound(); return Plugin_Stop; }
 
-// côté de l'équipe A = celui où se trouve la majorité de ses joueurs (suit la mi-temps et les prolongations)
 void UpdateSideA() {
 	int ct = 0, tt = 0;
 	for (int i = 0; i < g_rosterN; i++) {
@@ -818,7 +731,6 @@ int CountSpectators() {
 	return n;
 }
 
-// ---------- 6. fin du match ----------
 public void Ev_MatchEnd(Event e, const char[] name, bool dontBroadcast) {
 	if (g_state != S_Live) return;
 	g_state = S_Over;
@@ -836,19 +748,16 @@ public Action Timer_SendEnd(Handle t) {
 	if (req != null) req.Post(body, OnEndPosted);
 	delete body;
 	TrChatAll("%t", "Match over", a, b);
-	// tout le monde sort avant que le jeu relance une partie (le délai réel est relu : un cfg a pu le changer)
 	ConVar rd = FindConVar("mp_match_restart_delay");
 	float wait = (rd != null ? rd.FloatValue : float(END_DELAY)) - 3.0;
 	CreateTimer(wait < 8.0 ? 8.0 : wait, Timer_Free);
 	return Plugin_Stop;
 }
-// écran de fin : le site renvoie, par SteamID, la victoire, l'ELO et les drops du match
 public void OnEndPosted(HTTPResponse r, any data, const char[] err) {
 	if (r.Status != HTTPStatus_OK) { LogError("[TICKRATE] fin de match refusée : %d %s", view_as<int>(r.Status), err); return; }
 	JSONObject j = view_as<JSONObject>(r.Data);
 	if (!j.HasKey("screen")) return;
 	JSONObject sc = view_as<JSONObject>(j.Get("screen"));
-	// panneaux natifs de l'écran de fin : un seul message pour tous les joueurs
 	Protobuf drops = view_as<Protobuf>(StartMessageAll("SendPlayerItemDrops", USERMSG_RELIABLE));
 	int nDrops = 0;
 	for (int i = 0; i < g_rosterN; i++) {
@@ -880,7 +789,6 @@ public void OnEndPosted(HTTPResponse r, any data, const char[] err) {
 		delete e;
 	}
 	if (drops != null) EndMessage();
-	// panneau de rang : rang CS:GO d'après l'ELO avant/après, victoires, et l'ELO gagné en progression
 	Protobuf ranks = view_as<Protobuf>(StartMessageAll("ServerRankUpdate", USERMSG_RELIABLE));
 	if (ranks != null) {
 		for (int i = 0; i < g_rosterN; i++) {
@@ -893,14 +801,14 @@ public void OnEndPosted(HTTPResponse r, any data, const char[] err) {
 			ru.SetInt("rank_old", RankOf(elo - delta));
 			ru.SetInt("rank_new", RankOf(elo));
 			int wins = e.HasKey("wins") ? e.GetInt("wins") : 0;
-			ru.SetInt("num_wins", wins < 10 ? 10 : wins);      // le jeu n'affiche le rang qu'à partir de 10 victoires
-			g_rElo[i] = elo;                                   // icône du TAB à jour avec le nouvel ELO
+			ru.SetInt("num_wins", wins < 10 ? 10 : wins);
+			g_rElo[i] = elo;
 			ru.SetFloat("rank_change", float(delta));
 			if (StrEqual(g_mode, "wingman")) ru.SetInt("rank_type_id", 7);
 			delete e;
 		}
 		EndMessage();
-		Handle rv = StartMessageAll("ServerRankRevealAll", USERMSG_RELIABLE);   // rangs visibles sur l'écran de fin
+		Handle rv = StartMessageAll("ServerRankRevealAll", USERMSG_RELIABLE);
 		if (rv != null) EndMessage();
 	}
 	LogMessage("[TICKRATE] écran de fin : %d drops affichés", nDrops);
@@ -917,7 +825,7 @@ public void OnEndPosted(HTTPResponse r, any data, const char[] err) {
 		char name[96], hint[512], list[256];
 		for (int k = 0; k < dr.Length; k++) {
 			dr.GetString(k, name, sizeof name);
-			TrChatAll("%t", "Drop all", g_rName[i], name);      // tout le serveur voit les drops de chacun
+			TrChatAll("%t", "Drop all", g_rName[i], name);
 			if (k < 2) Format(list, sizeof list, "%s<br>%T", list, "Hint drop", c, name);
 		}
 		if (!dr.Length) TrChat(c, "%t", "No drop");
@@ -931,10 +839,8 @@ public void OnEndPosted(HTTPResponse r, any data, const char[] err) {
 	delete sc;
 }
 
-// fin de match : tout le monde sort, admins compris, pour que le serveur se libère (et redémarre, voir tr_match_restart)
 public Action Timer_Free(Handle t) { if (g_state == S_Over) EndAndFree("Kick match over", true); return Plugin_Stop; }
 
-// phrase : clé de translations/tickrate.phrases.txt (chacun est déconnecté avec le message dans sa langue)
 void EndAndFree(const char[] phrase, bool kickAdmins = false) {
 	for (int c = 1; c <= MaxClients; c++) if (IsClientInGame(c) && !IsFakeClient(c) && !IsClientSourceTV(c) && (kickAdmins || !IsAdmin(c))) KickClient(c, "%T", phrase, c);
 	FreeServer();
@@ -946,21 +852,20 @@ void FreeServer() {
 	delete g_knifeTimer;
 	for (int c = 0; c <= MaxClients; c++) g_clientIdx[c] = -1;
 	ServerCommand("tr_match_id \"\"");
-	SetHostname();                                         // serveur libre : « TICKRATE | Matchmaking »
+	SetHostname();
 	RandomPassword();
 	if (g_cvRestart.BoolValue && g_restartTimer == null) g_restartTimer = CreateTimer(5.0, Timer_Restart, _, TIMER_REPEAT);
 }
-// RAM libérée : redémarrage quand le serveur est libre et vide (les admins encore présents le retardent)
 public Action Timer_Restart(Handle t) {
-	if (g_state != S_Idle) { g_restartTimer = null; return Plugin_Stop; }   // un nouveau match est arrivé : on garde le serveur
+	if (g_state != S_Idle) { g_restartTimer = null; return Plugin_Stop; }
 	for (int c = 1; c <= MaxClients; c++) if (IsClientInGame(c) && !IsFakeClient(c) && !IsClientSourceTV(c)) return Plugin_Continue;
 	LogMessage("[TICKRATE] serveur vide après le match : redémarrage pour libérer la RAM");
 	g_restartTimer = null;
-	ServerCommand("quit");                                 // relancé par le service systemd (Restart=always)
+	ServerCommand("quit");
 	return Plugin_Stop;
 }
 
-void RandomPassword() {   // serveur libre : personne ne peut entrer par hasard (sans mot de passe : la liste blanche expulse)
+void RandomPassword() {
 	if (g_cvPassword == null || !g_cvPassword.BoolValue) { ServerCommand("sv_password \"\""); return; }
 	char pw[17];
 	for (int i = 0; i < 16; i++) pw[i] = 'a' + GetRandomInt(0, 25);
@@ -968,7 +873,6 @@ void RandomPassword() {   // serveur libre : personne ne peut entrer par hasard 
 	ServerCommand("sv_password \"%s\"", pw);
 }
 
-// ---------- !help : toutes les commandes ----------
 public Action Cmd_Help(int client, int args) {
 	if (client < 1) return Plugin_Handled;
 	TrChat(client, "%t", "Help title");
@@ -982,7 +886,6 @@ public Action Cmd_Help(int client, int args) {
 	return Plugin_Handled;
 }
 
-// ---------- !feedback <message> : avis ou bug envoyé à l'équipe (feedback/ dans la base) ----------
 public Action Cmd_Feedback(int client, int args) {
 	if (client < 1) return Plugin_Handled;
 	char text[300], sid[24];
@@ -1016,7 +919,6 @@ public void OnFeedback(HTTPResponse r, any userid, const char[] err) {
 }
 public void OnClientConnected(int client) { g_fbAt[client] = 0.0; }
 
-// ---------- commandes admin ----------
 public Action Cmd_Status(int client, int args) {
 	static const char names[][] = { "libre", "échauffement", "knife round", "en cours", "terminé" };
 	char mid[40] = "-";

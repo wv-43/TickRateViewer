@@ -1,14 +1,7 @@
-/* =====================================================
- * TICKRATE - Son de « match trouvé »
- * Sons intégrés, ou fichier personnel dont on choisit le passage joué.
- * Le fichier reste dans ce navigateur (IndexedDB) et n'est jamais envoyé à nos serveurs.
- * Le réglage est dans localStorage, hors de tr_settings qui est copié dans Firebase.
- * ===================================================== */
 (function(){
   const KEY='tr_mfs',DB='tickrate_local',STORE='files',ID='mfs';
-  const MAX_FILE=15*1024*1024,DUR_MIN=2,DUR_MAX=20,DUR_DEF=8,VOL_DEF=70,BINS=600;   // 20 s : la durée pour accepter un match
+  const MAX_FILE=15*1024*1024,DUR_MIN=2,DUR_MAX=20,DUR_DEF=8,VOL_DEF=70,BINS=600;
 
-  // [fréquence, durée, départ, forme, volume]
   const PRESETS={
     classic:[[660,.15,0,'square',.035],[880,.15,.18,'square',.035],[1175,.3,.36,'square',.035]],
     alarm:[[880,.14,0,'square',.04],[660,.14,.16,'square',.04],[880,.14,.32,'square',.04],[660,.14,.48,'square',.04],[880,.3,.64,'square',.04]],
@@ -18,9 +11,9 @@
   };
 
   const I={
-    fr:{mfs_title:'Son de match trouvé',mfs_note:'Ton fichier reste dans ce navigateur : il n\'est jamais envoyé sur nos serveurs. Il faudra le remettre sur un autre appareil.',mfs_p_classic:'Classique',mfs_p_alarm:'Alarme',mfs_p_soft:'Doux',mfs_p_arcade:'Arcade',mfs_p_radar:'Radar',mfs_p_file:'Mon son',mfs_play:'Écouter',mfs_pick:'Choisir un fichier audio',mfs_change:'Changer de fichier',mfs_remove:'Retirer',mfs_start:'Départ',mfs_dur:'Durée',mfs_auto:'Trouver le meilleur moment',mfs_auto_ok:'Passage le plus fort sélectionné',mfs_vol:'Volume',mfs_wave:'Clique sur l\'onde pour choisir le moment de départ',mfs_saved:'Son enregistré',mfs_loading:'Analyse du fichier…',mfs_removed:'Son retiré',mfs_muted:'Les sons sont désactivés plus haut',mfs_err_type:'Ce fichier n\'est pas un son',mfs_err_size:'Fichier trop lourd (15 Mo maximum)',mfs_err_decode:'Ce format audio n\'est pas lisible par ton navigateur',mfs_err_store:'Impossible d\'enregistrer ce son dans ce navigateur'},
-    en:{mfs_title:'Match found sound',mfs_note:'Your file stays in this browser: it is never sent to our servers. You will need to add it again on another device.',mfs_p_classic:'Classic',mfs_p_alarm:'Alarm',mfs_p_soft:'Soft',mfs_p_arcade:'Arcade',mfs_p_radar:'Radar',mfs_p_file:'My sound',mfs_play:'Listen',mfs_pick:'Choose an audio file',mfs_change:'Change file',mfs_remove:'Remove',mfs_start:'Start',mfs_dur:'Length',mfs_auto:'Find the best moment',mfs_auto_ok:'Loudest part selected',mfs_vol:'Volume',mfs_wave:'Click the waveform to choose where it starts',mfs_saved:'Sound saved',mfs_loading:'Analysing the file…',mfs_removed:'Sound removed',mfs_muted:'Sounds are turned off above',mfs_err_type:'This file is not audio',mfs_err_size:'File too large (15 MB maximum)',mfs_err_decode:'Your browser cannot read this audio format',mfs_err_store:'Could not save this sound in this browser'},
-    ru:{mfs_title:'Звук найденного матча',mfs_note:'Файл остаётся в этом браузере и никогда не отправляется на наши серверы. На другом устройстве его нужно добавить заново.',mfs_p_classic:'Классика',mfs_p_alarm:'Тревога',mfs_p_soft:'Мягкий',mfs_p_arcade:'Аркада',mfs_p_radar:'Радар',mfs_p_file:'Мой звук',mfs_play:'Прослушать',mfs_pick:'Выбрать аудиофайл',mfs_change:'Заменить файл',mfs_remove:'Удалить',mfs_start:'Начало',mfs_dur:'Длительность',mfs_auto:'Найти лучший момент',mfs_auto_ok:'Выбрана самая громкая часть',mfs_vol:'Громкость',mfs_wave:'Нажми на волну, чтобы выбрать начало',mfs_saved:'Звук сохранён',mfs_loading:'Анализ файла…',mfs_removed:'Звук удалён',mfs_muted:'Звуки отключены выше',mfs_err_type:'Этот файл не является аудио',mfs_err_size:'Файл слишком большой (максимум 15 МБ)',mfs_err_decode:'Браузер не может прочитать этот формат',mfs_err_store:'Не удалось сохранить звук в этом браузере'}
+    fr:{mfs_title:'Son de match trouvé',mfs_note:'Colle un lien SoundCloud, ou importe un fichier qui reste dans ce navigateur. Rien n\'est envoyé sur nos serveurs : il faudra le remettre sur un autre appareil.',mfs_link_ph:'Lien SoundCloud du son',mfs_link_use:'Utiliser',mfs_err_link:'Ce lien n\'est pas un lien SoundCloud valide',mfs_err_load:'Impossible de lire ce son sur SoundCloud',mfs_p_classic:'Classique',mfs_p_alarm:'Alarme',mfs_p_soft:'Doux',mfs_p_arcade:'Arcade',mfs_p_radar:'Radar',mfs_p_file:'Mon son',mfs_play:'Écouter',mfs_pick:'Importer un fichier',mfs_change:'Importer un fichier',mfs_remove:'Retirer',mfs_start:'Départ',mfs_dur:'Durée',mfs_auto:'Trouver le meilleur moment',mfs_auto_ok:'Passage le plus fort sélectionné',mfs_vol:'Volume',mfs_wave:'Clique sur l\'onde pour choisir le moment de départ',mfs_saved:'Son enregistré',mfs_loading:'Analyse du fichier…',mfs_removed:'Son retiré',mfs_muted:'Les sons sont désactivés plus haut',mfs_err_type:'Ce fichier n\'est pas un son',mfs_err_size:'Fichier trop lourd (15 Mo maximum)',mfs_err_decode:'Ce format audio n\'est pas lisible par ton navigateur',mfs_err_store:'Impossible d\'enregistrer ce son dans ce navigateur'},
+    en:{mfs_title:'Match found sound',mfs_note:'Paste a SoundCloud link, or import a file that stays in this browser. Nothing is sent to our servers: you will need to add it again on another device.',mfs_link_ph:'SoundCloud link of the sound',mfs_link_use:'Use',mfs_err_link:'This is not a valid SoundCloud link',mfs_err_load:'Could not read this sound on SoundCloud',mfs_p_classic:'Classic',mfs_p_alarm:'Alarm',mfs_p_soft:'Soft',mfs_p_arcade:'Arcade',mfs_p_radar:'Radar',mfs_p_file:'My sound',mfs_play:'Listen',mfs_pick:'Import a file',mfs_change:'Import a file',mfs_remove:'Remove',mfs_start:'Start',mfs_dur:'Length',mfs_auto:'Find the best moment',mfs_auto_ok:'Loudest part selected',mfs_vol:'Volume',mfs_wave:'Click the waveform to choose where it starts',mfs_saved:'Sound saved',mfs_loading:'Analysing the file…',mfs_removed:'Sound removed',mfs_muted:'Sounds are turned off above',mfs_err_type:'This file is not audio',mfs_err_size:'File too large (15 MB maximum)',mfs_err_decode:'Your browser cannot read this audio format',mfs_err_store:'Could not save this sound in this browser'},
+    ru:{mfs_title:'Звук найденного матча',mfs_note:'Вставь ссылку SoundCloud или импортируй файл, который останется в этом браузере. На наши серверы ничего не отправляется: на другом устройстве его нужно добавить заново.',mfs_link_ph:'Ссылка SoundCloud на звук',mfs_link_use:'Применить',mfs_err_link:'Это неверная ссылка SoundCloud',mfs_err_load:'Не удалось прочитать этот звук на SoundCloud',mfs_p_classic:'Классика',mfs_p_alarm:'Тревога',mfs_p_soft:'Мягкий',mfs_p_arcade:'Аркада',mfs_p_radar:'Радар',mfs_p_file:'Мой звук',mfs_play:'Прослушать',mfs_pick:'Импортировать файл',mfs_change:'Импортировать файл',mfs_remove:'Удалить',mfs_start:'Начало',mfs_dur:'Длительность',mfs_auto:'Найти лучший момент',mfs_auto_ok:'Выбрана самая громкая часть',mfs_vol:'Громкость',mfs_wave:'Нажми на волну, чтобы выбрать начало',mfs_saved:'Звук сохранён',mfs_loading:'Анализ файла…',mfs_removed:'Звук удалён',mfs_muted:'Звуки отключены выше',mfs_err_type:'Этот файл не является аудио',mfs_err_size:'Файл слишком большой (максимум 15 МБ)',mfs_err_decode:'Браузер не может прочитать этот формат',mfs_err_store:'Не удалось сохранить звук в этом браузере'}
   };
   for(const l in I)Object.assign(I18N[l],I[l]);
 
@@ -57,7 +50,6 @@
     });
   }
 
-  /* ---------- Analyse : énergie du morceau, puis meilleur passage ---------- */
   async function analyse(file){
     const Off=window.OfflineAudioContext||window.webkitOfflineAudioContext;
     let audio;
@@ -74,7 +66,6 @@
     for(let b=0;b<BINS;b++)bins+=Math.round(top?raw[b]/top*35:0).toString(36);
     return {len:audio.duration,bins};
   }
-  // Le passage retenu : fort sur toute sa durée, avec un bonus s'il arrive d'un coup (un refrain, un drop).
   function bestStart(f){
     const levels=[...f.bins].map(c=>parseInt(c,36)),n=levels.length;
     if(!n||f.dur>=f.len)return 0;
@@ -82,18 +73,41 @@
     levels.forEach((v,i)=>sum[i+1]=sum[i]+v);
     let best=0,top=-1;
     for(let i=0;i+w<=n;i++){
-      const inside=(sum[i+w]-sum[i])/w,back=Math.max(0,i-lead),before=i?(sum[i]-sum[back])/(i-back):0;
+      const inside=(sum[i+w]-sum[i])/w,before=i>=lead?(sum[i]-sum[i-lead])/lead:inside;
       const score=inside+Math.max(0,inside-before)*.6;
       if(score>top){top=score;best=i}
     }
     return Math.round(best*sec*10)/10;
   }
 
-  /* ---------- Lecture ---------- */
-  let fileUrl=null,fileRev=null,el=null,fade=null,endT=null,ducked=false;
+  let fileUrl=null,fileRev=null,halt=null,fade=null,endT=null,ducked=false,run=0,lw=null;
+  function dropWidget(){if(lw){if(lw.fr)lw.fr.remove();lw=null}}
+  function linkWidget(url){
+    if(lw&&lw.url===url)return lw.ready;
+    dropWidget();
+    const me={url};lw=me;
+    me.ready=(async()=>{
+      await TRMusic.scApi();
+      if(lw!==me)throw new Error('load');
+      const fr=document.createElement('iframe');
+      fr.title='SoundCloud';fr.allow='autoplay';fr.tabIndex=-1;fr.setAttribute('aria-hidden','true');
+      fr.style.cssText='position:fixed;left:-9999px;top:0;width:300px;height:166px;border:0';
+      fr.src='https://w.soundcloud.com/player/?'+new URLSearchParams({url,auto_play:'false',visual:'false',hide_related:'true',show_comments:'false',show_teaser:'false'});
+      document.body.appendChild(fr);me.fr=fr;
+      const w=SC.Widget(fr);
+      await new Promise((ok,ko)=>{
+        const to=setTimeout(()=>ko(new Error('load')),12000);
+        w.bind(SC.Widget.Events.READY,()=>{clearTimeout(to);ok()});
+      });
+      return w;
+    })();
+    me.ready.catch(()=>{if(lw===me)dropWidget()});
+    return me.ready;
+  }
   async function prepare(){
-    const c=readCfg();
-    if(!c.file||c.preset!=='file'){if(fileUrl){URL.revokeObjectURL(fileUrl);fileUrl=null;fileRev=null}return null}
+    const c=readCfg(),link=c.file&&c.preset==='file'&&c.file.url;
+    if(link)linkWidget(link).catch(()=>{});else dropWidget();
+    if(!c.file||c.preset!=='file'||link){if(fileUrl){URL.revokeObjectURL(fileUrl);fileUrl=null;fileRev=null}return null}
     if(fileUrl&&fileRev===c.file.rev)return fileUrl;
     let blob;
     try{blob=await withStore('readonly',s=>s.get(ID))}catch(e){return null}
@@ -105,43 +119,66 @@
   function duck(){if(!ducked&&window.TRMusic&&TRMusic.pauseForAlert())ducked=true}
   function unduck(){if(ducked){ducked=false;window.TRMusic&&TRMusic.resumeAfterAlert()}}
   function stop(){
+    run++;
     clearInterval(fade);fade=null;clearTimeout(endT);endT=null;
-    if(el){try{el.pause()}catch(e){}el.removeAttribute('src');el=null}
+    if(halt){try{halt()}catch(e){}halt=null}
     unduck();
+  }
+  function fadeOver(ms,every,setLevel){
+    const t0=performance.now(),edge=Math.min(300,ms/4);
+    fade=setInterval(()=>{const at=performance.now()-t0;setLevel(Math.max(0,Math.min(1,at/edge,(ms-at)/edge)))},every);
+    endT=setTimeout(stop,ms);
   }
   function playPreset(id,vol){
     const k=vol/VOL_DEF;
+    if(window.TRSfx)TRSfx.orbit(1700);
     PRESETS[id].forEach(([f,d,at,type,v])=>beep(f,d,at,type,v*k));
   }
-  async function playFile(c){
+  async function playLink(c,my){
+    const f=c.file,w=await linkWidget(f.url),E=SC.Widget.Events;
+    if(my!==run)return;
+    halt=()=>{w.setVolume(0);w.pause()};
+    await new Promise((ok,ko)=>{
+      const to=setTimeout(()=>{w.unbind(E.PLAY);ko(new Error('blocked'))},5000);
+      w.bind(E.PLAY,()=>{clearTimeout(to);w.unbind(E.PLAY);ok()});
+      w.setVolume(0);w.play();
+    });
+    if(my!==run){w.pause();return}
+    w.seekTo(f.start*1000);
+    await new Promise(r=>setTimeout(r,350));
+    if(my!==run)return;
+    fadeOver(f.dur*1000,90,v=>w.setVolume(Math.round(c.vol*v)));
+  }
+  async function playFile(c,my){
+    if(c.file.url)return playLink(c,my);
     const url=await prepare();
     if(!url)throw new Error('missing');
     const f=c.file,a=new Audio(url),target=c.vol/100;
+    if(window.TRSfx)TRSfx.attach(a,f.dur*1000);
     await new Promise((ok,ko)=>{a.onloadedmetadata=ok;a.onerror=ko});
     a.currentTime=f.start;a.volume=0;
     await a.play();
-    el=a;
-    const t0=performance.now(),ms=f.dur*1000,edge=Math.min(300,ms/4);
-    fade=setInterval(()=>{   // arrivée et sortie en fondu : un extrait coupé net claque dans le casque
-      const at=performance.now()-t0;
-      a.volume=target*Math.max(0,Math.min(1,at/edge,(ms-at)/edge));
-    },30);
-    endT=setTimeout(stop,ms);
+    if(my!==run){a.pause();return}
+    halt=()=>{a.pause();a.removeAttribute('src')};
+    fadeOver(f.dur*1000,30,v=>a.volume=target*v);
   }
   async function play(){
     stop();
     if(!soundsOn())return;
-    const c=readCfg();
+    const c=readCfg(),my=run;
     if(c.preset==='file'){
       duck();
-      try{return await playFile(c)}catch(e){stop();playPreset('classic',c.vol);return}   // navigateur qui bloque le son, fichier disparu
+      try{return await playFile(c,my)}catch(e){
+        if(my!==run)return;
+        stop();playPreset('classic',c.vol);
+        return;
+      }
     }
     duck();
     playPreset(c.preset,c.vol);
     endT=setTimeout(stop,1400);
   }
 
-  /* ---------- Carte dans Paramètres > Notifications ---------- */
   function card(){
     const c=readCfg(),f=c.file;
     const ids=Object.keys(PRESETS).concat(f?['file']:[]);
@@ -149,13 +186,14 @@
     return `<div class="st-card"><h3>${t('mfs_title')}</h3>
       <div class="st-note">${t('mfs_note')}</div>
       <div class="seg" style="flex-wrap:wrap;margin-top:10px">${ids.map(id=>`<button class="${c.preset===id?'on':''}" data-mfs-preset="${id}">${t('mfs_p_'+id)}</button>`).join('')}</div>
+      <form id="mfsLinkForm" style="display:flex;gap:8px;margin-top:12px"><input id="mfsLink" type="url" autocomplete="off" spellcheck="false" placeholder="${t('mfs_link_ph')}" style="flex:1;min-width:0;height:38px;padding:0 12px;color:var(--text);background:var(--bg2);border:1px solid var(--line2);border-radius:6px;font:inherit"><button class="btn" type="submit">${t('mfs_link_use')}</button></form>
       <div class="st-actions" style="margin-top:10px"><button class="btn" data-mfs="play">${t('mfs_play')}</button><button class="btn ghost" data-mfs="pick">${t(f?'mfs_change':'mfs_pick')}</button>${f?`<button class="btn ghost" data-mfs="clear">${t('mfs_remove')}</button>`:''}</div>
       <input type="file" id="mfsFile" accept="audio/*" hidden>
       ${f?`<canvas id="mfsWave" style="display:block;width:100%;height:72px;margin-top:12px;border-radius:6px;background:var(--bg2);cursor:pointer" title="${t('mfs_wave')}"></canvas>
       <div class="st-note" style="margin-top:6px"><b id="mfsName"></b> · ${t('mfs_wave')}</div>
       ${slider('mfsStart','mfs_start',0,Math.max(.1,f.len-f.dur).toFixed(1),.1,f.start,fmt(f.start))}
       ${slider('mfsDur','mfs_dur',DUR_MIN,Math.min(DUR_MAX,Math.max(DUR_MIN,f.len)).toFixed(1),.5,f.dur,f.dur.toFixed(1)+' s')}
-      <div class="st-actions" style="margin-top:8px"><button class="btn ghost sm" data-mfs="auto">${t('mfs_auto')}</button></div>`:''}
+      ${f.bins?`<div class="st-actions" style="margin-top:8px"><button class="btn ghost sm" data-mfs="auto">${t('mfs_auto')}</button></div>`:''}`:''}
       ${slider('mfsVol','mfs_vol',0,100,1,c.vol,c.vol+' %')}
     </div>`;
   }
@@ -206,6 +244,34 @@
     c.file=f;c.preset='file';writeCfg(c);
     await prepare();
   }
+  async function waveOf(sound){
+    const u=String(sound.waveform_url||'').replace(/\.png$/,'.json');
+    if(!/^https:\/\/wave\.sndcdn\.com\/[\w-]+\.json$/.test(u))return '';
+    try{
+      const j=await (await fetch(u)).json(),all=j.samples,chunk=all.length/BINS,raw=[];
+      for(let b=0;b<BINS;b++){
+        const from=Math.floor(b*chunk),part=all.slice(from,Math.max(from+1,Math.floor((b+1)*chunk)));
+        raw.push(part.reduce((x,y)=>x+y,0)/part.length);
+      }
+      const top=Math.max(...raw);
+      return raw.map(v=>Math.round(top?v/top*35:0).toString(36)).join('');
+    }catch(e){return ''}
+  }
+  async function setLink(raw){
+    const url=TRMusic.parseLink(raw);
+    if(!url)throw new Error('link');
+    stop();
+    let w;
+    try{w=await linkWidget(url)}catch(e){throw new Error('load')}
+    const sound=await new Promise(ok=>{setTimeout(ok,8000,null);w.getCurrentSound(ok)});
+    if(!sound||!sound.duration)throw new Error('load');
+    const len=sound.duration/1000,artist=sound.user&&sound.user.username;
+    const f={url,name:String((artist?artist+' : ':'')+(sound.title||'')).slice(0,80),len,bins:await waveOf(sound),dur:Math.min(DUR_DEF,len),start:0,rev:Date.now()};
+    f.start=bestStart(f);
+    const c=readCfg();c.file=f;c.preset='file';writeCfg(c);
+    try{await withStore('readwrite',s=>s.delete(ID))}catch(e){}
+    await prepare();
+  }
   async function clear(){
     stop();
     try{localStorage.removeItem(KEY)}catch(e){}
@@ -234,19 +300,24 @@
         if(id==='mfsDur'){const c=readCfg();if(!c.file)return;c.file.dur=num(e.target.value,DUR_MIN,Math.min(DUR_MAX,Math.max(DUR_MIN,c.file.len)),DUR_DEF);c.file.start=Math.min(c.file.start,Math.max(0,c.file.len-c.file.dur));writeCfg(c);showValues(c);draw();return}
         if(id==='mfsVol'){const c=readCfg();c.vol=num(e.target.value,0,100,VOL_DEF);writeCfg(c);showValues(c)}
       });
+      page.addEventListener('submit',e=>{
+        if(e.target.id!=='mfsLinkForm')return;
+        e.preventDefault();
+        toast(t('mfs_loading'));
+        setLink(document.getElementById('mfsLink').value).then(()=>{toast(t('mfs_saved'));rerender();play()}).catch(err=>toast(t('mfs_err_'+err.message)));
+      });
       page.addEventListener('change',e=>{
         if(e.target.id!=='mfsFile'||!e.target.files[0])return;
         toast(t('mfs_loading'));
         setFile(e.target.files[0]).then(()=>{toast(t('mfs_saved'));rerender();play()}).catch(err=>toast(t('mfs_err_'+err.message)));
       });
     }
-    // Le son s'arrête dès qu'on répond ou que la fenêtre « match trouvé » se ferme, quelle qu'en soit la raison.
     document.getElementById('acceptBtn')?.addEventListener('click',stop);
     document.getElementById('declineBtn')?.addEventListener('click',stop);
     const found=document.getElementById('found');
     if(found)new MutationObserver(()=>{if(!found.classList.contains('on'))stop()}).observe(found,{attributes:true,attributeFilter:['class']});
     addEventListener('storage',e=>{if(e.key===KEY)prepare()});
-    prepare();
+    document.addEventListener('DOMContentLoaded',prepare,{once:true});
   }
 
   window.TRMatchSound={play,stop,card,draw,clear};

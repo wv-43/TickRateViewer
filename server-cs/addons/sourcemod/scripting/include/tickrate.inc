@@ -1,9 +1,3 @@
-/*
- * TICKRATE — messages en jeu traduits (fichier commun à tous les plugins)
- * Les textes sont dans translations/tickrate.phrases.txt (en, fr, ru). Chaque joueur les reçoit dans
- * la langue choisie sur le site (tickrate_match la règle avec SetClientLanguage), sinon dans celle de son jeu.
- * Couleurs dans les textes : {w} blanc, {r} rouge, {g} vert, {l} vert clair, {gy} gris, {y} jaune, {b} bleu, {o} orange.
- */
 #if defined _tickrate_included
  #endinput
 #endif
@@ -22,7 +16,6 @@ stock void TrColors(char[] s, int len) {
 	ReplaceString(s, len, "{o}", "\x10");
 }
 
-// message à un joueur : TrChat(client, "%t", "Phrase", args…)
 stock void TrChat(int client, const char[] fmt, any ...) {
 	if (client < 1 || !IsClientInGame(client) || IsFakeClient(client)) return;
 	char buf[512];
@@ -32,7 +25,6 @@ stock void TrChat(int client, const char[] fmt, any ...) {
 	PrintToChat(client, "%s%s", TR_TAG, buf);
 }
 
-// même chose sans le préfixe [TICKRATE] (lignes de suite d'une liste)
 stock void TrChatRaw(int client, const char[] fmt, any ...) {
 	if (client < 1 || !IsClientInGame(client) || IsFakeClient(client)) return;
 	char buf[512];
@@ -42,7 +34,6 @@ stock void TrChatRaw(int client, const char[] fmt, any ...) {
 	PrintToChat(client, " %s", buf);
 }
 
-// message à tout le monde, chacun dans sa langue : TrChatAll("%t", "Phrase", args…)
 stock void TrChatAll(const char[] fmt, any ...) {
 	char buf[512];
 	for (int c = 1; c <= MaxClients; c++) {

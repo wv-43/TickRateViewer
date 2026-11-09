@@ -1,9 +1,5 @@
-/* =====================================================
- * TICKRATE - Core : DOM, I18N, Maps CS:GO, Niveaux ELO, Trust Factor, Audio (core.js)
- * ===================================================== */
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
 window.PAYMENTS_COMING_SOON = true;
-// Images cassées : remplace les anciens onerror="..." inline (interdits par la CSP stricte)
 document.addEventListener('error',e=>{const im=e.target;if(!im||im.tagName!=='IMG'||!im.dataset.fb)return;if(im.dataset.fb==='noimg'&&im.parentNode)im.parentNode.classList.add('noimg');im.remove()},true);
 const ICON={
   check:'<svg class="ic" aria-hidden="true" fill="currentColor" viewBox="0 0 512 512"><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="32" d="M416 128L192 384l-96-96"/></svg>',
@@ -19,9 +15,6 @@ const ICON={
   up:'<svg class="ic" aria-hidden="true" fill="currentColor" viewBox="0 0 512 512"><path d="M376 176H272v145a16 16 0 01-32 0V176H136a56.06 56.06 0 00-56 56v192a56.06 56.06 0 0056 56h240a56.06 56.06 0 0056-56V232a56.06 56.06 0 00-56-56zM272 86.63l52.69 52.68a16 16 0 0022.62-22.62l-80-80a16 16 0 00-22.62 0l-80 80a16 16 0 0022.62 22.62L240 86.63V176h32z"/></svg>'
 };
 
-/* =====================================================
-   TRADUCTIONS FR / EN / RU
-   ===================================================== */
 const I18N={
 fr:{
  nav_settings:'Paramètres',st_account:'Compte',st_audio:'Audio et vocal',st_notif:'Notifications',st_ui:'Interface',st_privacy:'Confidentialité',st_profile:'Profil',st_edit_profile:'Modifier pseudo, avatar et bannière',st_name_cd:'Le pseudo peut être changé une fois tous les 7 jours.',st_login:'Connexion',st_default:'Par défaut (système)',st_mic:'Micro',st_out:'Sortie',st_input:'Micro (entrée)',st_output:'Casque / haut-parleurs (sortie)',st_in_vol:'Volume du micro',st_out_vol:'Volume des autres joueurs',st_no_sink:'Ton navigateur ne permet pas de choisir la sortie : il utilise celle de Windows.',st_need_mic:'Lance le test du micro une fois pour voir le nom de tes appareils.',st_devices:'Appareils',st_test_out:'Tester la sortie',st_test_out_h:'Joue un petit son dans le casque choisi',st_play:'Jouer',st_mic_test:'Test du micro',st_vad:'Sensibilité',st_vad_h:'Le trait orange : au-dessus, tu es considéré comme en train de parler.',st_stop:'Arrêter',st_hear_me:'M\'entendre (mets un casque)',st_mic_test_go:'Tester mon micro',st_mode:'Mode de parole',st_ptt_key:'Touche pour parler',st_ptt_key_h:'Clique puis appuie sur la touche voulue (Échap pour annuler)',st_processing:'Traitement de la voix',st_ns:'Suppression du bruit',st_ns_h:'Filtre le clavier, la souris et le bruit de fond',st_ec:'Annulation d\'écho',st_ec_h:'Utile si tu joues sans casque',st_agc:'Gain automatique',st_agc_h:'Ajuste ton volume quand tu parles plus ou moins fort',st_sounds:'Sons du site',st_sounds_h:'Match trouvé, messages, bips d\'interface',st_dm:'Messages privés',st_dm_h:'Prévenir quand un ami t\'écrit',st_desk:'Notifications du bureau',st_desk_h:'Même quand l\'onglet est en arrière-plan',st_desk_denied:'Notifications refusées par le navigateur',st_rm:'Réduire les animations',st_rm_h:'Coupe les animations et transitions du site',st_online:'Afficher mon statut en ligne',st_online_h:'Tes amis voient quand tu es connecté',st_dmf:'Messages privés : amis uniquement',st_dmf_h:'Les autres joueurs ne peuvent pas t\'écrire',st_pub:'Profil public',st_pub_h:'Tout le monde peut voir tes stats et ton historique',st_saved:'Paramètre enregistré',st_all_audio:'Tous les réglages audio',
@@ -365,12 +358,8 @@ let lang=(()=>{try{const v=localStorage.getItem('cs_lang');if(I18N[v])return v}c
   const n=(navigator.language||'fr').slice(0,2);return I18N[n]?n:'fr'})();
 function t(k,v={}){let s=(I18N[lang]&&I18N[lang][k])??I18N.fr[k]??k;for(const x in v)s=s.split('{'+x+'}').join(v[x]);return s}
 
-/* =====================================================
-   DONNÉES
-   ===================================================== */
 const mkMode=(id,k,soon=false)=>({id,soon,get tag(){return t(k+'_tag')},get n(){return t(k)},get d(){return t(k+'_d')}});
 const MODES=[mkMode('ranked','m_ranked'),mkMode('wingman','m_wing'),mkMode('duel','m_duel'),mkMode('dz','m_dz',true)];
-/* Images : dossier maps/ à côté du fichier. Fond de secours si l'image manque. */
 const MAPS=[
   ['Mirage','mirage','#8a6235','active',null],
   ['Inferno','inferno','#7f3a26','active',{bsp:'de_inferno',site:'Bombsite A'}],
@@ -390,7 +379,7 @@ const MAPS=[
   ['Assault','assault','#49525e','casual',null],
   ['Shortdust','shortdust','#967846','wingman',{bsp:'de_shortdust',site:'Bombsite'}],
   ['Lake','lake','#2f5c6e','wingman',{bsp:'de_lake',site:'Bombsite'}],
-  ['Boyard','boyard','#566343','wingman',null],     // maps d'opération retirées du Wingman (absentes des serveurs)
+  ['Boyard','boyard','#566343','wingman',null],
   ['Chalice','chalice','#4c4668','wingman',null],
   ['Aim Redline','aim_redline','#8a2b2b','duel',{bsp:'aim_redline'}],
   ['Aim Map','aim_map','#8d7547','duel',{bsp:'aim_map'}],
@@ -403,7 +392,6 @@ const COMP_ROTATIONS=[
 let rotIdx=0;
 const curRot=()=>COMP_ROTATIONS[rotIdx];
 const isCompMap=m=>curRot().maps.includes(m.n);
-// maps 5v5 jouables sur nos serveurs (Cache, Cobblestone et Tuscan : server-cs/install/add-maps.sh) : celles qu'on peut voter pour la rotation (même liste que le serveur, lib/core.js)
 const COMP_CANDIDATES=['Mirage','Inferno','Dust II','Nuke','Overpass','Ancient','Anubis','Vertigo','Train','Cache','Cobblestone','Tuscan'];
 const isVoteMap=m=>COMP_CANDIDATES.includes(m.n);
 const isWingmanMap=m=>!!m.wm;
@@ -411,7 +399,6 @@ const isAimMap=m=>m&&(m.g==='duel'||['Shortdust','Lake'].includes(m.n));
 const canPlayMap=m=>state.mode==='wingman'?isWingmanMap(m):state.mode==='duel'?isAimMap(m):state.mode==='casual'?m.g!=='wingman'&&m.g!=='duel':isCompMap(m);
 let mapSort='def',mapsMore=false;
 const mapBg=m=>{const s=state.mode==='wingman'&&m.wm?.slug?m.wm.slug:m.slug;return `url('maps/${s}.jpg?v=2.50') center/cover no-repeat, linear-gradient(135deg,${m.c},#141518 80%)`};
-// ping : mesuré par js/ping.js (null tant qu'aucun serveur n'a répondu)
 const REGIONS=[{id:'EU',city:'Frankfurt',ping:null},{id:'NA',city:'Chicago',ping:null},{id:'AS',city:'Singapore',ping:null}];
 REGIONS.forEach(r=>Object.defineProperty(r,'name',{get(){return t('r_'+r.id)}}));
 const NAMES=['Nox','Rykov','Valk','Mizu','Tempest','KRONOS','lilith','Bastion','Echo','zenith','Raptor','Orca','Vex','Hyuga','Pyro','Saber','frost','Kaida','Juno','Ronin','Atlas','Shiba','Gl1tch','Nero','Sora','Viper','dmitry','b1ade','Sanya','Lynx','Hexa','ozzy',
@@ -431,7 +418,6 @@ const lvlHTML=(e,big=false,calib=false)=>{
     const R=15.0,C=2*Math.PI*R,arc=Math.max(0.12,played/3)*C,dash=`${arc.toFixed(1)} ${(C+2).toFixed(1)}`;
     return `<div class="lvl lvl-calib${big?' lvl-lg':''}" style="color:#ffb21f" title="${t('calib_tip',{p:played,w:wins})}"><svg viewBox="0 0 36 36" aria-hidden="true"><circle cx="18" cy="18" r="16.6" fill="#0b0c0e"/><circle cx="18" cy="18" r="${R}" fill="none" stroke="#22252d" stroke-width="2.8" stroke-dasharray="3.5 2.5"/><circle cx="18" cy="18" r="${R}" fill="none" stroke="#ffb21f" stroke-width="2.8" stroke-linecap="round" stroke-dasharray="${dash}" transform="rotate(-90 18 18)"/><text x="18" y="23.88" text-anchor="middle" fill="currentColor" font-family="Rajdhani,sans-serif" font-weight="800" font-size="16.8">?</text></svg></div>`;
   }
-  // le niveau 1-10 reste utilisé par le matchmaking ; à l'écran on montre le rang façon CS:GO + pastille niveau 1-10
   const r=rankOf(e),l=lvl(e),lc=lvlColor(l);
   return `<div class="lvl rk-lvl rk-${r.fam.id}${big?' lvl-lg':''}" title="${r.name} · Niv. ${l} · ${e} ELO">${rankSVG(r.fam,r.step,r.steps)}<span class="rk-lv-tag lv-c${l}" style="--lv-c:${lc}">${l}</span></div>`;
 };
@@ -440,11 +426,6 @@ const modeObj=()=>MODES.find(m=>m.id===state.mode);
 const regObj=()=>REGIONS.find(r=>r.id===state.region);
 const BASE_TITLE=document.title;
 
-/* =====================================================
-   TRUST FACTOR
-   trust = 10 − (reports ÷ matchs × 10)   (sur 10)
-   ex. 2 reports sur 10 matchs → −2 → 8/10
-   ===================================================== */
 const TIERS=[{id:'high',min:8,c:'var(--green)'},{id:'mid',min:6,c:'var(--blue)'},{id:'low',min:4,c:'var(--orange)'},{id:'vlow',min:0,c:'var(--red)'}];
 const trust=p=>Math.max(0,Math.min(10,10-(p.reports/Math.max(1,p.matches))*10));
 const tierOf=p=>TIERS.find(x=>trust(p)>=x.min);
@@ -507,7 +488,6 @@ window.resetMeDefaults=resetMeDefaults;
 let mmSort=true;try{mmSort=localStorage.getItem('tr_mmsort')!=='0'}catch(e){}
 const state={mode:'ranked',maps:new Set(MAPS.filter(m=>m.g==='active').map(m=>m.n)),region:'EU',party:[ME],searching:false};
 let used=new Set([ME.name]);
-/* Registre : chaque joueur garde la même identité (profil, trust, historique) */
 const REG=new Map();
 const COUNTRIES=['FR','RU','DE','UA','PL','KZ','SE','ES','BY','RS','CZ','BE'];
 function makePlayer(name,base,tierId,spread=180,minTrust=0){
@@ -547,7 +527,7 @@ function initFriends(){
 }
 function invite(p){
   if(locked()||!p)return;
-  if(typeof sendPartyInvite==='function')return sendPartyInvite(p.name);   // vraie invitation (boîte du joueur, groupe créé si besoin)
+  if(typeof sendPartyInvite==='function')return sendPartyInvite(p.name);
   if(state.party.includes(p))return toast(t('in_party'));
   if(state.party.length>=maxParty())return toast(t('party_full'));
   if(typeof fbReq==='function'&&typeof PL!=='undefined'&&PL.code){
@@ -558,8 +538,6 @@ function invite(p){
   toast(t('invited',{n:p.name}));
 }
 
-/* ---------- Avatars / bannières ---------- */
-// données d'autres joueurs injectées dans un style : seules une image (data:/https) ou une couleur #hex passent
 const safeImg=u=>typeof u==='string'&&/^(data:image\/(png|jpeg|webp|gif);base64,[A-Za-z0-9+/=]+|https:\/\/[^'"()<>\s\\]+)$/.test(u)?u:null;
 const safeCol=c=>typeof c==='string'&&/^#[0-9a-fA-F]{3,8}$/.test(c)?c:'#3b3f47';
 function bannerCSS(b){
@@ -567,10 +545,8 @@ function bannerCSS(b){
   if(b&&b.type==='map'){const m=MAPS.find(x=>x.slug===b.slug);if(m)return `linear-gradient(135deg,${m.c} 0%,#141518 85%)`}
   return 'linear-gradient(135deg,#23262d,#16171b)';
 }
-// photo choisie sur le site (avatar, data:) puis photo Steam (steamAvatar) : deux champs séparés, jamais écrasés l'un par l'autre
 const avSrc=p=>p?(safeImg(p.avatar)||safeImg(p.steamAvatar)):null;
 function putAv(p,a){if(!p||typeof a!=='string')return;if(/^data:image\//.test(a)){if(safeImg(a))p.avatar=a}else if(safeImg(a))p.steamAvatar=a}
-// liste venue de profiles/ (avatar = photo Steam) : on la range dans steamAvatar
 const steamRows=rows=>{(rows||[]).forEach(r=>{if(r&&r.avatar&&!/^data:image\//.test(r.avatar)){r.steamAvatar=r.avatar;r.avatar=null}});return rows};
 function avStyle(p){const a=avSrc(p);return a?`background-image:url('${a}');background-color:#222;background-size:cover;background-position:center;background-repeat:no-repeat`:`background:${safeCol(p&&p.color)}`}
 const avInner=p=>avSrc(p)?'':escA(String((p&&p.name)||'?')[0].toUpperCase());
@@ -591,7 +567,6 @@ const avHTML=(p,sz)=>{
   return `<div class="avatar${pr?' pr-'+pr.k:''}${frame}" style="${avStyle(p)}${s}">${avInner(p)}</div>`;
 };
 
-/* ---------- Son ---------- */
 let AC;
 function beep(f=880,d=.12,delay=0,type='sine',vol=.05){
   if(typeof SET!=='undefined'&&SET&&SET.notif&&!SET.notif.sounds)return;

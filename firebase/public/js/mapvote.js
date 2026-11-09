@@ -1,11 +1,3 @@
-/* =====================================================
- * TICKRATE - Vote de la rotation compétitive (mapvote.js)
- * Chaque mois, chaque joueur (compte Steam lié) choisit jusqu'à 7 maps parmi COMP_CANDIDATES.
- * Le 1er du mois (00:05 UTC), le serveur applique les 7 maps les plus votées (fonction mapRotate, config/mapPool) :
- * c'est ce pool que le veto propose en 5v5. Le site lit config/mapPool pour afficher la rotation en cours.
- * Les votes de chacun restent privés (mapVotes/<mois>/<uid>) ; seuls les totaux sont publics (mapVoteCounts/<mois>).
- * ===================================================== */
-// textes : js/i18n-modes.js (chargé tôt, avant le premier affichage de la page Jouer)
 if(typeof FB_ERR==='object')Object.assign(FB_ERR,{bad_maps:'bad_maps',steam_required:'steam_required',no_profile:'no_profile'});
 
 const MV={pool:null,counts:null,mine:null,pick:null,busy:false,msg:'',loaded:false};
@@ -13,7 +5,6 @@ const mvPeriod=(d=new Date())=>d.toISOString().slice(0,7);
 const mvBsp=m=>'de_'+m.slug;
 const mvByBsp=b=>MAPS.find(m=>mvBsp(m)===b);
 const mvMonth=per=>{const [y,mo]=per.split('-').map(Number);return new Date(Date.UTC(y,mo-1,15)).toLocaleDateString(lang==='ru'?'ru-RU':lang==='en'?'en-GB':'fr-FR',{month:'long',year:'numeric',timeZone:'UTC'})};
-// applique le pool voté à la grille de la page Jouer (curRot().maps = noms affichés)
 function mvApplyPool(){
   const names=(MV.pool?.maps||[]).map(mvByBsp).filter(Boolean).map(m=>m.n);
   if(names.length!==7)return;
@@ -94,7 +85,6 @@ function renderMapVote(){
     }
   });
   document.addEventListener('click',e=>{if(e.target.closest('[data-lang]'))setTimeout(()=>{if(!box.hidden)renderMapVote();if(typeof renderMaps==='function')renderMaps()},0)});
-  // pool voté chargé dès que la session Firebase est prête (la page Jouer affiche la rotation en cours)
   let tries=0;const iv=setInterval(()=>{if(MV.loaded||++tries>30)return clearInterval(iv);if(typeof fbLive==='function'&&fbLive()&&FBA.uid)mvLoad()},1000);
   if(!box.hidden){renderMapVote();mvLoad()}
 })();

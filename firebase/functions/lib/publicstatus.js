@@ -1,10 +1,5 @@
-// Liste publique des serveurs (page /serveurs-csgo du site, lisible sans compte)
-// publicStatus = { at, servers: { s1: { mode, state, map, sA, sB, players } }, live, busy, total }
-// Construite à partir de servers/ (privé) et liveMatches/ : rien de privé dedans, ni IP, ni mot de passe, ni joueurs nommés.
-// Réécrite par le sweeper toutes les minutes, seulement si quelque chose a changé (hors horodatage, qui avance toutes les 10 min).
 const val = async ref => (await ref.get()).val();
 const MODES = ['ranked', 'wingman', 'duel'];
-// forme comparable : clés triées, sans null (la base ne garde ni l'ordre des clés ni les null)
 const canon = v => v === null || typeof v !== 'object' ? JSON.stringify(v)
   : '{' + Object.keys(v).filter(k => v[k] !== null && v[k] !== undefined).sort().map(k => JSON.stringify(k) + ':' + canon(v[k])).join(',') + '}';
 
@@ -27,9 +22,9 @@ function build(servers, live) {
   return { servers: out, live: liveN, busy, total: Object.keys(out).length };
 }
 
-async function publish(db, now = Date.now()) {
+async function publish(db, now = Date.now(), stats = {}) {
   const [servers, live, cur] = await Promise.all([val(db.ref('servers')), val(db.ref('liveMatches')), val(db.ref('publicStatus'))]);
-  const next = build(servers, live);
+  const next = { ...build(servers, live), ...stats };
   const same = cur && canon({ ...cur, at: 0 }) === canon({ ...next, at: 0 });
   if (same && now - (cur.at || 0) < 10 * 60000) return false;
   await db.ref('publicStatus').set({ ...next, at: now });

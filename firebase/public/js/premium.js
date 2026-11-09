@@ -1,16 +1,9 @@
-/* =====================================================
- * TICKRATE - Menu Premium : Abonnements Gratuit / Plus / Premium (premium.js)
- * ===================================================== */
-/* =====================================================
-   ABONNEMENTS : Gratuit / PLUS / PREMIUM
-   ===================================================== */
 const PLAN_RANK={free:0,plus:1,premium:2};
 const PRICES={plus:{m:2.99,y:24.99},premium:{m:5.99,y:49.99}};
 let billing='m';
 try{const v=localStorage.getItem('tr_plan');if(PLAN_RANK[v]!==undefined)ME.plan=v}catch(e){}
 const hasPlan=need=>PLAN_RANK[ME.plan||'free']>=PLAN_RANK[need];
 const planName=pl=>t('plan_'+pl);
-// un influenceur validé a le Premium offert : on affiche son badge à la place de PREMIUM
 const INF_ICON='<svg class="ic" aria-hidden="true" fill="currentColor" viewBox="0 0 512 512"><path d="M464 384.39a32 32 0 01-13-2.77 15.77 15.77 0 01-2.71-1.54l-82.71-58.22A32 32 0 01352 295.7v-79.4a32 32 0 0113.58-26.16l82.71-58.22a15.77 15.77 0 012.71-1.54 32 32 0 0145 29.24v192.76a32 32 0 01-32 32zM268 400H84a68.07 68.07 0 01-68-68V180a68.07 68.07 0 0168-68h184.48A67.6 67.6 0 01336 179.52V332a68.07 68.07 0 01-68 68z"/></svg>';
 const PLUS_ICON='<svg class="ic" aria-hidden="true" fill="currentColor" viewBox="0 0 512 512"><path d="M256 48C141.31 48 48 141.31 48 256s93.31 208 208 208 208-93.31 208-208S370.69 48 256 48zm80 224h-64v64a16 16 0 01-32 0v-64h-64a16 16 0 010-32h64v-64a16 16 0 0132 0v64h64a16 16 0 010 32z"/></svg>';
 const PREM_ICON='<svg class="ic" aria-hidden="true" fill="currentColor" viewBox="0 0 512 512"><path d="M121.72 32a4 4 0 00-3.72 5.56l2.3 5.43 40.7 94.9a4 4 0 006.88.82L243 38.4a4 4 0 00-3.2-6.4zM419.93 58.06l-41.28 96.37a4 4 0 003.68 5.57h101a4 4 0 003.4-6.11L427 57.53a4 4 0 00-7.07.53zM85 57.57l-59.71 96.32a4 4 0 003.4 6.11h101a4 4 0 003.67-5.58L92 58.1a4 4 0 00-7-.53zM393.27 32H267.82a1.94 1.94 0 00-1.56 3.11l79.92 106.46a1.94 1.94 0 003.34-.4L391.6 43l3.4-8.34a1.92 1.92 0 00-1.7-2.66zM239 448l-89.43-253.49A3.78 3.78 0 00146 192H25.7a3.72 3.72 0 00-2.95 6l216 279.81a5.06 5.06 0 006.39 1.37 5 5 0 002.39-6.08zM486.3 192H366a3.75 3.75 0 00-3.54 2.51l-98.2 278.16a5.21 5.21 0 002.42 6.31 5.22 5.22 0 006.61-1.39L489.25 198a3.72 3.72 0 00-2.95-6zM259.2 78.93l56 74.67a4 4 0 01-3.2 6.4H200a4 4 0 01-3.2-6.4l56-74.67a4 4 0 016.4 0zm-7 310.31l-67.7-191.91a4 4 0 013.77-5.33h135.46a4 4 0 013.77 5.33l-67.73 191.91a4 4 0 01-7.54 0z"/></svg>';
@@ -23,8 +16,6 @@ const LOCK='<svg class="ic" aria-hidden="true" fill="currentColor" viewBox="0 0 
 const FEATS={free:['f_mm_free','f_stats','f_inv','f_hist'],plus:['f_mm_plus','f_skins','f_knives','f_st','f_badge_plus'],premium:['f_mm_prem','f_agents','f_review','f_demo','f_hist_unl','f_profile','f_support']};
 const CMP=[['cmp_gap','±400','±250','±150'],['cmp_trust',2],['f_mm',0],['f_stats',0],['f_inv',0],['f_hist',0],['f_skins',1],['f_knives',1],['f_st',1],['f_agents',2],['f_review',2],['f_demo',2],['f_hist_unl',2],['f_profile',2],['f_support',2]];
 
-// ---------- paiement réel : Stripe Checkout (functions/lib/pay.js) ----------
-// Le plan et les pièces ne sont JAMAIS accordés par le site : seulement par le webhook Stripe côté serveur.
 const PAYMENTS_COMING_SOON = typeof window !== 'undefined' && window.PAYMENTS_COMING_SOON !== undefined ? window.PAYMENTS_COMING_SOON : true;
 const payLive=()=>typeof fbLive==='function'&&fbLive()&&AUTH.mode==='firebase'&&!!FBA.uid;
 const paidSub=()=>ME.planSource==='stripe'&&ME.plan!=='free';
@@ -37,7 +28,6 @@ Object.assign(I18N.en,{pay_login:'Log in with a TICKRATE account to pay.',pay_wa
 Object.assign(I18N.ru,{pay_login:'Войди в аккаунт TICKRATE, чтобы оплатить.',pay_wait:'Оплата получена, активируем…',pay_cancel:'Оплата отменена: деньги не списаны.',pay_manage:'Управлять подпиской',pay_coins_ok:'+{n} Tick Coins',pay_slow:'Оплата подтверждена, активация задерживается: обнови страницу через минуту.',
   coming_soon:'Скоро',pay_cs_title:'Скоро официальный запуск',pay_cs_desc:'Подписки по банковским картам станут доступны в ближайшее время. Все дропы скинов, кейсы, миссии и награды в игре на 100% активны и бесплатны!',pay_cs_coins_desc:'Покупка коинов откроется при официальном запуске. Зарабатывайте коины и скины бесплатно за матчи и задания!',pay_cs_free_hint:'Совет: получайте бесплатные Tick Coins, кейсы и скины после каждого матча.',pay_coming_soon:'Оплата картой скоро откроется (официальный запуск). Забирайте бесплатные кейсы, миссии и дропы за игру!',
   e_pay_coming_soon:'Онлайн-оплата временно в режиме предпросмотра (скоро запуск).',e_pay_has_sub:'У тебя уже есть подписка: смени тариф в «Управлять подпиской».',e_pay_influencer:'Premium уже выдан по программе инфлюенсеров.',e_pay_bad_item:'Такого товара нет.',e_pay_no_customer:'Нет подписки для управления.'});
-// appel d'une Cloud Function en gardant son code d'erreur (pay_has_sub…)
 async function payCall(name,data){
   await fbAuthEnsure();
   try{const r=await fetch(`${FB_FN()}/${name}`,{method:'POST',headers:{'Content-Type':'application/json',...(FBA.idToken?{Authorization:'Bearer '+FBA.idToken}:{})},body:JSON.stringify({data:{...data,origin:location.origin}})});
@@ -51,7 +41,7 @@ async function openBillingPortal(){
 }
 
 function setPlan(pl){
-  ME.plan=pl;if(!payLive())try{localStorage.setItem('tr_plan',pl)}catch(e){}   // en ligne, le plan vient uniquement du serveur
+  ME.plan=pl;if(!payLive())try{localStorage.setItem('tr_plan',pl)}catch(e){}
   purgeLoadout();refreshMe();renderParty();refreshViews2();
 }
 function renderGoPrem(){
@@ -70,7 +60,7 @@ function renderPremium(){
     if(cur&&planOffered())cta=`<button class="btn" disabled>${t('inf_offered')}</button>`;
     else if(planOffered())cta=`<button class="btn ghost" disabled>${t('choose',{x:planName(pl)})}</button>`;
     else if(cur&&paidSub())cta=`<button class="btn" disabled>${t('current_plan')}</button><button class="btn ghost sm" style="margin-top:6px" data-manage>${t('pay_manage')}</button>`;
-    else if(paidSub())cta=`<button class="btn ghost" data-manage>${t('choose',{x:planName(pl)})}</button>`;   // changer de formule : portail Stripe
+    else if(paidSub())cta=`<button class="btn ghost" data-manage>${t('choose',{x:planName(pl)})}</button>`;
     else if(cur)cta=`<button class="btn" disabled>${t('current_plan')}</button>${pl!=='free'?`<button class="btn ghost sm" style="margin-top:6px" data-cancel>${t('cancel_sub')}</button>`:''}`;
     else if(pl==='free')cta=`<button class="btn ghost" data-cancel>${t('choose',{x:planName('free')})}</button>`;
     else if(PAYMENTS_COMING_SOON)cta=`<button class="btn ${feat?'primary':''}" data-coming-soon="sub" style="display:inline-flex;align-items:center;justify-content:center;gap:7px;width:100%"><span style="width:6px;height:6px;border-radius:50%;background:currentColor;opacity:.85;display:inline-block"></span>${t('coming_soon')}</button>`;
@@ -114,7 +104,6 @@ function openCheckout(pl){
     <div class="m-hint">${LOCK.replace('<svg','<svg style="width:13px;height:13px;vertical-align:-2px"')} ${t('secure')}</div>`;
   const b=$('#coPay');b.disabled=false;b.textContent=t('pay');openModal('checkoutModal');
 }
-// « Payer avec Stripe » : le serveur crée la session de paiement, on part sur la page Stripe
 $('#coPay').onclick=async()=>{
   if(PAYMENTS_COMING_SOON)return toast(t('pay_coming_soon'));
   if(!payLive())return toast(t('pay_login'));
@@ -124,12 +113,10 @@ $('#coPay').onclick=async()=>{
   location.href=r.url;
 };
 
-// ---------- retour de Stripe : /?pay=ok&sid=…#/premium ----------
-// On attend que le webhook ait validé l'achat (purchases/<uid>/<sid>), puis on recharge le profil.
 async function payReturn(){
   const q=new URLSearchParams(location.search),st=q.get('pay'),sid=q.get('sid');
   if(!st)return;
-  history.replaceState(history.state,'',location.pathname+location.hash);   // nettoie l'adresse
+  history.replaceState(history.state,'',location.pathname+location.hash);
   if(st==='cancel')return toast(t('pay_cancel'));
   if(st!=='ok'||!/^cs_[A-Za-z0-9_]+$/.test(sid||''))return;
   toast(t('pay_wait'));
@@ -137,9 +124,8 @@ async function payReturn(){
     const p=await fbReq(`purchases/${FBA.uid}/${sid}`);
     if(p&&p.status==='paid'){
       if(p.kind==='coins'){
-        // le solde serveur (wallet) est crédité par le webhook ; on reporte une fois le montant dans le solde affiché
         let done=false;try{done=localStorage.getItem('tr_paid_'+sid)==='1';localStorage.setItem('tr_paid_'+sid,'1')}catch(e){}
-        if(typeof srvOn==='function'&&srvOn()&&typeof seRefresh==='function')await seRefresh();   // solde serveur (inventaire en ligne)
+        if(typeof srvOn==='function'&&srvOn()&&typeof seRefresh==='function')await seRefresh();
         else if(!done){SHOP.coins+=p.coins;saveShop();renderWallet()}
         toast(t('pay_coins_ok',{n:p.coins}));
       }else{
@@ -154,8 +140,6 @@ async function payReturn(){
   }
   toast(t('pay_slow'));
 }
-// attend que la session Firebase soit prête (connexion automatique au chargement)
-// (AUTH / FBA sont déclarés par des scripts chargés après celui-ci : d'où le try)
 (function payWait(n=0){let ready=false;try{ready=payLive()&&!!AUTH.session}catch(e){}
   if(ready)return payReturn();if(n<40)setTimeout(()=>payWait(n+1),500)})();
 

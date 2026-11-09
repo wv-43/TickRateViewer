@@ -1,12 +1,3 @@
-// =====================================================
-// TICKRATE - pied de page commun à tout le site
-// Un seul modèle, utilisé par :
-//   - les pages guides (tools/build-seo.js l'appelle pour chaque page, en FR ou en EN) ;
-//   - l'accueil / le site (index.html et tickrate.html), les pages légales et la 404 : build-seo.js le recopie
-//     entre les marqueurs <!--FOOTER--> et <!--/FOOTER--> de ces fichiers.
-// Textes traduits : attributs data-i18n (site : js/seo-hub.js ; pages légales : js/legal.js).
-// Styles : public/footer.css
-// =====================================================
 const SOCIAL = { instagram: 'https://www.instagram.com/tickrate.eu/', tiktok: 'https://www.tiktok.com/@tickrate.eu', discord: 'https://discord.gg/KNXbGrTDj' };
 
 const TXT = {
@@ -27,15 +18,12 @@ const TXT = {
     valve: 'TICKRATE is not affiliated with Valve Corporation. Counter-Strike and CS:GO are trademarks of Valve Corporation.'
   }
 };
-// liens : FR -> pages françaises ; EN -> pages anglaises quand elles existent
 const HREF = {
   fr: { list: '/serveurs-csgo', srv: '/serveur-csgo', tick: '/tickrate-csgo', legacy: '/csgo-legacy', cmd: '/commandes-csgo', news: '/actualites', all: '/guides', other: '/en/guides' },
   en: { list: '/en/csgo-server-list', srv: '/en/csgo-server', tick: '/en/tickrate', legacy: '/en/csgo-legacy', cmd: '/en/csgo-matchmaking', news: '/en/news', all: '/en/guides', other: '/guides' }
 };
-const MARK = '<svg class="tr-mark" viewBox="9 9 46 46" aria-hidden="true"><path d="M50.61 37.34A19.36 19.36 0 0 1 37.34 50.61M26.66 50.61A19.36 19.36 0 0 1 13.39 37.34M13.39 26.66A19.36 19.36 0 0 1 26.66 13.39M37.34 13.39A19.36 19.36 0 0 1 50.61 26.66" fill="none" stroke="currentColor" stroke-width="3.52"/><rect x="21.12" y="22.4" width="21.76" height="4.48" rx="1.12" fill="currentColor"/><rect x="29.28" y="22.4" width="5.44" height="21.76" rx="1.36" fill="currentColor"/></svg>';
+const MARK = '<svg class="tr-mark" viewBox="9 9 46 46" aria-hidden="true"><path d="M50.61 37.34A19.36 19.36 0 0 1 37.34 50.61M26.66 50.61A19.36 19.36 0 0 1 13.39 37.34M13.39 26.66A19.36 19.36 0 0 1 26.66 13.39M37.34 13.39A19.36 19.36 0 0 1 50.61 26.66" fill="none" stroke="currentColor" stroke-width="2.7" stroke-linecap="round"/><circle cx="32" cy="32" r="15.2" fill="none" stroke="currentColor" stroke-width="1.5" stroke-dasharray="1 1.985" opacity=".42"/><path d="M32 10.4v4.4M32 49.2v4.4M10.4 32h4.4M49.2 32h4.4" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round"/><path d="M20.4 21.2h23.2l-2.6 5.4h-6.2V42L32 45.6 29.6 42V26.6h-6.2z" fill="currentColor"/></svg>';
 
-// i18n = true : ajoute les attributs data-i18n (site et pages légales, traduits par JavaScript) ; false : pages guides, déjà dans leur langue
-// pages = [[adresse, nom], …] : rangée de toutes les pages guides (pages guides seulement, pour que chaque page mène à toutes les autres)
 function footer(lang = 'fr', { i18n = false, pages = null, other = null, year = new Date().getFullYear() } = {}) {
   const T = TXT[lang], H = HREF[lang];
   const k = key => i18n ? ` data-i18n="ft_${key}"` : '';

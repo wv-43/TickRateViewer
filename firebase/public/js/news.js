@@ -1,5 +1,3 @@
-// Pages Actualités (/actualites, /en/news) : résultat mensuel du vote des maps, lu dans publicNews/maps
-// (écrit par la fonction mapRotate le 1er de chaque mois, lisible sans compte). Sans résultat : le texte du HTML reste affiché.
 (function () {
   const box = document.getElementById('newsMaps');
   if (!box) return;
@@ -8,7 +6,6 @@
                     : ['janvier', 'février', 'mars', 'avril', 'mai', 'juin', 'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre'];
   const name = m => { const n = String(m).replace(/^de_/, ''); return n === 'dust2' ? 'Dust II' : n === 'cbble' ? 'Cobblestone' : n.charAt(0).toUpperCase() + n.slice(1); };
   const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
-  // période votée « 2026-11 » -> rotation appliquée le mois suivant
   const label = per => { const [y, m] = per.split('-').map(Number), n = m === 12 ? [y + 1, 0] : [y, m]; return `${MONTHS[n[1]]} ${n[0]}`; };
   const T = EN
     ? { title: p => `Rotation for ${label(p)}`, voters: n => `${n} voter${n > 1 ? 's' : ''}`, kept: 'Not enough voters: the pool stays the same.', pool: 'Map pool', in: 'In', out: 'Out', prev: 'Previous months' }

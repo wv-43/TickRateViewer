@@ -1,5 +1,3 @@
-// Liste publique des serveurs (pages /serveurs-csgo et /en/csgo-server-list)
-// Lit publicStatus (lisible sans compte, écrit par le sweeper toutes les minutes) et remplit #srvLive.
 (function () {
   const box = document.getElementById('srvLive');
   if (!box) return;

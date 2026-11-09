@@ -1,12 +1,5 @@
-/* =====================================================
- * TICKRATE - Menu Classement, Reports & Résultat de match (ranking.js)
- * ===================================================== */
-/* =====================================================
-   CLASSEMENT
-   ===================================================== */
 const LB=[];
 function initLeaderboard(){
-  // Paliers : Niv 9-10 (1851-2720), Niv 6-8 (1401-1850), Niv 4-5 (1101-1400), Niv 1-3 (680-1100)
   const tiers=[[2720,1860,34],[1845,1405,28],[1395,1105,24],[1095,680,22]];
   for(const [hi,lo,cnt] of tiers){
     let e=hi;
@@ -45,13 +38,6 @@ $('#ranking').addEventListener('click',e=>{
   const br=e.target.closest('[data-lbr]');if(br){ladBracket=br.dataset.lbr;return renderRanking()}
 });
 
-/* =====================================================
-   REPORTS
-   ===================================================== */
-/* Règles anti-abus (vérifiées aussi au moment de l'envoi) :
-   - uniquement des joueurs croisés en match ces 7 derniers jours
-   - 1 report par joueur tous les 7 jours (quel que soit le nombre de matchs)
-   - 5 reports maximum par 24 h                                              */
 const REP_COOLDOWN=7*864e5,REP_DAILY=5,SHARED_WINDOW=7*864e5;
 let REPLOG={by:{},times:[]};
 try{const v=JSON.parse(localStorage.getItem('cs_replog')||'null');if(v&&v.by&&Array.isArray(v.times))REPLOG=v}catch(e){}
@@ -107,18 +93,14 @@ function refreshViews(){
   if(!$('#friends').hidden)renderFriends();
 }
 
-/* =====================================================
-   RATING DE PERFORMANCE + ELO
-   ===================================================== */
 function perfRating(s,R){
   const kpr=s.k/R,dpr=s.d/R,apr=s.a/R,impact=2.13*kpr+0.42*apr-0.41;
   return Math.max(0.2,0.0073*s.kast+0.3591*kpr-0.5329*dpr+0.2372*impact+0.0032*s.adr+0.1587);
 }
 const K_FACTOR=50;
-// Scaling Level 10 (2001+ ELO) : plus on a d'ELO au-dessus de 2000, plus le gain est exigeant et la perte punitive
 function lvl10Scale(elo,won){
   if(!elo||elo<=2000)return 1;
-  const over=Math.min(1000,elo-2000); // 0 à 1000 au-dessus de 2000
+  const over=Math.min(1000,elo-2000);
   return won?Math.max(0.58,1-(over/1000)*0.40):Math.min(1.35,1+(over/1000)*0.30);
 }
 function eloChange(expected,won,rating,playerElo=1800){
@@ -152,9 +134,7 @@ const ensureDetails=p=>{
   return p;
 };
 
-/* ---------- Enregistrement réel dans Firebase ---------- */
 async function fbRecordMatch(matchData){
-  // en ligne, l'historique n'est écrit que par le serveur à la fin d'un vrai match (les règles refusent le reste)
   if(typeof fbReq!=='function'||(typeof realMM==='function'&&realMM()))return;
   const mId=matchData.id||('m_'+Date.now());
   const myBox=typeof fbMailbox==='function'?fbMailbox(ME.name):ME.name.toLowerCase();
@@ -178,11 +158,9 @@ async function fbRecordMatch(matchData){
     mode:(typeof state!=='undefined'&&state.mode)?state.mode:'ranked'
   };
 
-  // 1. Enregistrer dans history/<uid> et history/<mailbox>
   if(uid&&uid!==myBox) fbReq(`history/${uid}/${mId}`,'PUT',matchRecord);
   fbReq(`history/${myBox}/${mId}`,'PUT',matchRecord);
 
-  // 2. Mettre à jour profiles/<uid> si connecté
   const realWins=ME.history.filter(x=>x.won).length;
   const realMatches=ME.history.length;
   if(uid&&uid!==myBox){
@@ -194,7 +172,6 @@ async function fbRecordMatch(matchData){
     });
   }
 
-  // 3. Mettre à jour playerDirectory/<mailbox>
   fbReq(`playerDirectory/${myBox}`,'PATCH',{
     elo:ME.elo,
     matches:realMatches,
@@ -202,7 +179,6 @@ async function fbRecordMatch(matchData){
     lastMatchAt:Date.now()
   });
 
-  // 4. Mettre à jour la table matches/
   fbReq(`matches/${mId}`,'PUT',{
     matchId:mId,
     map:matchData.map,
@@ -215,7 +191,6 @@ async function fbRecordMatch(matchData){
     mode:(typeof state!=='undefined'&&state.mode)?state.mode:'ranked'
   });
 
-  // 5. Enregistrer aussi pour les coéquipiers réels présents dans le groupe
   if(typeof state!=='undefined'&&Array.isArray(state.party)&&state.party.length>1&&matchData.teamA&&matchData.teamB){
     const allRows=[...matchData.teamA,...matchData.teamB];
     for(const tm of state.party.slice(1)){
@@ -247,7 +222,6 @@ async function fbRecordMatch(matchData){
   }
 }
 
-/* ---------- Simulation du match ---------- */
 $('#simBtn').onclick=()=>{
   if(!cur||!cur.map||!cur.join||!cur.join.live)return toast(t('join_wait_all'));
   const b=$('#simBtn');b.disabled=true;b.innerHTML='<span class="spin inl"></span> '+t('match_running');
@@ -258,7 +232,6 @@ function calibDelta(won,rating,calib){
   let d=won?(86+perf):(-46+Math.round(perf*0.5));
   const nextPlayed=(calib.played||0)+1,nextWins=(calib.wins||0)+(won?1:0);
   if(nextPlayed>=3){
-    // Cibles exactes après 3 matchs : 3V -> Niv 4-5 (1215..1310), 2V -> Niv 3-4 (1080..1150), 1V -> low Niv 3 (955..1000), 0V -> Niv 2 (850..920)
     const bounds={3:[1215,1310],2:[1080,1150],1:[955,1000],0:[850,920]}[nextWins]||[955,1100];
     const target=Math.max(bounds[0],Math.min(bounds[1],ME.elo+d));
     d=target-ME.elo;

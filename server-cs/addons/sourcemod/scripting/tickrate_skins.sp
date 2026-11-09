@@ -1,32 +1,3 @@
-/*
- * TICKRATE — skins, couteau, gants et agents choisis sur le site
- * --------------------------------------------------------------
- * À la connexion d'un joueur (et avec !ws), le plugin demande son équipement à gameApi
- * (GET /skins?steamId=…, calculé depuis l'inventaire du site), puis :
- *   - skins d'armes : appliqués quand le joueur reçoit ou achète l'arme, selon son camp ;
- *     une arme ramassée au sol (mort, arme jetée) garde le skin de son ancien propriétaire ;
- *   - couteau : à chaque apparition, le vrai couteau choisi (Karambit, Papillon…) est donné, avec son skin ;
- *     si le jeu refuse, le couteau de base prend seulement le modèle (le skin ne s'affiche pas alors) ;
- *   - gants et agent : posés à chaque apparition, selon le camp ;
- *   - armes données à l'apparition (couteau, pistolet de départ) : remplacées par un exemplaire neuf juste après,
- *     comme un achat, car le jeu les envoie avant que le skin puisse être posé.
- * Avec l'extension PTaH (méthode du plugin Weapons & Knives) : au moment où le jeu crée une arme, on lui fait
- * ignorer l'objet de l'inventaire Steam du joueur (sinon il écrase le skin, surtout pour le couteau), on donne
- * le vrai couteau choisi, puis on pose le skin. Sans PTaH : skin posé à l'équipement et armes de départ remplacées.
- * StatTrak : l'arme affiche son compteur réel ; chaque kill de son propriétaire sur un joueur humain
- * l'augmente en direct, et les kills sont envoyés au site à chaque fin de round (POST /stattrak).
- * Match de test (tr_skins_test 1, posé par tickrate_match) : les kills sur des bots font monter le compteur
- * à l'écran, sans être enregistrés sur le site.
- * Autocollants : posés si l'extension PTaH est installée (attributs « sticker slot N id / wear » de l'arme) ;
- * sans PTaH, ou avec tr_skins_stickers 0, le plugin fonctionne pareil, sans autocollants.
- *
- * Dépendances : SourceMod 1.11+, REST in Pawn (ripext), sdkhooks.
- * Dans addons/sourcemod/configs/core.cfg : "FollowCSGOServerGuidelines" "no" (sinon SourceMod refuse le modèle de couteau).
- * ConVars (cfg/sourcemod/tickrate_skins.cfg) :
- *   tr_skins_url  URL de gameApi, ex. https://europe-west1-tickratecsgo.cloudfunctions.net/gameApi
- *   tr_skins_key  SERVER_KEY du back-end
- *   tr_skins_stickers  1 = autocollants (si PTaH est chargé), 0 = jamais
- */
 #include <sourcemod>
 #include <sdktools>
 #include <sdkhooks>
@@ -34,7 +5,7 @@
 #include <ripext>
 #include <tickrate>
 #undef REQUIRE_EXTENSIONS
-#include <PTaH>                                            // facultatif : autocollants
+#include <PTaH>
 #define REQUIRE_EXTENSIONS
 #pragma semicolon 1
 #pragma newdecls required
@@ -45,35 +16,30 @@ public Plugin myinfo = { name = "TICKRATE skins", author = "TICKRATE", descripti
 
 ConVar g_cvUrl, g_cvKey, g_cvStickers, g_cvTest;
 bool g_loaded[MAXPLAYERS + 1];
-// armes
 int g_n[MAXPLAYERS + 1];
 int g_wDef[MAXPLAYERS + 1][MAXW], g_wPaint[MAXPLAYERS + 1][MAXW], g_wSeed[MAXPLAYERS + 1][MAXW], g_wTeam[MAXPLAYERS + 1][MAXW];
 float g_wWear[MAXPLAYERS + 1][MAXW];
 bool g_wSt[MAXPLAYERS + 1][MAXW];
 char g_wTag[MAXPLAYERS + 1][MAXW][24];
-char g_wSk[MAXPLAYERS + 1][MAXW][40];                     // clé du compteur StatTrak
-int g_wStc[MAXPLAYERS + 1][MAXW], g_wPend[MAXPLAYERS + 1][MAXW];   // compteur, kills pas encore envoyés
-int g_wStk[MAXPLAYERS + 1][MAXW][4];                       // autocollant par emplacement (0 = vide)
+char g_wSk[MAXPLAYERS + 1][MAXW][40];
+int g_wStc[MAXPLAYERS + 1][MAXW], g_wPend[MAXPLAYERS + 1][MAXW];
+int g_wStk[MAXPLAYERS + 1][MAXW][4];
 float g_wStkWear[MAXPLAYERS + 1][MAXW][4];
-// couteau et gants par camp : 0 = T, 1 = CT
 int g_kDef[MAXPLAYERS + 1][2], g_kPaint[MAXPLAYERS + 1][2], g_kSeed[MAXPLAYERS + 1][2];
 float g_kWear[MAXPLAYERS + 1][2];
 bool g_kSt[MAXPLAYERS + 1][2];
 char g_kTag[MAXPLAYERS + 1][2][24];
 char g_kSk[MAXPLAYERS + 1][2][40];
 int g_kStc[MAXPLAYERS + 1][2], g_kPend[MAXPLAYERS + 1][2];
-// arme StatTrak : compte du propriétaire et emplacement (index d'arme, ou -1 / -2 = couteau T / CT)
 int g_entAcc[2049], g_entSlot[2049];
 int g_gDef[MAXPLAYERS + 1][2], g_gPaint[MAXPLAYERS + 1][2], g_gSeed[MAXPLAYERS + 1][2];
 float g_gWear[MAXPLAYERS + 1][2];
 char g_agent[MAXPLAYERS + 1][2][PLATFORM_MAX_PATH];
 int g_itemId = 16384;
-// skin réellement visible sur cette arme (posé sur un exemplaire neuf ou une arme achetée après l'apparition) ;
-// un skin posé pendant l'apparition ne s'affiche pas : l'arme est alors remplacée
 bool g_good[2049];
 float g_spawnAt[MAXPLAYERS + 1];
 bool g_giving;
-bool g_ptahHooks;                  // PTaH chargé : skins posés à la création des armes               // identifiant d'objet unique par arme : sans lui, le jeu garde l'apparence d'usine
+bool g_ptahHooks;
 
 public void OnPluginStart() {
 	LoadTranslations("tickrate.phrases");
@@ -94,8 +60,6 @@ public void OnAllPluginsLoaded() {
 	LogMessage("[TICKRATE] PTaH %s", g_ptahHooks ? "chargé : skins posés à la création des armes" : "présent mais hooks refusés");
 }
 
-// ---------- avec PTaH : à la création de l'arme ----------
-// defindex d'une classe (weapon_ak47 -> 7), couteaux à part
 int DefOfClass(const char[] cls) {
 	if (StrContains(cls, "weapon_") != 0) return 0;
 	CSWeaponID id = CS_AliasToWeaponID(cls[7]);
@@ -113,7 +77,7 @@ public Action GiveNamedItemPre(int client, char cls[64], CEconItemView &view, bo
 	if (IsKnifeClass(cls)) {
 		char want[64];
 		if (!g_kDef[client][tm] || !KnifeClass(g_kDef[client][tm], want, sizeof want)) return Plugin_Continue;
-		ignoredView = true;                                // pas le couteau de l'inventaire Steam
+		ignoredView = true;
 		strcopy(cls, sizeof cls, want);
 		return Plugin_Changed;
 	}
@@ -129,7 +93,7 @@ public void GiveNamedItemPost(int client, const char[] cls, const CEconItemView 
 	GetEntityClassname(entity, real, sizeof real);
 	if (IsKnifeClass(real)) {
 		if (!g_kDef[client][tm]) return;
-		EquipPlayerWeapon(client, entity);                 // sinon le couteau tombe au sol
+		EquipPlayerWeapon(client, entity);
 		Apply(client, entity, g_kPaint[client][tm], g_kWear[client][tm], g_kSeed[client][tm], g_kSt[client][tm], g_kTag[client][tm], true);
 		StatTrakOn(client, entity, -1 - tm);
 		g_good[entity] = true;
@@ -160,7 +124,6 @@ public Action Cmd_Refresh(int client, int args) {
 	return Plugin_Handled;
 }
 
-// ---------- équipement depuis le site ----------
 void Fetch(int client) {
 	char sid[24], url[320], key[128];
 	if (!GetClientAuthId(client, AuthId_SteamID64, sid, sizeof sid)) return;
@@ -233,8 +196,6 @@ public void OnSkins(HTTPResponse r, any userid, const char[] err) {
 	g_loaded[client] = true;
 	LogMessage("[TICKRATE] skins de %N : %d armes, couteau T=%d CT=%d, gants T=%d CT=%d", client, g_n[client], g_kDef[client][0], g_kDef[client][1], g_gDef[client][0], g_gDef[client][1]);
 
-	// Si le joueur a déjà spawn pendant le freeze time ou le buy round avant la fin de la requête,
-	// équiper immédiatement son couteau, ses gants, son agent et ses armes de départ
 	if (IsClientInGame(client) && IsPlayerAlive(client)) {
 		int tm = CampOf(client);
 		if (tm >= 0) {
@@ -260,11 +221,10 @@ int CampOf(int client) {
 }
 bool IsKnifeClass(const char[] cls) { return StrContains(cls, "weapon_knife") == 0 || StrEqual(cls, "weapon_bayonet"); }
 
-// ---------- skins d'armes et couteau ----------
 public void OnWeaponEquip(int client, int weapon) {
 	if (!g_loaded[client] || IsFakeClient(client) || !IsValidEntity(weapon)) return;
-	if (GetEntPropEnt(weapon, Prop_Send, "m_hPrevOwner") > 0) return;   // ramassée au sol : skin de l'ancien propriétaire
-	if (weapon < sizeof g_good && g_good[weapon]) return;               // skin déjà posé à la création (PTaH)
+	if (GetEntPropEnt(weapon, Prop_Send, "m_hPrevOwner") > 0) return;
+	if (weapon < sizeof g_good && g_good[weapon]) return;
 	int tm = CampOf(client);
 	if (tm < 0) return;
 	char cls[64];
@@ -273,7 +233,7 @@ public void OnWeaponEquip(int client, int weapon) {
 	if (IsKnifeClass(cls)) {
 		int want = g_kDef[client][tm];
 		if (!want) return;
-		if (def != want) SetEntProp(weapon, Prop_Send, "m_iItemDefinitionIndex", want);   // le jeu affiche le modèle d'après ce numéro
+		if (def != want) SetEntProp(weapon, Prop_Send, "m_iItemDefinitionIndex", want);
 		Apply(client, weapon, g_kPaint[client][tm], g_kWear[client][tm], g_kSeed[client][tm], g_kSt[client][tm], g_kTag[client][tm], true);
 		StatTrakOn(client, weapon, -1 - tm);
 		MarkGood(client, weapon, def == want);
@@ -290,7 +250,6 @@ public void OnWeaponEquip(int client, int weapon) {
 	}
 }
 
-// autocollants : attributs 113 + 4*emplacement (id) et 114 + 4*emplacement (usure) de l'objet, via PTaH
 bool StickersOn() {
 	return g_cvStickers.BoolValue && GetFeatureStatus(FeatureType_Native, "PTaH_GetEconItemViewFromEconEntity") == FeatureStatus_Available;
 }
@@ -315,29 +274,27 @@ void MarkGood(int client, int weapon, bool real) {
 }
 public void OnEntityDestroyed(int entity) { if (entity > 0 && entity < sizeof g_good) { g_good[entity] = false; g_entAcc[entity] = 0; } }
 
-// ---------- StatTrak ----------
-// slot >= 0 : arme n° slot ; -1 / -2 : couteau T / CT
 bool StOf(int client, int slot) { return slot >= 0 ? g_wSt[client][slot] : g_kSt[client][-1 - slot]; }
 int StCount(int client, int slot) { return slot >= 0 ? g_wStc[client][slot] : g_kStc[client][-1 - slot]; }
 void StatTrakOn(int client, int weapon, int slot) {
 	if (weapon <= 0 || weapon >= sizeof g_entAcc) return;
 	if (!StOf(client, slot)) { g_entAcc[weapon] = 0; return; }
 	g_entAcc[weapon] = GetSteamAccountID(client); g_entSlot[weapon] = slot;
-	SetEntProp(weapon, Prop_Send, "m_nFallbackStatTrak", StCount(client, slot));   // compteur réel
+	SetEntProp(weapon, Prop_Send, "m_nFallbackStatTrak", StCount(client, slot));
 }
 public void Ev_Death(Event e, const char[] name, bool dontBroadcast) {
 	if (GameRules_GetProp("m_bWarmupPeriod")) return;
 	int v = GetClientOfUserId(e.GetInt("userid")), a = GetClientOfUserId(e.GetInt("attacker"));
 	if (a < 1 || v < 1 || a == v || IsFakeClient(a) || GetClientTeam(a) == GetClientTeam(v)) return;
 	bool bot = IsFakeClient(v);
-	if (bot && !g_cvTest.BoolValue) return;                // vrai match : joueurs humains seulement
+	if (bot && !g_cvTest.BoolValue) return;
 	char wpn[32];
 	e.GetString("weapon", wpn, sizeof wpn);
 	if (StrContains(wpn, "grenade") != -1 || StrContains(wpn, "inferno") != -1 || StrContains(wpn, "molotov") != -1 || StrEqual(wpn, "world")) return;
 	int w = GetEntPropEnt(a, Prop_Send, "m_hActiveWeapon");
-	if (w <= 0 || w >= sizeof g_entAcc || !g_entAcc[w] || g_entAcc[w] != GetSteamAccountID(a)) return;   // seulement le propriétaire de l'arme
+	if (w <= 0 || w >= sizeof g_entAcc || !g_entAcc[w] || g_entAcc[w] != GetSteamAccountID(a)) return;
 	int slot = g_entSlot[w], n;
-	if (slot >= 0) { n = ++g_wStc[a][slot]; if (!bot) g_wPend[a][slot]++; }      // bot (test) : affiché, pas enregistré
+	if (slot >= 0) { n = ++g_wStc[a][slot]; if (!bot) g_wPend[a][slot]++; }
 	else { n = ++g_kStc[a][-1 - slot]; if (!bot) g_kPend[a][-1 - slot]++; }
 	SetEntProp(w, Prop_Send, "m_nFallbackStatTrak", n);
 }
@@ -369,12 +326,11 @@ public void OnStatTrakSent(HTTPResponse r, any data, const char[] err) {
 
 void Apply(int client, int weapon, int paint, float wear, int seed, bool st, const char[] tag, bool knife) {
 	SetEntProp(weapon, Prop_Send, "m_iItemIDLow", -1);
-	SetEntProp(weapon, Prop_Send, "m_iItemIDHigh", g_itemId++);   // nouvel objet : le client recalcule le skin
+	SetEntProp(weapon, Prop_Send, "m_iItemIDHigh", g_itemId++);
 	SetEntProp(weapon, Prop_Send, "m_nFallbackPaintKit", paint);
 	SetEntPropFloat(weapon, Prop_Send, "m_flFallbackWear", wear < 0.00001 ? 0.00001 : wear);
 	SetEntProp(weapon, Prop_Send, "m_nFallbackSeed", seed);
-	SetEntProp(weapon, Prop_Send, "m_nFallbackStatTrak", st ? 0 : -1);          // compteur réel posé ensuite (StatTrakOn)
-	// couteau : toujours qualité « ★ » (3), même StatTrak (le jeu ajoute « StatTrak™ » grâce au compteur) ; arme : 9 = StatTrak, 4 = normale
+	SetEntProp(weapon, Prop_Send, "m_nFallbackStatTrak", st ? 0 : -1);
 	SetEntProp(weapon, Prop_Send, "m_iEntityQuality", knife ? 3 : st ? 9 : 4);
 	if (tag[0]) SetEntPropString(weapon, Prop_Send, "m_szCustomName", tag);
 	SetEntProp(weapon, Prop_Send, "m_iAccountID", GetSteamAccountID(client));
@@ -382,11 +338,10 @@ void Apply(int client, int weapon, int paint, float wear, int seed, bool st, con
 	SetEntPropEnt(weapon, Prop_Send, "m_hPrevOwner", -1);
 }
 
-// ---------- gants et agent, à chaque apparition ----------
 public void Ev_Spawn(Event e, const char[] name, bool dontBroadcast) {
 	int userid = e.GetInt("userid"), c = GetClientOfUserId(userid);
 	if (c > 0) g_spawnAt[c] = GetGameTime();
-	CreateTimer(0.3, Timer_Dress, userid, TIMER_FLAG_NO_MAPCHANGE);   // après l'équipement de base
+	CreateTimer(0.3, Timer_Dress, userid, TIMER_FLAG_NO_MAPCHANGE);
 }
 public Action Timer_Dress(Handle t, any userid) {
 	int client = GetClientOfUserId(userid);
@@ -412,8 +367,6 @@ public Action Timer_Dress(Handle t, any userid) {
 	return Plugin_Stop;
 }
 
-// armes de départ sans skin : on en donne un exemplaire neuf (même arme), sur lequel OnWeaponEquip pose le skin.
-// Jamais une arme ramassée (m_hPrevOwner) ni une arme dont le skin est déjà visible (g_good).
 void RefreshSpawnWeapons(int client, int tm) {
 	int team = tm == 0 ? 2 : 3;
 	for (int slot = 0; slot <= CS_SLOT_KNIFE; slot++) {
@@ -431,15 +384,13 @@ void RefreshSpawnWeapons(int client, int tm) {
 		if (!knife && !ClassOfDef(def, cls, give, sizeof give)) continue;
 		RemovePlayerItem(client, w);
 		AcceptEntityInput(w, "Kill");
-		// vrai couteau (Karambit…) : le skin s'y applique comme sur une arme achetée ; refusé -> couteau de base
 		g_giving = true;
 		int nw = GivePlayerItem(client, give);
 		if (nw == -1 && knife) nw = GivePlayerItem(client, tm == 0 ? "weapon_knife_t" : "weapon_knife");
-		if (nw != -1 && knife) EquipPlayerWeapon(client, nw);   // sinon le couteau tombe au sol
+		if (nw != -1 && knife) EquipPlayerWeapon(client, nw);
 		g_giving = false;
 	}
 }
-// classe du vrai couteau pour un defindex
 bool KnifeClass(int def, char[] out, int len) {
 	switch (def) {
 		case 500: strcopy(out, len, "weapon_bayonet");
@@ -466,7 +417,6 @@ bool KnifeClass(int def, char[] out, int len) {
 	return true;
 }
 
-// nom à donner à GivePlayerItem : certaines armes partagent leur classe (USP-S = weapon_hkp2000, M4A1-S = weapon_m4a1…)
 bool ClassOfDef(int def, const char[] cls, char[] out, int len) {
 	switch (def) {
 		case 61: strcopy(out, len, "weapon_usp_silencer");
@@ -484,7 +434,7 @@ void GiveGloves(int client, int tm) {
 	if (old != -1 && IsValidEntity(old)) AcceptEntityInput(old, "KillHierarchy");
 	char arms[4];
 	GetEntPropString(client, Prop_Send, "m_szArmsModel", arms, sizeof arms);
-	if (arms[0]) SetEntPropString(client, Prop_Send, "m_szArmsModel", "");   // bras d'agent : sinon les gants n'apparaissent pas
+	if (arms[0]) SetEntPropString(client, Prop_Send, "m_szArmsModel", "");
 	int ent = CreateEntityByName("wearable_item");
 	if (ent == -1) return;
 	SetEntProp(ent, Prop_Send, "m_iItemIDLow", -1);

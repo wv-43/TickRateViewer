@@ -1,9 +1,3 @@
-/* =====================================================
- * TICKRATE - détection de mise à jour du site (update.js)
- * Un onglet resté ouvert garde l'ancienne version en mémoire. Le site lit version.json (jamais mis en cache)
- * au chargement puis toutes les 2 min et au retour sur l'onglet : si la version a changé, un bandeau propose
- * de recharger ; si le joueur n'est ni en file ni en match, la page se recharge d'elle-même au retour sur l'onglet.
- * ===================================================== */
 Object.assign(I18N.fr,{up_new:'Une nouvelle version du site est disponible.',up_reload:'Recharger'});
 Object.assign(I18N.en,{up_new:'A new version of the site is available.',up_reload:'Reload'});
 Object.assign(I18N.ru,{up_new:'Доступна новая версия сайта.',up_reload:'Обновить'});
@@ -23,7 +17,7 @@ async function updCheck(){
 document.addEventListener('click',e=>{if(e.target.closest('[data-upd]'))location.reload()});
 document.addEventListener('visibilitychange',()=>{
   if(document.hidden)return;
-  if(UPD.ready&&!updBusy())return location.reload();   // retour sur l'onglet, rien en cours : nouvelle version chargée directement
+  if(UPD.ready&&!updBusy())return location.reload();
   updCheck();
 });
 updCheck();setInterval(updCheck,120e3);

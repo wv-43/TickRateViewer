@@ -1,13 +1,3 @@
-/* =====================================================================
-   TICKRATE — vocal en jeu (CS:GO legacy)
-   tr_voice_mode :
-     "rounds"  (défaut) : ton équipe pendant tout le match, morts compris (ils parlent à leur équipe) ;
-                          LES DEUX ÉQUIPES s'entendent seulement à l'échauffement, à la mi-temps
-                          (changement de côté) et en fin de match (sv_auto_full_alltalk_during_warmup_half_end).
-     "team"             : identique (ancien nom).
-     "alltalk"          : tout le monde s'entend tout le temps (comme l'alltalk de l'ancien CS:GO).
-   Compiler : spcomp tickrate_voice.sp  ->  copier tickrate_voice.smx dans addons/sourcemod/plugins/
-   ===================================================================== */
 #include <sourcemod>
 #include <sdktools>
 #include <tickrate>
@@ -36,9 +26,9 @@ public void OnPluginStart()
     g_cvDeadTalk = FindConVar("sv_deadtalk");
     g_cvAutoAll  = FindConVar("sv_auto_full_alltalk_during_warmup_half_end");
 
-    HookEvent("round_start",      Ev_RoundStart,  EventHookMode_PostNoCopy);   // début du freeze time
-    HookEvent("round_freeze_end", Ev_FreezeEnd,   EventHookMode_PostNoCopy);   // le round commence vraiment
-    HookEvent("round_end",        Ev_RoundEnd,    EventHookMode_PostNoCopy);   // fin du round
+    HookEvent("round_start",      Ev_RoundStart,  EventHookMode_PostNoCopy);
+    HookEvent("round_freeze_end", Ev_FreezeEnd,   EventHookMode_PostNoCopy);
+    HookEvent("round_end",        Ev_RoundEnd,    EventHookMode_PostNoCopy);
     g_cvMode.AddChangeHook(OnModeChanged);
     AutoExecConfig(true, "tickrate_voice");
     LoadTranslations("tickrate.phrases");
@@ -56,7 +46,6 @@ bool InWarmup() { return GameRules_GetProp("m_bWarmupPeriod") == 1; }
 
 void GetMode(char[] buf, int len) { g_cvMode.GetString(buf, len); }
 
-// open = true : les deux équipes s'entendent ; fermé : équipe seulement, les morts parlent à leur équipe
 void SetCrossTeam(bool open, bool announce)
 {
     if (g_cvFull != null)   g_cvFull.SetInt(open ? 1 : 0);
@@ -72,10 +61,9 @@ void ApplyMode()
 {
     char mode[16]; GetMode(mode, sizeof(mode));
     if (StrEqual(mode, "alltalk"))   { SetCrossTeam(true, false);  return; }
-    // "rounds" / "team" : équipe seulement ; échauffement, mi-temps et fin de match ouverts par le jeu lui-même
     SetCrossTeam(InWarmup(), false);
 }
 
 void Ev_RoundEnd(Event e, const char[] n, bool b)    { ApplyMode();  }
-void Ev_RoundStart(Event e, const char[] n, bool b)  { ApplyMode();  }   // freeze time = entre les manches
+void Ev_RoundStart(Event e, const char[] n, bool b)  { ApplyMode();  }
 void Ev_FreezeEnd(Event e, const char[] n, bool b)   { ApplyMode(); }

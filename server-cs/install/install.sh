@@ -68,7 +68,7 @@ rm -rf "$TMP"
 say "Plugins TICKRATE"
 P=$CS/addons/sourcemod/plugins
 for f in tickrate_match tickrate_rules tickrate_skins tickrate_loadout tickrate_vigie tickrate_voice nolobbyreservation; do cp "$SRC/addons/sourcemod/plugins/$f.smx" $P/; done
-mkdir -p $CS/addons/sourcemod/gamedata && cp "$SRC/addons/sourcemod/gamedata/nolobbyreservation.games.txt" $CS/addons/sourcemod/gamedata/   # connexion directe sans lobby Valve
+mkdir -p $CS/addons/sourcemod/gamedata && cp "$SRC/addons/sourcemod/gamedata/nolobbyreservation.games.txt" $CS/addons/sourcemod/gamedata/
 rm -f $P/tickrate_check.smx      
 mkdir -p $CS/addons/sourcemod/translations && cp "$SRC/addons/sourcemod/translations/tickrate.phrases.txt" $CS/addons/sourcemod/translations/
 mkdir -p $CS/addons/sourcemod/plugins/disabled

@@ -34,6 +34,7 @@
     },
     "playerDirectory": {
       ".read": "auth != null",
+      ".indexOn": ["code"],
       "$user": {
         ".write": "auth != null && root.child('usernames').child($user).val() === auth.uid",
         ".validate": "!newData.exists() || newData.hasChildren(['name'])",

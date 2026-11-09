@@ -1,9 +1,3 @@
-// Actions de modération depuis la page profil d'un joueur (comptes roles/<uid> = "dev" uniquement)
-// d = { uid, action, ... }
-//   influencer_on / influencer_off   statut influenceur (Premium offert)
-//   beta_on / beta_off               rôle « Bêta testeur » (badge sur le profil : profiles/<uid>/beta = { at, by })
-//   (le rôle dev ne se donne PAS ici : seulement dans la console Firebase, roles/<uid> = "dev")
-//   ban { minutes (1 … 525600, 0 = définitif), reason }   /   unban
 const influencer = require('./influencer');
 const comp = require('./comp');
 const rooms = require('./rooms');
@@ -15,11 +9,9 @@ const str = (v, n) => String(v ?? '').trim().slice(0, n);
 async function deleteAccount(db, uid, authClient = null) {
   if (!uid) return { error: 'unauthenticated' };
   if (await val(db.ref(`userMatch/${uid}`))) return { error: 'in_match' };
-  // abonnement Stripe en cours : il faut d'abord le résilier (sinon il continuerait d'être prélevé)
   const bill = (await val(db.ref(`billing/${uid}`))) || {};
   if (bill.subId && ['active', 'trialing', 'past_due'].includes(bill.subStatus)) return { error: 'pay_has_sub' };
   const prof = (await val(db.ref(`profiles/${uid}`))) || {};
-  // amis et demandes sont rangés par « boîte » (pseudo en minuscules), pas par identifiant de compte
   const box = prof.name ? require('./social').box(prof.name) : null;
   const friends = box ? (await val(db.ref(`friends/${box}`))) || {} : {};
   try { if (await val(db.ref(`teamOf/${uid}`))) await comp.team.leave(db, uid); } catch (e) {}
@@ -60,8 +52,6 @@ async function deleteAccount(db, uid, authClient = null) {
     upd[`usernames/${k}`] = null;
     upd[`playerDirectory/${box}`] = null;
     upd[`invites/${box}`] = null;
-    // ses amitiés des deux côtés, ses demandes reçues / acceptations, et ses demandes envoyées aux autres :
-    // un nouveau compte qui reprendrait ce pseudo n'hérite de rien
     upd[`friends/${box}`] = null;
     upd[`friendRequests/${box}`] = null;
     upd[`friendAccepts/${box}`] = null;
@@ -69,11 +59,9 @@ async function deleteAccount(db, uid, authClient = null) {
     const reqs = (await val(db.ref('friendRequests'))) || {};
     for (const [tBox, from] of Object.entries(reqs)) if (from && from[box]) upd[`friendRequests/${tBox}/${box}`] = null;
   }
-  // ancien format éventuel (amis rangés par identifiant de compte)
   const legacy = (await val(db.ref(`friends/${uid}`))) || {};
   upd[`friends/${uid}`] = null;
   for (const fUid of Object.keys(legacy)) upd[`friends/${fUid}/${uid}`] = null;
-  // ladder des semaines encore stockées
   const lw = (await val(db.ref('ladderWeek'))) || {};
   for (const wk of Object.keys(lw)) if (lw[wk] && lw[wk][uid] != null) upd[`ladderWeek/${wk}/${uid}`] = null;
   if (prof.steamId) upd[`steamIndex/${safeKey(prof.steamId)}`] = null;
@@ -102,14 +90,14 @@ async function devAction(db, devUid, d, now = Date.now()) {
       return { ok: true };
     case 'ban': {
       if (uid === devUid) return { error: 'adm_self' };
-      if (targetIsDev) return { error: 'adm_target_dev' };    // retirer d'abord le rôle dev
+      if (targetIsDev) return { error: 'adm_target_dev' };
       const minutes = Math.max(0, Math.min(525600, Math.floor(+d.minutes || 0)));
       const reason = str(d.reason, 200) || 'staff', until = minutes ? now + minutes * 60e3 : now + BAN_PERMANENT;
       const key = db.ref(`bans/${uid}/log`).push().key;
       await db.ref().update({
         [`bans/${uid}/until`]: until, [`bans/${uid}/reason`]: reason, [`bans/${uid}/minutes`]: minutes || null,
         [`bans/${uid}/by`]: dev, [`bans/${uid}/log/${key}`]: { at: now, reason, minutes: minutes || null, by: dev },
-        [`queue/EU/${uid}`]: null, [`queue/NA/${uid}`]: null, [`queue/AS/${uid}`]: null     // sort de la file tout de suite
+        [`queue/EU/${uid}`]: null, [`queue/NA/${uid}`]: null, [`queue/AS/${uid}`]: null
       });
       return { ok: true, until };
     }

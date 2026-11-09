@@ -1,7 +1,3 @@
-/* =====================================================
- * TICKRATE - Menu Amis, Présence en ligne, Cloud Config CS:GO & Éditeur (friends.js)
- * ===================================================== */
-
 window.FB_API_KEY = window.FB_API_KEY || 'AIzaSyB8tB0xv9Xry6mo69XzPJ611S4dpT6YI_Y';
 window.FB_URL = window.FB_URL || 'https://tickratecsgo-default-rtdb.europe-west1.firebasedatabase.app';
 var FB_API_KEY = window.FB_API_KEY;
@@ -14,12 +10,9 @@ function fbMailbox(name) {
 }
 window.fbMailbox = fbMailbox;
 
-/* =====================================================
-   SYSTÈME D'AMIS & INVITATIONS EN TEMPS RÉEL
-   ===================================================== */
-let frTab = 'all'; // 'all' | 'requests' | 'sent' | 'add' | 'recent'
+let frTab = 'all';
 let frFilter = '';
-let frStatusFilter = 'all'; // 'all' | 'online' | 'ingame' | 'offline'
+let frStatusFilter = 'all';
 let frSearchQuery = '';
 let frSearchResult = null;
 let FR_INVITES_CACHE = new Set();
@@ -30,8 +23,6 @@ try { FR_PENDING_IN = JSON.parse(localStorage.getItem('tr_fr_in') || '[]'); } ca
 try { FR_PENDING_OUT = JSON.parse(localStorage.getItem('tr_fr_out') || '[]'); } catch(e) { FR_PENDING_OUT = []; }
 
 let fbFriendsLoaded = false;
-// apparence d'un vrai joueur (uid trouvé par son pseudo) : avatar choisi dans l'éditeur (users/), sinon avatar Steam (profiles/),
-// bannière et couleur ; gardée en mémoire 5 min
 const LOOKC = new Map();
 function realLook(name, needBanner = false) {
   const k = fbMailbox(name), c = LOOKC.get(k);
@@ -62,7 +53,6 @@ function realLook(name, needBanner = false) {
   return p;
 }
 const realAvatar = async name => { const L = await realLook(name, false); return L.avatar || L.steamAvatar || null; };
-// applique l'apparence réelle à un joueur affiché (avatar, bannière, couleur, carte) ; true si quelque chose a changé
 async function applyLook(p, needBanner = true) {
   if (!p || !p.name) return false;
   const L = await realLook(p.name, needBanner); let ch = false;
@@ -89,7 +79,6 @@ async function loadFriendsFromFirebase(force = false) {
     const remoteFriends = await fbReq(`friends/${myBox}`);
     if (remoteFriends && typeof remoteFriends === 'object') {
       let changed = false;
-      // le serveur fait foi : un ami retiré en ligne (depuis un autre appareil ou par l'autre joueur) disparaît aussi ici
       const keep = FRIENDS.filter(f => remoteFriends[fbMailbox(f.name)]);
       if (keep.length !== FRIENDS.length) { FRIENDS.forEach(f => { if (!remoteFriends[fbMailbox(f.name)]) f.friend = false; }); FRIENDS.length = 0; FRIENDS.push(...keep); changed = true; }
       for (const [k, f] of Object.entries(remoteFriends)) {
@@ -116,7 +105,6 @@ async function loadFriendsFromFirebase(force = false) {
         }
       }
       fbFriendsLoaded = true;
-      // vraie photo de chaque ami (son profil), même si la copie dans la liste est ancienne ou vide
       await Promise.all(FRIENDS.map(async f => { if (await applyLook(f)) changed = true; }));
       if (typeof admHydrateBadges === 'function') {
         admHydrateBadges(FRIENDS, () => {
@@ -140,7 +128,6 @@ function saveFriendsList() {
       country: f.country || 'FR', addedAt: f.addedAt || Date.now()
     }))));
   } catch(e) {}
-  // pas d'écriture en ligne : la liste d'amis est gérée par le serveur (fonction social) ; une copie locale ne doit jamais l'écraser
 }
 
 function saveFriendReqs() {
@@ -371,7 +358,6 @@ async function findUserAnywhere(query) {
   const q = String(query).trim().toLowerCase();
   const qMail = fbMailbox(q);
 
-  // 1. Recherche dans le registre local / amis existants (hors ligne seulement : en ligne, REG et LB contiennent les joueurs de démo)
   const live = typeof fbLive === 'function' && fbLive();
   if (!live) for (const p of REG.values()) {
     if (p.name.toLowerCase() === q || friendCodeOf(p).toLowerCase() === q) return p;
@@ -380,48 +366,32 @@ async function findUserAnywhere(query) {
     if (p.name.toLowerCase() === q || friendCodeOf(p).toLowerCase() === q) return p;
   }
 
-  // 2. Recherche directe dans Firebase playerDirectory
   if (typeof fbReq === 'function') {
     try {
-      // Correspondance exacte par pseudo / boîte
       const direct = await fbReq(`playerDirectory/${qMail}`);
-      if (direct && direct.name) {
-        let p = REG.get(direct.name);
-        if (!p) p = makePlayer(direct.name, +direct.elo || 1000, 'high', 0);
-        p.elo = +direct.elo || p.elo;
-        putAv(p, direct.avatar);
-        p.color = direct.color || null;
-        p.country = direct.country || 'FR';
-        p.status = (Date.now() - (direct.lastSeen || 0) < 60000) ? (direct.status || 'online') : 'offline';
-        p.statusMap = direct.statusMap || null;
+      const fromDirectory = u => {
+        let p = REG.get(u.name);
+        if (!p) p = makePlayer(u.name, +u.elo || 1000, 'high', 0);
+        p.elo = +u.elo || p.elo;
+        putAv(p, u.avatar);
+        p.color = u.color || null;
+        p.country = u.country || 'FR';
+        p.status = (Date.now() - (u.lastSeen || 0) < 60000) ? (u.status || 'online') : 'offline';
+        p.statusMap = u.statusMap || null;
         REG.set(p.name, p);
         return p;
-      }
+      };
+      if (direct && direct.name) return fromDirectory(direct);
 
-      // Parcourt l'annuaire pour trouver soit le pseudo soit le Code Ami (ex: TR-123456 ou 123456)
-      const all = await fbReq('playerDirectory');
-      if (all && typeof all === 'object') {
-        for (const [k, u] of Object.entries(all)) {
-          if (!u || !u.name) continue;
-          const uCode = (u.code || friendCodeOf(u)).toLowerCase();
-          if (u.name.toLowerCase() === q || uCode === q || ('tr-' + q) === uCode) {
-            let p = REG.get(u.name);
-            if (!p) p = makePlayer(u.name, +u.elo || 1000, 'high', 0);
-            p.elo = +u.elo || p.elo;
-            putAv(p, u.avatar);
-            p.color = u.color || null;
-            p.country = u.country || 'FR';
-            p.status = (Date.now() - (u.lastSeen || 0) < 60000) ? (u.status || 'online') : 'offline';
-            p.statusMap = u.statusMap || null;
-            REG.set(p.name, p);
-            return p;
-          }
-        }
+      const code = q.match(/^(?:tr-)?(\d{6})$/);
+      if (code) {
+        const found = await fbReq(`playerDirectory?orderBy=%22code%22&equalTo=%22TR-${code[1]}%22`);
+        const u = found && typeof found === 'object' ? Object.values(found).find(x => x && x.name) : null;
+        if (u) return fromDirectory(u);
       }
     } catch(e) {}
   }
 
-  // 3. Fallback comptes locaux enregistrés
   if (typeof dAcc === 'function') {
     const a = dAcc().find(x => x.username.toLowerCase() === q || friendCodeOf({ name: x.username, id: x.id }).toLowerCase() === q);
     if (a) return makePlayer(a.username, a.elo || 1000, 'high', 0);
@@ -430,7 +400,6 @@ async function findUserAnywhere(query) {
   return null;
 }
 
-// en ligne : demandes et liste d'amis écrites par le serveur (Cloud Function « social »)
 const frLive = () => typeof fbLive === 'function' && fbLive() && typeof FBA !== 'undefined' && !!FBA.uid && typeof fbCall === 'function';
 async function frCall(action, name) {
   const myAv = (typeof avSrc === 'function' ? avSrc(ME) : ME.avatar) || null;
@@ -501,9 +470,7 @@ async function acceptFriendRequest(targetName) {
   saveFriendsList();
 
   if (!frLive() && typeof fbReq === 'function') {
-    // 1. Supprime la demande reçue sur Firebase
     fbReq(`friendRequests/${myBox}/${tBox}`, 'DELETE');
-    // 2. Écrit l'ami dans ma liste Firebase
     fbReq(`friends/${myBox}/${tBox}`, 'PUT', {
       name: p.name,
       elo: p.elo,
@@ -512,7 +479,6 @@ async function acceptFriendRequest(targetName) {
       country: p.country,
       addedAt: Date.now()
     });
-    // 3. Écrit l'ami dans la liste de la cible (liaison mutuelle Firebase)
     fbReq(`friends/${tBox}/${myBox}`, 'PUT', {
       name: ME.name,
       elo: ME.elo,
@@ -521,7 +487,6 @@ async function acceptFriendRequest(targetName) {
       country: ME.country,
       addedAt: Date.now()
     });
-    // 4. Envoie une notification instantanée d'acceptation à la cible
     fbReq(`friendAccepts/${tBox}/${myBox}`, 'PUT', {
       from: ME.name,
       fromMailbox: myBox,
@@ -596,7 +561,6 @@ async function sendPartyInvite(targetName) {
     await plCreate();
   }
 
-  // Si ce joueur avait été précédemment exclu de ce groupe, révoquer l'expulsion
   if (typeof PL !== 'undefined' && PL.kicked) {
     PL.kicked.delete(tBox);
     PL.kicked.delete(targetName.toLowerCase());
@@ -614,7 +578,6 @@ async function sendPartyInvite(targetName) {
     fbReq(`invites/${tBox}/${PL.code}`, 'PUT', payload);
   }
 
-  // Stocker dans le cache local de session
   FR_INVITES_CACHE.add(targetName);
   if (typeof triggerFastInvitePoll === 'function') triggerFastInvitePoll(20000);
   beep(700, .08);
@@ -661,7 +624,6 @@ function updateFriendsBadge() {
   });
 }
 
-// Vérification en direct des invitations de groupe et des demandes reçues via Firebase (parallélisé & réactif)
 let isPollingInvites = false;
 async function pollIncomingInvites() {
   if (isPollingInvites) return;
@@ -671,32 +633,27 @@ async function pollIncomingInvites() {
   isPollingInvites = true;
 
   try {
-    // 1, 2, 3 exécutés simultanément en parallèle (supprime 1 à 2s de délai réseau en cascade)
     const [invites, reqs, accepts] = await Promise.all([
       fbReq(`invites/${myBox}`).catch(() => null),
       fbReq(`friendRequests/${myBox}`).catch(() => null),
       fbReq(`friendAccepts/${myBox}`).catch(() => null)
     ]);
 
-    // 1. Invitations de groupe (évite toute boucle infinie)
     if (invites && typeof invites === 'object') {
       const now = Date.now();
       for (const [key, inv] of Object.entries(invites)) {
         if (!inv || !inv.code) continue;
         const invId = inv.code || key;
-        // Si l'invitation a plus de 60s ou a déjà été traitée, la supprimer de Firebase
         if (now - (inv.at || 0) > 60000 || HANDLED_INVITES.has(invId)) {
           fbReq(`invites/${myBox}/${key}`, 'DELETE');
           continue;
         }
-        // Afficher la bannière une seule fois
         if (!HANDLED_INVITES.has(invId)) {
           showPartyInviteBanner({ key, ...inv });
         }
       }
     }
 
-    // 2. Demandes d'amis reçues
     if (reqs && typeof reqs === 'object') {
       let changed = false;
       for (const [senderBox, r] of Object.entries(reqs)) {
@@ -719,7 +676,6 @@ async function pollIncomingInvites() {
           changed = true;
           toast(t('fr_req_in', { n: r.from }));
           beep(880, .1);
-          // Notification dans la cloche du header
           if (typeof notify === 'function') {
             notify('friend', 'fr_req_notif', { n: r.from }, 'friends:requests');
           }
@@ -732,7 +688,6 @@ async function pollIncomingInvites() {
       }
     }
 
-    // 3. Confirmations d'acceptation reçues
     if (accepts && typeof accepts === 'object') {
       let changed = false;
       for (const [senderBox, acc] of Object.entries(accepts)) {
@@ -779,13 +734,8 @@ let fastPollUntil = 0;
 
 function scheduleNextInvitePoll() {
   clearTimeout(pollInvitesTimer);
-  const isHidden = typeof document !== 'undefined' && document.hidden;
-  let delay = 1200;
-  if (isHidden) {
-    delay = 5000;
-  } else if (Date.now() < fastPollUntil) {
-    delay = 800;
-  }
+  if (typeof document !== 'undefined' && document.hidden) return;
+  const delay = Date.now() < fastPollUntil ? 2000 : 12000;
   pollInvitesTimer = setTimeout(async () => {
     await pollIncomingInvites();
     scheduleNextInvitePoll();
@@ -800,10 +750,8 @@ function triggerFastInvitePoll(durationMs = 15000) {
 window.triggerFastInvitePoll = triggerFastInvitePoll;
 window.pollIncomingInvites = pollIncomingInvites;
 
-// Démarrer la boucle adaptative (1200ms par défaut / 800ms en mode actif)
 scheduleNextInvitePoll();
 
-// Déclencheurs instantanés au focus et réactivation de l'onglet
 document.addEventListener('visibilitychange', () => {
   if (!document.hidden) triggerFastInvitePoll(8000);
 });
@@ -937,7 +885,6 @@ $('#friends').addEventListener('submit', async e => {
   }
 });
 
-// Détection d'invitation d'ami par URL (?addfriend=CODE&n=NAME)
 (async () => {
   const q = new URLSearchParams(location.search);
   if (q.has('addfriend')) {
@@ -960,11 +907,7 @@ $('#friends').addEventListener('submit', async e => {
   }
 })();
 
-/* =====================================================
-   PERSONNALISATION (pseudo 7j + avatar + bannière) + FIREBASE RTDB
-   ===================================================== */
-// FB_URL déjà défini au sommet du fichier
-const NAME_CD=7*864e5; // 7 jours en ms
+const NAME_CD=7*864e5;
 async function fbReq(path,method='GET',data,keepalive=false){
   try{
     if(typeof fbAuthEnsure==='function')await fbAuthEnsure();
@@ -987,7 +930,6 @@ function fbUserKey(){
   return String((a&&a.id)||ME.steam?.id||'local_me').replace(/[.#$/[\]:]/g,'_');
 }
 
-/* ---------- Compteur de joueurs en ligne (Firebase /Online + /presence) ---------- */
 const PRESENCE_ID=(()=>{
   try{
     let id=sessionStorage.getItem('tr_presence_id');
@@ -995,7 +937,9 @@ const PRESENCE_ID=(()=>{
     return id;
   }catch(e){return 's_'+Date.now()}
 })();
-const PRESENCE_TTL=35000; // 35s max sans signal = déconnecté
+const PRESENCE_TTL=35000;
+let PRESENCE_SENT='',PRESENCE_READ=0,PRESENCE_CURSOR=0,PRESENCE_ROUND=0;
+const PRESENCE_BATCH=12;
 async function fbSyncOnline(leaving=false){
   try{
     if (typeof fbReq !== 'function') return;
@@ -1003,15 +947,14 @@ async function fbSyncOnline(leaving=false){
     if (!hasToken || typeof AUTH === 'undefined' || !AUTH.session) return;
     const myBox = typeof fbMailbox==='function'?fbMailbox(ME.name):'player';
     if(leaving){
-      await fbReq(`presence/${PRESENCE_ID}`,'DELETE',undefined,true);
-      await fbReq(`playerDirectory/${myBox}/status`,'PUT','offline',true);
-      const next=Math.max(0,(online||1)-1);
-      await fbReq('Online','PUT',next,true);
+      await fbReq(`presence/${PRESENCE_ID}?print=silent`,'DELETE',undefined,true);
+      await fbReq(`playerDirectory/${myBox}/status?print=silent`,'PUT','offline',true);
+      PRESENCE_SENT='';
       return;
     }
     const now=Date.now();
     const myCard=typeof validCardId==='function'?validCardId(ME.cardStyle):'default';
-    await fbReq(`presence/${PRESENCE_ID}`,'PUT',{
+    await fbReq(`presence/${PRESENCE_ID}?print=silent`,'PUT',{
       userKey:fbUserKey(),
       uid:(typeof FBA!=='undefined'&&FBA.uid)||null,
       name:ME.name,
@@ -1022,7 +965,7 @@ async function fbSyncOnline(leaving=false){
       inMatch:!!cur,
       lastSeen:now
     });
-    await fbReq(`playerDirectory/${myBox}`,'PUT',{
+    const card={
       name:ME.name,
       code:friendCodeOf(ME),
       elo:ME.elo,
@@ -1033,60 +976,56 @@ async function fbSyncOnline(leaving=false){
       cardStyle:myCard,
       country:ME.country||'FR',
       status:(typeof cur!=='undefined'&&cur)?'ingame':'online',
-      statusMap:(typeof cur!=='undefined'&&cur&&cur.map)||null,
-      lastSeen:now
-    });
-    const all=await fbReq('presence','GET');
-    let activeCount=0,inQueueCount=0;
-    const activeNames=new Set();
-    const activeCards=new Map();
-    if(all&&typeof all==='object'){
-      for(const [sid,info] of Object.entries(all)){
-        if(info&&typeof info.lastSeen==='number'&&(now-info.lastSeen)<PRESENCE_TTL){
-          activeCount++;
-          if(info.name){
-            const nl=info.name.toLowerCase();
-            activeNames.add(nl);
-            if(info.cardStyle&&typeof validCardId==='function'){
-              activeCards.set(nl,validCardId(info.cardStyle));
-            }
-          }
-          if(info.searching)inQueueCount++;
-        }else{
-          fbReq(`presence/${sid}`,'DELETE');
-        }
-      }
+      statusMap:(typeof cur!=='undefined'&&cur&&cur.map)||null
+    };
+    const sign=JSON.stringify(card);
+    if(sign!==PRESENCE_SENT){
+      await fbReq(`playerDirectory/${myBox}?print=silent`,'PUT',{...card,lastSeen:now});
+      PRESENCE_SENT=sign;
+    }else{
+      await fbReq(`playerDirectory/${myBox}/lastSeen?print=silent`,'PUT',now);
     }
-    if(activeCount===0)activeCount=1;
-    online=activeCount;
-    qCount=inQueueCount;
-    await fbReq('Online','PUT',online);
+    if(document.hidden||now-PRESENCE_READ<28000)return;
+    PRESENCE_READ=now;
+
+    const [count,queue]=await Promise.all([fbReq('publicStatus/online'),fbReq('publicStatus/queue')]);
+    if(typeof count==='number')online=Math.max(1,count);
+    if(typeof queue==='number')qCount=queue;
     const onEl=$('#online'),qEl=$('#sQueue');
     if(onEl)onEl.textContent=online.toLocaleString(LOC[lang]);
     if(qEl)qEl.textContent=qCount.toLocaleString(LOC[lang]);
 
-    // Mise à jour temps réel du statut et de la carte de profil de mes amis & coéquipiers
+    const seen=new Set(),people=[];
+    for(const p of [...FRIENDS,...(Array.isArray(state.party)?state.party:[])]){
+      if(!p||p.me||!p.name)continue;
+      const nl=p.name.toLowerCase();
+      if(!seen.has(nl)&&nl!==String(ME.name).toLowerCase()){seen.add(nl);people.push(p.name)}
+    }
+    const batch=people.length<=PRESENCE_BATCH?people:Array.from({length:PRESENCE_BATCH},(_,i)=>people[(PRESENCE_CURSOR+i)%people.length]);
+    PRESENCE_CURSOR=people.length?(PRESENCE_CURSOR+PRESENCE_BATCH)%people.length:0;
+    PRESENCE_ROUND++;
+    const withCards=PRESENCE_ROUND%4===1;
+    const looked=await Promise.all(batch.map(async name=>{
+      const box=fbMailbox(name);
+      const [last,cs]=await Promise.all([fbReq(`playerDirectory/${box}/lastSeen`),withCards?fbReq(`playerDirectory/${box}/cardStyle`):null]);
+      return {nl:name.toLowerCase(),active:typeof last==='number'&&Date.now()-last<PRESENCE_TTL,card:cs&&typeof validCardId==='function'?validCardId(cs):null};
+    }));
+    const found=new Map(looked.map(x=>[x.nl,x]));
     let friendsStatusChanged=false,partyCardChanged=false;
     FRIENDS.forEach(f=>{
-      const nl=f.name.toLowerCase();
-      const isAct=activeNames.has(nl);
-      const newSt=isAct?'online':'offline';
+      const x=found.get(f.name.toLowerCase());
+      if(!x)return;
+      const newSt=x.active?'online':'offline';
       if(f.status!==newSt&&f.status!=='ingame'){
         f.status=newSt;friendsStatusChanged=true;
       }
-      if(activeCards.has(nl)){
-        const cs=activeCards.get(nl);
-        if((f.cardStyle||'default')!==cs){f.cardStyle=cs;friendsStatusChanged=true;LOOKC.delete(fbMailbox(f.name))}
-      }
+      if(x.card&&(f.cardStyle||'default')!==x.card){f.cardStyle=x.card;friendsStatusChanged=true;LOOKC.delete(fbMailbox(f.name))}
     });
     if(Array.isArray(state.party)){
       state.party.forEach(p=>{
         if(!p||p.me||!p.name)return;
-        const nl=p.name.toLowerCase();
-        if(activeCards.has(nl)){
-          const cs=activeCards.get(nl);
-          if((p.cardStyle||'default')!==cs){p.cardStyle=cs;partyCardChanged=true;LOOKC.delete(fbMailbox(p.name))}
-        }
+        const x=found.get(p.name.toLowerCase());
+        if(x&&x.card&&(p.cardStyle||'default')!==x.card){p.cardStyle=x.card;partyCardChanged=true;LOOKC.delete(fbMailbox(p.name))}
       });
     }
     if(partyCardChanged&&typeof renderParty==='function')renderParty();
@@ -1099,7 +1038,6 @@ setInterval(()=>fbSyncOnline(false),10000);
 window.addEventListener('pagehide',()=>fbSyncOnline(true));
 window.addEventListener('beforeunload',()=>fbSyncOnline(true));
 
-/* ---------- Sauvegarde & Vérification automatique de la Config CS:GO ---------- */
 const DEFAULT_CSGO_CFG={
   viewmodel_fov:'68',
   viewmodel_offset_x:'2.5',
@@ -1124,7 +1062,6 @@ const DEFAULT_CSGO_CFG={
   bind_voicerecord:'c',
   customCmds:'cl_crosshairsize "2.5"; cl_crosshairgap "-2"; cl_crosshairthickness "1"; cl_crosshair_drawoutline "0"; cl_autowepswitch "0"'
 };
-// Valeurs que CS:GO remet souvent par défaut quand il écrase la config au redémarrage
 const CSGO_STOCK_RESET={
   viewmodel_fov:'60',
   viewmodel_offset_x:'1',
@@ -1227,7 +1164,6 @@ function buildCsgoExecList(cfg=ME.csgoCfg){
 function buildCsgoExecLine(cfg=ME.csgoCfg){
   return buildCsgoExecList(cfg).join('; ');
 }
-// Vérifie à la connexion que les valeurs CS:GO courantes correspondent au profil, sinon les restaure
 function verifyAndRestoreCsgoCfg(trigger='login',notifyUser=false){
   const saved={...DEFAULT_CSGO_CFG,...(ME.csgoCfg||{})};
   let runtime=null;
@@ -1243,7 +1179,6 @@ function verifyAndRestoreCsgoCfg(trigger='login',notifyUser=false){
       }
     }
   }
-  // Si des inputs sont affichés à l'écran et ont une mauvaise valeur, on les remet immédiatement
   $$('[data-cfg-key]').forEach(inp=>{
     const k=inp.dataset.cfgKey;
     if(k&&saved[k]!==undefined&&inp.value!==String(saved[k])){
@@ -1359,7 +1294,6 @@ function bindCsgoCfgEvents(){
   };
   const simB=$('#cfgSimResetBtn');
   if(simB)simB.onclick=()=>{
-    // Simule CS:GO qui écrase la config au redémarrage avec ses valeurs d'origine (fov 60, rate 64 tick, binds vides)
     localStorage.setItem('tr_csgo_runtime_cvars',JSON.stringify(CSGO_STOCK_RESET));
     sec.querySelectorAll('[data-cfg-key]').forEach(el=>{
       const k=el.dataset.cfgKey;
@@ -1396,7 +1330,6 @@ function bindCsgoCfgEvents(){
   };
 }
 
-// Profil complet du joueur (même forme que l'ancienne fiche users/user_main) : ELO, niveau, stats, historique…
 function fbProfileSnapshot(){
   const H=(ME.history||[]),h=H.slice(0,20),n=h.length||1,sum=f=>h.reduce((s,x)=>s+(+f(x)||0),0);
   const wins=sum(x=>x.won?1:0),K=sum(x=>x.k),D=sum(x=>x.d);
@@ -1422,12 +1355,11 @@ function fbProfileSnapshot(){
     team:typeof MY_TEAM!=='undefined'&&MY_TEAM?{tag:MY_TEAM.tag,name:MY_TEAM.name}:null
   };
 }
-// Synchro automatique : dès que le profil change (ELO, niveau, plan…), au plus toutes les 1,5 s
 const FBS={t:null,last:0,err:null,lastHash:''};
 function fbSyncSoon(){clearTimeout(FBS.t);FBS.t=setTimeout(()=>fbSyncMe(),1500)}
 async function fbSyncMe(extra={}){
-  if(!AUTH||!AUTH.session)return;            // pas connecté : rien à envoyer
-  if(!FBS.loaded){FBS.err='not_loaded';return}   // jamais d'envoi avant d'avoir relu la fiche en ligne (sinon une vieille copie écraserait les données)
+  if(!AUTH||!AUTH.session)return;
+  if(!FBS.loaded){FBS.err='not_loaded';return}
   const key=fbUserKey();
   const payload={...fbProfileSnapshot(),
     name:ME.name,
@@ -1439,7 +1371,7 @@ async function fbSyncMe(extra={}){
     color:ME.color,
     cardStyle:typeof validCardId==='function'?validCardId(ME.cardStyle):'default',
     bgStyle:typeof validBgId==='function'?validBgId(ME.bgStyle):'default',
-    avatar:typeof ME.avatar==='string'&&ME.avatar.startsWith('data:image/')?ME.avatar:null,   // photo choisie sur le site (Steam : à part)
+    avatar:typeof ME.avatar==='string'&&ME.avatar.startsWith('data:image/')?ME.avatar:null,
     banner:ME.banner,
     steam:ME.steam,
     nameChangedAt:ME.nameChangedAt||0,
@@ -1451,23 +1383,24 @@ async function fbSyncMe(extra={}){
     ...extra
   };
   const hash=JSON.stringify({...payload,updatedAt:0});
-  if(hash===FBS.lastHash&&!Object.keys(extra).length&&Date.now()-FBS.last<5*6e4)return; // rien de neuf
+  if(hash===FBS.lastHash&&!Object.keys(extra).length&&Date.now()-FBS.last<5*6e4)return;
+  const imgs=JSON.stringify([payload.avatar??null,payload.banner??null]),body={...payload};
+  if(imgs===FBS.imgs){delete body.avatar;delete body.banner}
   try{
     if(typeof fbAuthEnsure==='function')await fbAuthEnsure();
-    const r=await fetch(typeof fbUrl==='function'?fbUrl(`users/${key}`):`${FB_URL}/users/${key}.json`,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
-    if(r.ok){FBS.last=Date.now();FBS.err=null;FBS.lastHash=hash}else FBS.err='HTTP '+r.status+(r.status===401||r.status===403?' (règles Firebase)':'');
+    const r=await fetch(typeof fbUrl==='function'?fbUrl(`users/${key}?print=silent`):`${FB_URL}/users/${key}.json?print=silent`,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+    if(r.ok){FBS.last=Date.now();FBS.err=null;FBS.lastHash=hash;FBS.imgs=imgs}else FBS.err='HTTP '+r.status+(r.status===401||r.status===403?' (règles Firebase)':'');
   }catch(e){FBS.err=t('e_network')}
   if(FBS.err)console.warn('[TICKRATE] Synchro Firebase users/'+key+' :',FBS.err);
 }
-setInterval(()=>{if(AUTH&&AUTH.session&&!FBS.loaded&&typeof fbLoadMe==='function')fbLoadMe();else fbSyncMe()},60000);   // lecture en ligne retentée si elle avait échoué
-addEventListener('pagehide',()=>{if(AUTH&&AUTH.session&&FBS.loaded)try{fetch(typeof fbUrl==='function'?fbUrl(`users/${fbUserKey()}`):`${FB_URL}/users/${fbUserKey()}.json`,{method:'PATCH',keepalive:true,headers:{'Content-Type':'application/json'},body:JSON.stringify({...fbProfileSnapshot(),updatedAt:Date.now()})})}catch(e){}});
+setInterval(()=>{if(AUTH&&AUTH.session&&!FBS.loaded&&typeof fbLoadMe==='function')fbLoadMe();else fbSyncMe()},60000);
+addEventListener('pagehide',()=>{if(AUTH&&AUTH.session&&FBS.loaded)try{fetch(typeof fbUrl==='function'?fbUrl(`users/${fbUserKey()}?print=silent`):`${FB_URL}/users/${fbUserKey()}.json?print=silent`,{method:'PATCH',keepalive:true,headers:{'Content-Type':'application/json'},body:JSON.stringify({...fbProfileSnapshot(),updatedAt:Date.now()})})}catch(e){}});
 async function fbLoadMe(){
   const key=fbUserKey();
-  // lecture directe pour distinguer « pas encore de fiche » (null) d'une erreur réseau / jeton expiré
   let d=null;
   try{if(typeof fbAuthEnsure==='function')await fbAuthEnsure();
     const r=await fetch(typeof fbUrl==='function'?fbUrl(`users/${key}`):`${FB_URL}/users/${key}.json`,{cache:'no-store'});
-    if(!r.ok)return;                 // échec : FBS.loaded reste faux, rien ne sera renvoyé par-dessus les données en ligne
+    if(!r.ok)return;
     d=await r.json();FBS.loaded=true;
   }catch(e){return}
   if(!d){
@@ -1493,6 +1426,7 @@ async function fbLoadMe(){
   ME.bgStyle=(d.bgStyle&&typeof validBgId==='function')?validBgId(d.bgStyle):'default';
   ME.banner=(d.banner!==undefined&&d.banner!==null)?d.banner:{type:'map',slug:'mirage'};
   ME.avatar=(typeof d.avatar==='string'&&/^data:image\//.test(d.avatar))?d.avatar:null;
+  FBS.imgs=JSON.stringify([d.avatar??null,d.banner??null]);
   if(d.csgoCfg&&typeof d.csgoCfg==='object'){
     ME.csgoCfg={...DEFAULT_CSGO_CFG,...d.csgoCfg};
   }
@@ -1648,14 +1582,13 @@ function renderEditor(){
 }
 $('#edAvOpts').addEventListener('click',e=>{const b=e.target.closest('[data-color]');if(!b)return;draft.avatar=null;draft.color=b.dataset.color;renderEditor()});
 $('#edBnOpts').addEventListener('click',e=>{const b=e.target.closest('[data-bn]');if(!b)return;draft.banner=b.dataset.bn?{type:'map',slug:b.dataset.bn}:null;renderEditor()});
-// le canvas est-il lisible ? (LibreWolf / Firefox « resistFingerprinting » renvoie du bruit)
 function canvasOk(){try{const c=document.createElement('canvas');c.width=c.height=2;const x=c.getContext('2d');x.fillStyle='#ff0000';x.fillRect(0,0,2,2);
   const d=x.getImageData(0,0,2,2).data;return d[0]===255&&d[1]===0&&d[2]===0&&d[4]===255}catch(e){return false}}
 function loadImg(file,W,H,cb){
   if(!file)return;
   const fr=new FileReader();
   fr.onload=()=>{
-    if(!canvasOk()){   // pas de redimensionnement possible : fichier d'origine s'il est léger et dans un format accepté
+    if(!canvasOk()){
       const max=W>500?420e3:220e3;
       if(!/^data:image\/(png|jpeg|webp|gif);base64,/.test(fr.result))return toast(t('img_error'));
       if(fr.result.length>max)return toast(t('img_too_big',{n:Math.round(max*.75/1024)}));
@@ -1685,7 +1618,7 @@ $('#edSave').onclick=()=>{
     ME.bgStyle=validBgId(draft.bgStyle);
   }
   if(renamed)applyUsernameChange(ck.val);
-  else{saveLocalProfile();FBS.lastHash='';fbSyncMe({bgStyle:ME.bgStyle||'default'}).then(()=>{if(FBS.err)toast(t('e_profile_sync'))});if(typeof fbSyncOnline==='function')fbSyncOnline(false)}   // enregistrement en ligne : l'échec est signalé
+  else{saveLocalProfile();FBS.lastHash='';fbSyncMe({bgStyle:ME.bgStyle||'default'}).then(()=>{if(FBS.err)toast(t('e_profile_sync'))});if(typeof fbSyncOnline==='function')fbSyncOnline(false)}
   closeModal('editModal');refreshMe();renderParty();renderProfile();if(!$('#ranking').hidden)renderRanking();
   toast(renamed?t('name_changed',{n:ME.name}):t('saved'));
 };
@@ -1698,7 +1631,7 @@ function loadSavedProfile(){
   try{
     const s=JSON.parse(localStorage.getItem('cs_profile_'+uKey)||'null');
     if(s){
-      ME.avatar=typeof s.avatar==='string'&&/^data:image\//.test(s.avatar)?s.avatar:null;   // photo du site seulement (pas une copie Steam)
+      ME.avatar=typeof s.avatar==='string'&&/^data:image\//.test(s.avatar)?s.avatar:null;
       ME.color=s.color||ME.color;ME.banner=s.banner===undefined?ME.banner:s.banner;
       if(s.cardStyle)ME.cardStyle=s.cardStyle;
       if(s.bgStyle)ME.bgStyle=s.bgStyle;
@@ -1708,7 +1641,6 @@ function loadSavedProfile(){
   }catch(e){}
 }
 
-// Auto-démarrage de la synchro des amis et de la présence Firebase
 setTimeout(() => {
   if (typeof loadFriendsFromFirebase === 'function') loadFriendsFromFirebase();
   if (typeof pollIncomingInvites === 'function') pollIncomingInvites();

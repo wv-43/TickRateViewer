@@ -1,10 +1,3 @@
-// =====================================================================
-//  Support : tickets envoyés depuis le site (page Support) ou en jeu (!feedback).
-//  feedback/<id>      { uid, steamId?, name, cat, text, source:'site'|'game', status:'open'|'answered'|'closed',
-//                       reply?, repliedBy?, repliedAt?, at }     (lu par les devs : règles de la base)
-//  ticketsBy/<uid>/<id> = true   les tickets d'un joueur (il ne lit les siens que par ticketMine)
-//  ticketAt/<uid>     dernier envoi (1 par minute)
-// =====================================================================
 const { isDev } = require('./influencer');
 const val = async ref => (await ref.get()).val();
 const CATS = ['bug', 'idea', 'payment', 'report', 'account', 'other'];
@@ -29,7 +22,6 @@ async function send(db, uid, data = {}, now = Date.now()) {
   return { ok: true, id };
 }
 
-// les 20 derniers tickets du joueur, avec la réponse de l'équipe
 async function mine(db, uid) {
   const ids = Object.keys((await val(db.ref(`ticketsBy/${uid}`))) || {}).slice(-20);
   const list = (await Promise.all(ids.map(async id => ({ id, ...((await val(db.ref(`feedback/${id}`))) || {}) }))))
@@ -37,13 +29,13 @@ async function mine(db, uid) {
   return { ok: true, tickets: list.sort((a, b) => b.at - a.at) };
 }
 
-// réponse d'un dev (visible par le joueur sur la page Support) ; close = ticket résolu
 async function reply(db, devUid, data = {}, now = Date.now()) {
   if (!(await isDev(db, devUid))) return { error: 'forbidden' };
   const id = String(data.id || '').replace(/[.#$/[\]]/g, '_').slice(0, 64), text = cut(data.reply, 1500);
   const t = id && (await val(db.ref(`feedback/${id}`)));
   if (!t) return { error: 'tk_unknown' };
   const upd = { status: data.close ? 'closed' : text ? 'answered' : t.status || 'open' };
+  if (data.close) upd.closedAt = now;
   if (text) Object.assign(upd, { reply: text, repliedAt: now, repliedBy: (await val(db.ref(`profiles/${devUid}/name`))) || 'TICKRATE' });
   await db.ref(`feedback/${id}`).update(upd);
   return { ok: true, status: upd.status };

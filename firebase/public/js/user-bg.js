@@ -1,13 +1,7 @@
-/* =====================================================
- * TICKRATE - Fond d'écran sur toutes les pages
- * Par défaut : le logo TICKRATE en noir et blanc.
- * Image personnelle : elle reste dans ce navigateur (IndexedDB) et n'est jamais envoyée à nos serveurs.
- * Le réglage non plus : il est dans localStorage, hors de tr_settings qui est copié dans Firebase.
- * ===================================================== */
 (function(){
   const KEY='tr_ubg',DB='tickrate_local',STORE='files',ID='bg';
   const MAX_FILE=25*1024*1024,MAX_SIDE=2560,DIM_DEF=78,DIM_MIN=30,DIM_MAX=95;
-  const LOGO='url("data:image/svg+xml,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="9 9 46 46"><g opacity=".07" fill="#fff"><path d="M50.61 37.34A19.36 19.36 0 0 1 37.34 50.61M26.66 50.61A19.36 19.36 0 0 1 13.39 37.34M13.39 26.66A19.36 19.36 0 0 1 26.66 13.39M37.34 13.39A19.36 19.36 0 0 1 50.61 26.66" fill="none" stroke="#fff" stroke-width="3.52"/><rect x="21.12" y="22.4" width="21.76" height="4.48" rx="1.12"/><rect x="29.28" y="22.4" width="5.44" height="21.76" rx="1.36"/></g></svg>')+'")';
+  const LOGO='url("data:image/svg+xml,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="9 9 46 46"><g opacity=".07"><path d="M50.61 37.34A19.36 19.36 0 0 1 37.34 50.61M26.66 50.61A19.36 19.36 0 0 1 13.39 37.34M13.39 26.66A19.36 19.36 0 0 1 26.66 13.39M37.34 13.39A19.36 19.36 0 0 1 50.61 26.66" fill="none" stroke="#fff" stroke-width="2.7" stroke-linecap="round"/><circle cx="32" cy="32" r="15.2" fill="none" stroke="#fff" stroke-width="1.5" stroke-dasharray="1 1.985" opacity=".42"/><path d="M32 10.4v4.4M32 49.2v4.4M10.4 32h4.4M49.2 32h4.4" fill="none" stroke="#fff" stroke-width="2.3" stroke-linecap="round"/><path d="M20.4 21.2h23.2l-2.6 5.4h-6.2V42L32 45.6 29.6 42V26.6h-6.2z" fill="#fff"/></g></svg>')+'")';
   const CSS='html.has-ubg body,html.has-ubg-logo body{background:transparent!important}'
     +'#userBg{position:fixed;inset:0;z-index:-1;pointer-events:none;background-image:var(--ubg);background-position:center;background-size:cover;background-repeat:no-repeat}'
     +'html.has-ubg #userBg{background-color:#000}'
@@ -87,7 +81,7 @@
     bmp.close();
     const encode=type=>new Promise(r=>c.toBlob(r,type,0.86));
     let out=await encode('image/webp');
-    if(!out||out.type!=='image/webp')out=await encode('image/jpeg');   // Safari n'encode pas le WebP
+    if(!out||out.type!=='image/webp')out=await encode('image/jpeg');
     if(!out)throw new Error('decode');
     return out;
   }
@@ -109,7 +103,7 @@
     }
   };
 
-  addEventListener('storage',e=>{if(e.key===KEY)refresh()});   // appliqué aussi dans les autres onglets ouverts
+  addEventListener('storage',e=>{if(e.key===KEY)refresh()});
   if(document.body)refresh();
   else document.addEventListener('DOMContentLoaded',refresh,{once:true});
 })();
