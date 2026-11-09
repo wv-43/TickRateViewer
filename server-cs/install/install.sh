@@ -212,7 +212,6 @@ ufw --force enable >/dev/null
 
 cat > /etc/cron.daily/tickrate-clean <<EOF
 #!/bin/sh
-# demos GOTV de plus de $DEMO_DAYS jours, logs de plus de 14 jours
 find $CS -maxdepth 1 -name 'tickrate_*.dem' -mtime +$DEMO_DAYS -delete
 find $CS/logs $CS/addons/sourcemod/logs -name '*.log' -mtime +14 -delete 2>/dev/null
 exit 0
