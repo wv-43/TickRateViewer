@@ -2,6 +2,8 @@
 
 Plateforme de matchmaking pour CS:GO Legacy : [tickrate.eu](https://tickrate.eu).
 
+Music player included.
+
 Feel Free to contriubuate to the developpement of the site, this is an open source-project whit community stending.
 Our Discord community: [DISCORD; TICKRATE.EU](https://discord.gg/KNXbGrTDj)
 [INSTAGRAM; TICKRATE.EU](https://www.instagram.com/tickrate.eu/)
