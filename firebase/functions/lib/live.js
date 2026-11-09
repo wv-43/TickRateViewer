@@ -1,20 +1,14 @@
-// Matchs en direct : fiche publique liveMatches/<matchId>, lue par le site (section « Matchs en direct »)
-// - créée quand tous les joueurs sont connectés (mm.joined -> status 'live')
-// - mise à jour à chaque fin de round par le serveur de jeu (gameApi POST /round)
-// - supprimée à la fin du match ou à son annulation (mm.finish / mm.cancel)
-// Rien de privé dedans : pas de mot de passe, pas d'IP de connexion, seulement l'adresse GOTV.
 const FEED_MAX = 10;
 const val = async ref => (await ref.get()).val();
 const num = v => Math.max(0, Math.round(Number(v) || 0));
 
 function teamName(m, team) {
-  const ids = m[team] || [];                       // équipe vide (match de test contre des bots) : absente de la base
+  const ids = m[team] || [];
   if (!ids.length) return m.test ? 'Team_BOTS' : 'Team_' + team;
   const cap = ids.reduce((best, u) => (m.players[u].elo > m.players[best].elo ? u : best), ids[0]);
   return 'Team_' + (m.players[cap]?.name || team);
 }
 
-// fiche de départ, construite à partir de matches/<mid>
 function card(m, now) {
   const players = {};
   for (const [uid, p] of Object.entries(m.players || {})) players[uid] = { name: p.name, elo: p.elo, team: p.team, k: 0, a: 0, d: 0, dmg: 0, hs: 0 };
@@ -32,8 +26,6 @@ async function start(db, mid, now = Date.now()) {
   return c;
 }
 
-// body : { scoreA, scoreB, viewers?, players:[{ steamId, k, a, d, dmg, hs }], kills:[{ killer, victim, weapon, hs }] }
-// killer / victim = SteamID64 ; les stats joueurs sont des totaux depuis le début du match
 async function round(db, mid, body = {}, now = Date.now()) {
   const m = await val(db.ref(`matches/${mid}`));
   if (!m || m.status !== 'live') return { error: 'not_live' };
@@ -41,7 +33,6 @@ async function round(db, mid, body = {}, now = Date.now()) {
   const uidOf = new Map(Object.entries(m.players).map(([uid, p]) => [String(p.steamId), uid]));
   const sA = num(body.scoreA), sB = num(body.scoreB);
   if (sA < cur.sA || sB < cur.sB) return { error: 'score_backwards' };
-  // un round manqué est rattrapé : on ajoute les rounds gagnés depuis la dernière mise à jour
   const rounds = (cur.rounds || '') + 'A'.repeat(sA - cur.sA) + 'B'.repeat(sB - cur.sB);
 
   const players = { ...cur.players };

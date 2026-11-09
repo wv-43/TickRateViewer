@@ -1,9 +1,3 @@
-/* =====================================================
- * TICKRATE - Menu Jouer : Modes, Pool Maps, File, Lobby, Veto, Serveur (play.js)
- * ===================================================== */
-/* =====================================================
-   ÉCRAN JOUER
-   ===================================================== */
 function renderModes(){
   $('#modes').innerHTML=MODES.map(m=>`<div class="mode ${state.mode===m.id?'active':''} ${m.id==='dz'?'dz-mode':''}" data-id="${m.id}"><div class="tag">${m.tag}${m.soon?` <span class="dz-pill">${t('m_dz_soon')}</span>`:''}</div><div class="nm">${m.n}</div><div class="ds">${m.d}</div></div>`).join('');
 }
@@ -175,7 +169,6 @@ function renderParty(){
     if(!p)return `<div class="pcard empty" data-add style="${d}"><div class="plus">+</div><span>${t('invite')}</span></div>`;
     const isMe = (p.me || (p.name && ME && p.name.toLowerCase() === ME.name.toLowerCase()));
     const isSteamOk = isMe ? !!(ME.steam && ME.steam.linked) : !!(p.steam && p.steam.linked);
-    // seul un compte Steam manquant mérite d'être signalé (il bloque la recherche de match)
     const steamBadge = isSteamOk ? '' : `<span class="psteam">${t('steam_unlinked')}</span>`;
     let actionBtn = '';
     if(isLeader){
@@ -302,7 +295,6 @@ $('#slots').onclick=async e=>{
     const isLeader=!state.party.length||(state.party[0].name&&ME&&state.party[0].name.toLowerCase()===ME.name.toLowerCase());
     const isMe=(p.me||(p.name&&ME&&p.name.toLowerCase()===ME.name.toLowerCase()));
 
-    // 1. Si un membre invité quitte le groupe
     if(isMe&&!isLeader){
       const pCode=window.CURRENT_PARTY_CODE;
       const myBox=typeof fbMailbox==='function'?fbMailbox(ME.name):ME.name.toLowerCase();
@@ -318,13 +310,11 @@ $('#slots').onclick=async e=>{
       return;
     }
 
-    // 2. Si le leader exclut un coéquipier
     if(isLeader&&idx>0){
       state.party.splice(idx,1);
       used.delete(p.name);
       const pBox=typeof fbMailbox==='function'?fbMailbox(p.name):p.name.toLowerCase();
 
-      // Nettoyer localement le suivi
       if(typeof PL!=='undefined'){
         if(PL.seen){PL.seen.delete(pBox);PL.seen.delete(p.name);}
         if(PL.joined)PL.joined=PL.joined.filter(n=>n.toLowerCase()!==p.name.toLowerCase());
@@ -336,7 +326,6 @@ $('#slots').onclick=async e=>{
         FR_INVITES_CACHE.delete(p.name);
       }
 
-      // Supprimer le membre dans Firebase et enregistrer son expulsion
       if(window.CURRENT_PARTY_CODE&&typeof fbReq==='function'){
         fbReq(`parties/${window.CURRENT_PARTY_CODE}/members/${pBox}`,'DELETE');
         fbReq(`parties/${window.CURRENT_PARTY_CODE}/kicked/${pBox}`,'PUT',{name:p.name,at:Date.now()});
@@ -355,14 +344,12 @@ $('#slots').onclick=async e=>{
   }
 };
 
-/* ---------- File d'attente ---------- */
 let qStart=0,qInt,qTo;
 function startQueue(prio){
   state.searching=true;state.prio=!!prio;qStart=Date.now();setFind();
   $('#bMode').innerHTML=modeObj().n+(prio?` <span class="prio-tag">${t('prio')}</span>`:'');$('#banner').classList.add('on');
   qInt=setInterval(tick,250);tick();
 
-  // Si on est le chef d'un groupe Firebase, synchroniser le lancement sur toute l'équipe
   if(window.CURRENT_PARTY_CODE && (!state.party.length || state.party[0].name === ME.name)){
     if(typeof fbReq === 'function'){
       fbReq(`parties/${CURRENT_PARTY_CODE}/queue`, 'PUT', {
@@ -384,7 +371,6 @@ function stopQueue(byUser){
   state.searching=false;qStart=0;clearInterval(qInt);clearTimeout(qTo);setFind();$('#banner').classList.remove('on');
   if(byUser){toast(t('search_cancelled'));beep(380,.14)}
 
-  // Si le chef annule, annuler pour toute l'équipe
   if(window.CURRENT_PARTY_CODE && (!state.party.length || state.party[0].name === ME.name)){
     if(typeof fbReq === 'function'){
       fbReq(`parties/${CURRENT_PARTY_CODE}/queue`, 'PUT', { status: 'idle', at: Date.now() });
@@ -401,12 +387,10 @@ $('#find').onclick=()=>{
     toast("Le matchmaking 128 tick s'exécute sur PC (Steam & CS:GO requis).");
   }
 
-  // 1. Si on est en groupe et qu'on n'est pas le chef d'équipe :
   if(state.party.length > 1 && state.party[0].name !== ME.name){
     return toast(t('pt_leader_only',{n:state.party[0].name}));
   }
 
-  // 2. Vérification que TOUTE l'équipe a son compte Steam lié
   const unlinked = state.party.find(p => {
     if (p.me || p.name === ME.name) return !ME.steam || !ME.steam.linked;
     return !p.steam || !p.steam.linked;
@@ -426,7 +410,6 @@ $('#bCancel').onclick=()=>stopQueue(true);
 
 let qCount=0,online=1;
 
-/* ---------- Match trouvé ---------- */
 const CIRC=2*Math.PI*52;$('#ringFg').style.strokeDasharray=CIRC;
 let mf={},ft;
 function flashTitle(on){clearInterval(ft);document.title=BASE_TITLE;if(on){let b=0;ft=setInterval(()=>document.title=(b^=1)?t('match_found'):BASE_TITLE,700)}}
@@ -434,7 +417,6 @@ function ring(f){const c=$('#ringFg');c.style.strokeDashoffset=CIRC*(1-f);c.styl
 function matchFound(){
   stopQueue(false);
 
-  // Synchroniser la découverte de match pour toute l'équipe
   if(window.CURRENT_PARTY_CODE && (!state.party.length || state.party[0].name === ME.name)){
     if(typeof fbReq === 'function'){
       fbReq(`parties/${CURRENT_PARTY_CODE}/queue`, 'PUT', { status: 'found', at: Date.now() });
@@ -473,10 +455,8 @@ function endFound(why){
     $('#fStatus').textContent=t('declined');beep(300,.25,0,'sawtooth',.035);
     setTimeout(()=>{close();if(mf.accepted){toast(t('prio_requeue'));startQueue(true)}else toast(t('match_cancelled'))},1300);
   }else if(why==='self_decline'){
-    // refuser = aucune sanction, on sort juste de la file
     close();toast(t('declined_free'));beep(380,.14);
   }else{
-    // pas accepté à temps : pas de ban non plus ; ceux qui avaient accepté passent prioritaires
     close();
     if(mf.accepted){toast(t('prio_requeue'));notify('prio','prio_requeue',{},'play');startQueue(true)}else toast(t('not_accepted_free'));
   }
@@ -487,10 +467,6 @@ $('#acceptBtn').onclick=()=>{
   const b=$('#acceptBtn');b.disabled=true;b.textContent=t('accepted');$('#declineBtn').hidden=true;markOk();
 };
 
-/* =====================================================
-   SANCTIONS : ban temporaire (compétitif uniquement)
-   Paliers sur 7 jours glissants : 5 min → 30 min → 2 h → 24 h
-   ===================================================== */
 const BAN_STEPS=[5,30,120,1440];
 const isComp=()=>state.mode!=='casual';
 let SAN={until:0,reason:null,list:[]};
@@ -537,12 +513,7 @@ function confirmBox(title,html,yes,no,onYes){
   $('#cfYes').onclick=()=>{closeModal('confirmModal');onYes()};openModal('confirmModal');
 }
 
-/* =====================================================
-   LOBBY (équipes formées dans la même file trust)
-   ===================================================== */
-let ip='',cur=null,srvPass='';   // srvPass : mot de passe du serveur (vrai match, voir realmm.js)
-/* Qualité du matchmaking selon la formule (la plus basse du groupe compte) :
-   Gratuit ±400 ELO · PLUS ±250 · PREMIUM ±150 + uniquement des joueurs à trust ≥ 8.5 */
+let ip='',cur=null,srvPass='';
 const MM={free:{gap:400,minTrust:0},plus:{gap:250,minTrust:0},premium:{gap:150,minTrust:8.5}};
 const partyPlan=()=>state.party.reduce((lo,p)=>PLAN_RANK[p.plan||'free']<PLAN_RANK[lo]?(p.plan||'free'):lo,'premium');
 function showLobby(){
@@ -581,7 +552,7 @@ function lobbyMapUI(){
 function renderLobby(){
   const c=cur,{A,B,aA,aB,pA,map:m,size}=c;
   renderVeto();
-  const matchMode=c.mode||state.mode;   // le mode du match, pas celui sélectionné sur la page Jouer (une room peut être en 1v1 alors que Jouer est sur 5v5)
+  const matchMode=c.mode||state.mode;
   const isWm=matchMode==='wingman',isDuel=matchMode==='duel';
   const getElo=p=>isWm?(p.me||(p.name&&ME.name&&p.name.toLowerCase()===ME.name.toLowerCase())?(ME.eloWm??p.elo??1000):(p.eloWm??p.elo??1000)):isDuel?(p.me||(p.name&&ME.name&&p.name.toLowerCase()===ME.name.toLowerCase())?(ME.eloDuel??p.elo??1000):(p.eloDuel??p.elo??1000)):p.elo;
 
@@ -625,7 +596,7 @@ $('#afkBtn').onclick=()=>{
   clearJoin();clearVeto();const min=applyBan('afk_match');cur=null;refreshMe();setView('play');
   toast(min?t('afk_penalty',{e:pen,x:durTxt(min)}):t('casual_free'));
 };
-let autoLaunchCsgo=false; // lancement automatique retiré : Steam passait au premier plan sans prévenir
+let autoLaunchCsgo=false;
 if($('#autoLaunchToggle')){
   $('#autoLaunchToggle').checked=autoLaunchCsgo;
   $('#autoLaunchToggle').onchange=e=>{
@@ -634,12 +605,10 @@ if($('#autoLaunchToggle')){
     toast(autoLaunchCsgo?'Lancement auto CS:GO via Steam activé':'Lancement auto CS:GO désactivé');
   };
 }
-// CS:GO « legacy » est une appli Steam séparée depuis mars 2026 (AppID 4465480). L'AppID 730 = CS2.
 const CSGO_APPID=4465480;
-let steamLaunching=0; // pendant le passage à Steam, pas de « Quitter la page ? »
+let steamLaunching=0;
 async function launchCsgoClient(srvIp=ip,isAuto=false){
-  const pw=srvPass?`password ${srvPass}; `:'';      // le mot de passe AVANT connect, sinon le serveur le demande dans une fenêtre
-  // config du joueur d'abord, connect en dernier : rien ne s'exécute pendant la connexion
+  const pw=srvPass?`password ${srvPass}; `:'';
   const cmdLine=typeof buildCsgoExecLine==='function'?`${buildCsgoExecLine(ME.csgoCfg)}; ${pw}connect ${srvIp}`:`${pw}connect ${srvIp}`;
   try{await navigator.clipboard.writeText(cmdLine)}catch(e){}
   if(cur&&typeof fbReq==='function'){
@@ -647,17 +616,11 @@ async function launchCsgoClient(srvIp=ip,isAuto=false){
       name:ME.name,steamId:ME.steam&&ME.steam.id,cfg:ME.csgoCfg,execLine:buildCsgoExecLine(ME.csgoCfg),verifiedAt:Date.now()
     });
   }
-  // Protocole Steam : lance CS:GO legacy (et pas CS2) puis se connecte au serveur.
-  // Iframe cachée : la page du site reste ouverte, seul Steam passe au premier plan.
   try{
-    // steam://connect : Steam ouvre le jeu annoncé par le serveur (CS:GO legacy, 4465480 depuis legacy-fix.sh)
-    // et le connecte, que le jeu soit déjà ouvert ou non ; adresse non encodée (Steam ne décode pas « %3A »)
     const steamUri=`steam://connect/${srvIp}${srvPass?'/'+encodeURIComponent(srvPass):''}`;
-    // Ouvert dans un NOUVEL onglet : le navigateur passe la main à Steam puis referme cet onglet vide.
-    // Notre page ne « navigue » jamais vers steam:// -> aucune demande « Quitter le site ? » (Opera GX, Chrome, Edge).
     steamLaunching=Date.now();
     const w=window.open(steamUri,'_blank');
-    if(!w){ // popup bloquée : repli sur un cadre caché
+    if(!w){
       let f=document.getElementById('steamLaunchFrame');
       if(!f){f=document.createElement('iframe');f.id='steamLaunchFrame';f.style.display='none';document.body.appendChild(f)}
       f.src=steamUri;
@@ -667,24 +630,17 @@ async function launchCsgoClient(srvIp=ip,isAuto=false){
   setTimeout(()=>{if(cur&&cur.join&&!cur.join.done)joinPlayer(ME.name)},900);
 }
 $('#connect').onclick=()=>launchCsgoClient(ip,false);
-// CS:GO déjà ouvert : le lien Steam ne fait rien, on colle la commande dans la console du jeu
 $('#ipCopy').onclick=async()=>{
   const cmd=$('#ip').textContent.trim();
   if(!ip||!cmd||cmd.endsWith('…'))return;
   try{await navigator.clipboard.writeText(cmd);toast(t('copied_cmd'));beep(880,.06)}catch(e){toast(cmd)}
 };
 
-/* =====================================================
-   LANCEMENT : 4 min pour rejoindre le serveur (le serveur peut mettre ~30 s à redémarrer)
-   Absent au bout de 4 min -> exclu + ban 5 min, match annulé,
-   les joueurs présents repartent en tête de file (prioritaires)
-   ===================================================== */
 const JOIN_MS=240000,NO_SHOW_MIN=5;
 function startJoin(){
   const c=cur;if(!c||c.join)return;
   const all=[...c.A,...c.B];
   c.join={deadline:Date.now()+JOIN_MS,joined:new Set(),timers:[],done:false,live:false};
-  // 1 match sur 8 environ : un joueur ne vient jamais (pour voir le système en action)
   const bots=all.filter(p=>!p.me),ghost=Math.random()<.13?pick(bots).name:null;
   c.join.ghost=ghost;
   bots.forEach(p=>{if(p.name!==ghost)c.join.timers.push(setTimeout(()=>joinPlayer(p.name),rnd(2500,55000)))});
@@ -717,20 +673,15 @@ function joinTimeout(){
   if(!missing.length)return;
   cur=null;clearVeto();
   if(missing.some(p=>p.me)){
-    // moi absent : exclu + ban 5 min
     applyBan('no_show',NO_SHOW_MIN);setView('play');
     toast(t('join_kick_me',{x:durTxt(NO_SHOW_MIN)}));
   }else{
-    // un autre absent : il est exclu et banni, match annulé, je repars prioritaire
     toast(t('join_kick',{n:missing.map(p=>p.name).join(', '),x:durTxt(NO_SHOW_MIN)}));beep(300,.25,0,'sawtooth',.035);
     notify('prio','n_prio_kick',{n:missing.map(p=>p.name).join(', ')},'play');
     setView('play');setTimeout(()=>startQueue(true),1600);
   }
 }
 
-/* =====================================================
-   VETO DES MAPS (capitaines, chacun son tour, 15 s par tour)
-   ===================================================== */
 let vetoT=null,vetoI=null;
 function clearVeto(){clearTimeout(vetoT);clearInterval(vetoI);vetoT=vetoI=null}
 const capName=team=>'TEAM_'+(team==='A'?cur.A[0]:cur.B[0]).name.toUpperCase();
@@ -780,12 +731,8 @@ function finishVeto(){
     });
   }
   if(autoLaunchCsgo){
-    // (pas de lancement automatique : le joueur clique sur CONNECTER quand il est prêt)
   }
 }
-/* ---------- Stats de maps par équipe (pour un veto équilibré) ----------
-   Chaque joueur a un historique de carrière par map (favorites / maps faibles).
-   Winrate d'équipe = victoires cumulées / matchs cumulés des 5 joueurs. */
 function playerMapStats(p){
   if(p._ms)return p._ms;
   const r=seeded(hashStr(p.name)*7+11),out={};
@@ -813,7 +760,6 @@ function renderVeto(){
   const all=MAPS.filter(x=>v.left.includes(x.n)||v.log.some(l=>l.m===x.n));
   if(!cur.ms)cur.ms={A:teamMapStats(cur.A),B:teamMapStats(cur.B)};
   const MS=cur.ms,pc=x=>Math.round(x*100)+'%',cls=x=>x>=.58?'hi':x<=.47?'lo':'mid';
-  // map conseillée à bannir : là où l'adversaire a le plus d'avance sur nous
   const rec=myTurn?v.left.reduce((b,n)=>(MS.B[n].wr-MS.A[n].wr)>(MS.B[b].wr-MS.A[b].wr)?n:b,v.left[0]):null;
   box.innerHTML=`<div class="veto-h"><b>${t('veto_title')}</b>${cur.map?`<span class="pill" style="color:var(--green)">${cur.map.n}</span>`:`<span class="veto-clock" id="vetoClock">${Math.max(0,Math.ceil((v.deadline-Date.now())/1000))}s</span>`}</div>
     <div class="veto-s ${myTurn?'me':''}">${cur.map?t('veto_hint'):myTurn?t('veto_your'):t('veto_wait',{x:capName(v.turn)})}</div>

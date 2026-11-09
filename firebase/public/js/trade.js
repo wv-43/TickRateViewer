@@ -1,10 +1,3 @@
-/* =====================================================
- * TICKRATE - Inventaire des autres joueurs et échanges (trade.js)
- * - profil d'un joueur : bouton « Inventaire » -> ses objets (invPublic) ; on coche ce qu'on veut,
- *   ce qu'on donne, et on propose l'échange (tradeOffer)
- * - inventaire : bouton « Échanges » -> offres reçues (accepter / refuser) et envoyées (annuler)
- * Tout est vérifié et fait par le serveur (functions/lib/trades.js) : le site n'échange rien lui-même.
- * ===================================================== */
 Object.assign(I18N.fr,{tr_inv:'Inventaire',tr_title:'Inventaire de {n}',tr_theirs:'Ses objets',tr_mine:'Tes objets',tr_pick_hint:'Coche ce que tu veux recevoir et ce que tu donnes en échange (10 objets max de chaque côté).',
   tr_give:'Tu donnes',tr_get:'Tu reçois',tr_send:'Proposer l’échange',tr_sent:'Offre envoyée à {n}',tr_none_theirs:'Aucun objet à échanger.',tr_none_mine:'Tu n’as aucun objet à donner.',tr_trades:'Échanges',
   tr_in:'Reçues',tr_out:'Envoyées',tr_empty_list:'Aucun échange pour l’instant. Ouvre le profil d’un joueur et clique sur « Inventaire » pour lui proposer un échange.',tr_from:'{n} te propose',tr_to:'Ton offre à {n}',tr_accept:'Accepter',tr_decline:'Refuser',tr_cancel:'Annuler',
@@ -36,7 +29,6 @@ function trItem(i,side,sel){
 }
 const myTradable=()=>ECO.items.filter(i=>!i.listed&&!i.virtual&&i.src!=='steam');
 
-// ---------- fenêtre d'échange depuis un profil ----------
 async function openTrade(P){
   if(!trOn())return toast(t('tr_login'));
   TR.target={uid:P.uid,name:P.name};TR.want=new Set();TR.give=new Set();TR.theirs=[];
@@ -56,7 +48,6 @@ function renderTrade(){
       <button class="btn primary" id="trSend" ${TR.give.size+TR.want.size?'':'disabled'}>${t('tr_send')}</button></div>`;
 }
 
-// ---------- liste des échanges ----------
 async function loadTrades(){
   if(!trOn())return;
   const r=await fbCall('tradeList');if(r.error)return;
@@ -102,19 +93,16 @@ document.addEventListener('click',async e=>{
   if(e.target.closest('[data-trades]'))return openTrades();
 });
 
-// bouton « Inventaire » sur le profil d'un vrai joueur (compte TICKRATE)
 (()=>{const o=profileActions;profileActions=function(P){
   const h=o(P);if(!P||!P.uid||!trOn())return h;
   return h.replace('<div class="p-actions">',`<div class="p-actions"><button class="btn sm" data-tinv><svg class="ic" aria-hidden="true" fill="currentColor" viewBox="0 0 512 512" style="width:14px;height:14px"><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="32" d="M304 48l112 112-112 112M398.87 160H96M208 464L96 352l112-112M114 352h302"/></svg>${t('tr_inv')}</button>`);
 }})();
-// bouton « Échanges » dans l'inventaire (avec le nombre d'offres reçues en attente)
 (()=>{const o=renderInventory;renderInventory=function(){
   o.apply(this,arguments);
   const nav=$('#inventory .csi-main');
   if(nav&&trOn()&&!nav.querySelector('[data-trades]')){nav.insertAdjacentHTML('beforeend',`<button data-trades>${t('tr_trades')}<span class="csi-cnt" ${TR.pendingIn?'':'hidden'}>${TR.pendingIn}</span></button>`);loadTrades()}
 }})();
 
-// offres reçues : vérifiées toutes les 30 s ; une nouvelle offre -> notification (toast, cloche, son) et pastille
 Object.assign(I18N.fr,{tr_new:'{n} te propose un échange'});Object.assign(I18N.en,{tr_new:'{n} offers you a trade'});Object.assign(I18N.ru,{tr_new:'{n} предлагает обмен'});
 const TR_SEEN=(()=>{try{return new Set(JSON.parse(localStorage.getItem('tr_seen_offers')||'[]'))}catch(e){return new Set()}})();
 async function trPoll(){
@@ -131,5 +119,4 @@ async function trPoll(){
   renderTrades();
 }
 setInterval(trPoll,30e3);setTimeout(trPoll,6e3);
-// anciens comptes : le pseudo est réservé au compte à la connexion (retrouvé par les autres joueurs et les devs)
 (()=>{let done=null;setInterval(()=>{if(trOn()&&done!==FBA.uid){done=FBA.uid;fbCall('claimOwnName')}},5000)})();

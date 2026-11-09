@@ -164,3 +164,78 @@ input:not([type=checkbox]):not([type=radio]):not([type=range]),select,textarea{b
 .seo-links{display:flex;flex-wrap:wrap;gap:8px;margin:18px 0 6px}
 .seo-links a{font-size:13.5px;color:#e6e6e6;text-decoration:none;padding:7px 13px;border-radius:20px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08)}
 .seo-links a:hover{background:rgba(255,255,255,.12);color:#fff}
+
+
+/* ---------- contrôles façon iOS ---------- */
+:root{--ios-spring:cubic-bezier(.32,.72,0,1);--ios-fill:rgba(118,118,128,.24);--ios-green:#34c759}
+.st-card{border-radius:18px}
+.st-tog .sw,.mm-tog .sw{width:46px;height:28px;background:rgba(120,120,128,.34);transition:background .25s}
+.st-tog .sw::after,.mm-tog .sw::after{left:2px;width:24px;height:24px;background:#fff;box-shadow:0 2px 6px rgba(0,0,0,.35);transition:transform .28s var(--ios-spring)}
+.st-tog input:checked+.sw,.mm-tog input:checked+.sw{background:var(--ios-green)}
+.st-tog input:checked+.sw::after,.mm-tog input:checked+.sw::after{transform:translate(18px,-50%);background:#fff}
+.seg{background:var(--ios-fill);border-radius:10px}
+.seg button{border-radius:8px;transition:background .22s var(--ios-spring),color .15s}
+.seg button.on{background:#636366;color:#fff;box-shadow:0 2px 6px rgba(0,0,0,.3)}
+.rail-btn{border-radius:10px;transition:color .15s,background .2s}
+.btn,.find,.seg button,.rail-btn{transition-timing-function:var(--ios-spring)}
+.btn:active,.find:active{transform:scale(.97)}
+.overlay .modal{transition:transform .42s var(--ios-spring)}
+.toast{border-radius:14px;border:.5px solid rgba(255,255,255,.14);background:rgba(44,44,46,.86);backdrop-filter:saturate(180%) blur(24px);-webkit-backdrop-filter:saturate(180%) blur(24px)}
+.umenu,.npanel{border-radius:16px;border:.5px solid rgba(255,255,255,.14);background:rgba(36,36,38,.86);backdrop-filter:saturate(180%) blur(28px);-webkit-backdrop-filter:saturate(180%) blur(28px)}
+.psearch input{border:none;border-radius:10px;background:var(--ios-fill)}
+.psearch input:focus{border:none;background:rgba(118,118,128,.32);box-shadow:0 0 0 2px rgba(var(--acc-rgb),.5)}
+input[type="range"]{accent-color:#f5f5f7}
+
+
+/* ---------- la même ambiance que le lecteur, partout ---------- */
+.top{background:rgba(22,22,24,.62);backdrop-filter:saturate(180%) blur(28px);-webkit-backdrop-filter:saturate(180%) blur(28px);border-bottom:.5px solid rgba(255,255,255,.12)}
+.rail{background:rgba(22,22,24,.62);backdrop-filter:saturate(180%) blur(28px);-webkit-backdrop-filter:saturate(180%) blur(28px);border-right:.5px solid rgba(255,255,255,.12)}
+.rail-btn{transition:color .18s,background .28s var(--ios-spring),transform .12s}
+.rail-btn:active{transform:scale(.96)}
+.rail-btn.active{background:var(--ios-fill);color:#fff}
+.rail-btn.active::before{display:none}
+.card,.st-card{background:rgba(28,28,30,.58);backdrop-filter:saturate(180%) blur(26px);-webkit-backdrop-filter:saturate(180%) blur(26px);border:.5px solid rgba(255,255,255,.12);border-radius:20px;transition:background .25s}
+.modal{border-radius:24px;background:rgba(32,32,34,.86);backdrop-filter:saturate(180%) blur(32px);-webkit-backdrop-filter:saturate(180%) blur(32px);border:.5px solid rgba(255,255,255,.14)}
+.overlay{background:rgba(0,0,0,.42);backdrop-filter:blur(14px) saturate(140%);-webkit-backdrop-filter:blur(14px) saturate(140%)}
+.overlay .modal{transform:translateY(26px) scale(.97)}
+.overlay.on .modal{transform:none}
+.dock .dock-btn,.chat-fab{border-radius:50%}
+@keyframes iosEnter{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+.page:not([hidden]){animation:iosEnter .46s var(--ios-spring) backwards}
+.st-body>.st-card,.page>.card{animation:iosEnter .5s var(--ios-spring) backwards}
+.st-body>.st-card:nth-child(2),.page>.card:nth-child(2){animation-delay:.05s}
+.st-body>.st-card:nth-child(3),.page>.card:nth-child(3){animation-delay:.1s}
+.st-body>.st-card:nth-child(4),.page>.card:nth-child(4){animation-delay:.15s}
+.st-body>.st-card:nth-child(n+5),.page>.card:nth-child(n+5){animation-delay:.2s}
+@keyframes iosBreath{0%,100%{box-shadow:0 8px 24px rgba(0,0,0,.35),0 0 0 0 rgba(255,255,255,.14)}50%{box-shadow:0 8px 24px rgba(0,0,0,.35),0 0 0 9px rgba(255,255,255,0)}}
+.find:not(.searching){animation:iosBreath 4.2s ease-in-out infinite}
+.page input:not([type]),.page input[type="text"],.page input[type="email"],.page input[type="password"],.page input[type="number"],.page input[type="search"],.page textarea,.page select,.modal input:not([type]),.modal input[type="text"],.modal input[type="email"],.modal input[type="password"],.modal input[type="number"],.modal textarea,.modal select{border:none;border-radius:10px;background:var(--ios-fill);color:var(--text)}
+.page input:focus,.page textarea:focus,.page select:focus,.modal input:focus,.modal textarea:focus,.modal select:focus{outline:none;box-shadow:0 0 0 2px rgba(var(--acc-rgb),.5)}
+html.rm .page,html.rm .card,html.rm .st-card,html.rm .find{animation:none!important}
+@media(prefers-reduced-motion:reduce){.page,.card,.st-card,.find{animation:none!important}}
+/* sur téléphone, le flou de chaque carte coûte trop cher : on le garde pour les barres et les fenêtres */
+@media(max-width:720px){.card,.st-card{backdrop-filter:none;-webkit-backdrop-filter:none;background:rgba(32,32,34,.92)}}
+
+
+/* ---------- lumière qui suit la souris (js/glow.js) ---------- */
+.top .icon-btn,.top .wallet,.top .go-prem:not(.has),.top .lang-btn,.top .profile,.top .psearch,.top .tab,.rail .rail-btn:not(.has-new),.rail .lang-btn,.rail .logo-row,#trMusic:not(.float) .trm-c,.card,.st-card,.mode,.btn,.theme-swatch,#trMusic.float .trm-c{position:relative}
+.top .psearch{border-radius:10px}
+.top .profile{border-radius:12px}
+.top .icon-btn::after,.top .wallet::after,.top .go-prem:not(.has)::after,.top .lang-btn::after,.top .profile::after,.top .psearch::after,.top .tab::after,.rail .rail-btn:not(.has-new)::after,.rail .lang-btn::after,.rail .logo-row::after,#trMusic:not(.float) .trm-c::after{content:"";position:absolute;inset:0;padding:1px;border-radius:inherit;pointer-events:none;opacity:0;transition:opacity .28s;
+  background:radial-gradient(var(--gr,120px) circle at var(--gx,-500px) var(--gy,-500px),rgba(255,255,255,.75),rgba(255,255,255,.14) 45%,transparent 72%) fixed;
+  -webkit-mask:linear-gradient(rgba(0,0,0,.76) 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask:linear-gradient(rgba(0,0,0,.76) 0 0) content-box exclude,linear-gradient(#000 0 0)}
+.tg-on .icon-btn::after,.tg-on .wallet::after,.tg-on .go-prem:not(.has)::after,.tg-on .lang-btn::after,.tg-on .profile::after,.tg-on .psearch::after,.tg-on .tab::after,.tg-on .rail-btn:not(.has-new)::after,.tg-on .logo-row::after,#trMusic.tg-on:not(.float) .trm-c::after{opacity:1}
+.card::after,.st-card::after,.mode::after,.btn::after,.theme-swatch::after,#trMusic.float .trm-c::after{content:"";position:absolute;inset:0;padding:1px;border-radius:inherit;pointer-events:none;opacity:0;transition:opacity .3s;
+  background:radial-gradient(var(--lr,240px) circle at var(--lx,50%) var(--ly,50%),rgba(255,255,255,.55),rgba(255,255,255,.1) 45%,transparent 72%);
+  -webkit-mask:linear-gradient(rgba(0,0,0,.84) 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask:linear-gradient(rgba(0,0,0,.84) 0 0) content-box exclude,linear-gradient(#000 0 0)}
+.tg-card::after{opacity:1}
+.btn.primary::after{display:none}
+html.rm .top *::after,html.rm .rail *::after,html.rm .tg-card::after{opacity:0!important}
+/* portée de la lumière selon la taille des éléments de chaque zone */
+.top{--gr:120px}
+.rail{--gr:58px}
+#trMusic{--gr:90px}
+.btn{--lr:90px}
+.theme-swatch,#trMusic.float .trm-c{--lr:110px}
+.mode{--lr:180px}
+.card,.st-card{--lr:320px}

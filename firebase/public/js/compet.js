@@ -1,18 +1,8 @@
-/* =====================================================
- * TICKRATE - Menu Compétition : Tournois, Ligues, Chat live & Level-up (compet.js)
- * ===================================================== */
-/* =====================================================
-   COMPÉTITION : LIGUES (style Faceit) · TOURNOIS (cash prize) · ÉQUIPES
-   ===================================================== */
 let cpTab='leagues',cpTn=null,tnFilter='all',lgRegion='all';
-let lgSel=null;   // division affichée : index de rang (RANKS), 'pro', ou null = la mienne
+let lgSel=null;
 const cpSave=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}};
 const cpLoad=(k,d)=>{try{const v=JSON.parse(localStorage.getItem(k)||'null');return v==null?d:v}catch(e){return d}};
 
-/* ---------- LIGUES ----------
-   Ligue = famille de rangs façon CS:GO (Silver -> Global Elite, voir ranks.js) ;
-   la « division » est le rang exact dans la famille. Fin de saison chaque trimestre.
-   Au sommet : la Pro League = les 20 meilleurs joueurs du monde (Global Elite). */
 const LEAGUES=RANK_FAM;
 const PRO_SIZE=20;
 const PRO={id:'pro',n:'Pro League',c:'#ffb21f',c2:'#8a5400',icon:'pro',pc:.1,prize:10000};
@@ -23,12 +13,11 @@ function divInfo(elo){
   return {L:R.fam,R,d:R.name,next:N?N.name:null,nextAt:N?N.min:null,lo:R.min,hi:N?N.min:R.min+600};
 }
 function seasonInfo(){const n=new Date(),q=Math.floor(n.getMonth()/3),end=new Date(n.getFullYear(),q*3+3,1);return {n:(n.getFullYear()-2026)*4+q-2,days:Math.ceil((end-n)/864e5)}}
-// R : rang exact (repères de sous-rang) ; sans R, l'emblème de la famille
 const emblem=(L,R,sm)=>`<div class="emb2 ${sm?'sm':''}">${R?rankSVG(R.fam,R.step,R.steps):rankSVG(L)}</div>`;
 const REGION={FR:'EU',DE:'EU',PL:'EU',SE:'EU',ES:'EU',BE:'EU',CZ:'EU',RS:'EU',DK:'EU',FI:'EU',RU:'CIS',UA:'CIS',KZ:'CIS',BY:'CIS',US:'NA',CA:'NA',BR:'SA',AR:'SA',CN:'ASIA',KR:'ASIA',MN:'ASIA',JP:'ASIA',AU:'OCE'};
 let WORLD=null;
 function worldList(){
-  if(divReal()){loadWorld();return WREAL.list||[]}     // Firebase : vrais profils (voir loadWorld)
+  if(divReal()){loadWorld();return WREAL.list||[]}
   if(WORLD)return WORLD;
   const r=seeded(2026),names=['s1lent','Vyrex','Kaspar','blixx','Morrow','Nitr0x','coldfire','Aleksa','Tw1st','R1ck','ShaoLin','Kuro','dukes','Fenrir','Hollow','yuzu','b1t3','Ravn','Strix','Elgo','Axion','Perpetua','frozen','Kestrel','yekin','Mazino','Tabby','Bymo','iMo','Jael','Shiro','headtr1ck','Dunk','w0nder','Jamo','Xanth','Brolo','Hunta','zont','Dega'];
   const ctry=['US','BR','DK','FI','CN','KR','MN','AU','CA','AR','RU','UA','KZ','DE','PL','SE','FR'];
@@ -43,8 +32,6 @@ function divisionOf(elo,withMe=true){
     for(let i=0;i<29;i++){const p=newPlayer(base,'high',spread);if(p.elo<di.lo)p.elo=di.lo+rnd(0,20);if(p.elo>=di.hi)p.elo=di.hi-rnd(1,20);lst.push(p)}DIVCACHE[key]=lst}
   return [...DIVCACHE[key],...(withMe?[ME]:[])].sort((a,b)=>b.elo-a.elo);
 }
-// ---------- divisions réelles : profils Firebase par tranche d'ELO ----------
-// (mode démo / comptes locaux : on garde les joueurs générés de divisionOf)
 const DIVREAL={},DIV_TTL=60e3,DIV_MAX=80,DIV_PAGE=30;
 let lgShowAll=false,lgFilter='';
 let _cpRaf=0;
@@ -83,7 +70,7 @@ function realPlayer(uid,x){
     beta:!!(x.beta||(rc&&rc.beta)||p.beta),
     dev:!!(x.dev||(rc&&rc.dev)||p.dev)
   });
-  if(x.avatar)p.steamAvatar=x.avatar;   // profiles/ : photo Steam (la photo du site vient de applyLook)
+  if(x.avatar)p.steamAvatar=x.avatar;
   return p;
 }
 function saveDivCache(){
@@ -100,7 +87,7 @@ function saveDivCache(){
 async function loadDivision(key,query,keep=()=>true){
   const c=DIVREAL[key];if(c&&(c.loading||Date.now()-c.at<DIV_TTL))return;
   DIVREAL[key]={...(c||{}),loading:true};
-  const res=await fbReq(query);      // null = aucun joueur (ou erreur réseau : on garde l'ancienne liste)
+  const res=await fbReq(query);
   const list=res&&typeof res==='object'?Object.entries(res).map(([u,x])=>realPlayer(u,x||{})).filter(keep).sort((a,b)=>b.elo-a.elo):(c&&c.list)||[];
   const prevSig=(c&&c.list||[]).map(pBadgeSig).join('|');
   const nextSig=list.map(pBadgeSig).join('|');
@@ -109,8 +96,6 @@ async function loadDivision(key,query,keep=()=>true){
   if(prevSig!==nextSig&&cpTab==='leagues'&&!$('#compet').hidden)scheduleRenderCompet();
   if(typeof admHydrateBadges==='function')admHydrateBadges(list,()=>{saveDivCache();if(cpTab==='leagues'&&!$('#compet').hidden)scheduleRenderCompet()});
 }
-// ---------- classement mondial réel ----------
-// top : les WORLD_MAX meilleurs profils ; above : nombre de joueurs devant moi quand je n'y suis pas
 const WREAL={at:0,list:null,loading:false,above:null,aboveElo:null,aboveCap:false},WORLD_MAX=100,ABOVE_CAP=500;
 function hydrateCompetCache(){
   try{
@@ -120,7 +105,7 @@ function hydrateCompetCache(){
       WREAL.above=typeof w.above==='number'?w.above:0;
       WREAL.aboveCap=!!w.aboveCap;
       WREAL.aboveElo=typeof w.aboveElo==='number'?w.aboveElo:ME.elo;
-      WREAL.at=0; // sera rafraîchi en arrière-plan sans spinner
+      WREAL.at=0;
     }
     const dv=JSON.parse(localStorage.getItem('tr_divreal_cache')||'null');
     if(dv&&typeof dv==='object'){
@@ -171,7 +156,6 @@ async function loadWorld(){
   if(prevSig!==nextSig&&cpTab==='leagues'&&!$('#compet').hidden)scheduleRenderCompet();
   if(typeof admHydrateBadges==='function'&&WREAL.list)admHydrateBadges(WREAL.list,()=>{saveWorldCache();if(cpTab==='leagues'&&!$('#compet').hidden)scheduleRenderCompet()});
 }
-// Préchargement silencieux en arrière-plan pour que "Ligues & Teams" s'affiche instantanément au clic
 setTimeout(()=>{
   const warm=()=>{
     if(!divReal())return false;
@@ -183,7 +167,6 @@ setTimeout(()=>{
   };
   if(!warm()){let n=0;const iv=setInterval(()=>{if(warm()||++n>25)clearInterval(iv)},1000)}
 },1200);
-// ma place mondiale : { n, cap } (cap = au-delà du plafond de comptage) ; null tant que rien n'est chargé
 function myWorldRank(world){
   const i=world.indexOf(ME);
   if(!divReal()||WREAL.list&&WREAL.list.includes(ME))return {n:i+1,cap:false};
@@ -263,7 +246,6 @@ function leaguesHTML(){
       <div class="lg-bar"><i style="width:${pct}%"></i></div>
       <div class="lg-meta"><span>${di.lo}</span><span>${di.next?t('lg_next',{n:di.nextAt-ME.elo,x:di.next}):t('lg_top')}</span><span>${di.next?di.hi:'∞'}</span></div></div>
     <div class="lg-season"><b>${se.days} j</b><small>${t('lg_ends',{d:se.days})}</small></div></div>`;
-  // division sélectionnée (par défaut la mienne)
   const mine=isPro?'pro':di.R.i,sel=lgSel==null?mine:lgSel,selR=sel==='pro'?null:RANKS[sel],selFam=sel==='pro'?PRO:selR.fam;
   const steps=[...LEAGUES,PRO].map(x=>`<button type="button" class="lg-step ${(isPro?x.id==='pro':x===L)?'me':''} ${x===selFam?'sel':''}" data-lgfam="${x.id}" style="--lc:${x.c}">${emblem(x,null,true)}<b>${lgName(x)}</b><small>${x.id==='pro'?'Top '+PRO_SIZE:x.min+'+'}</small><span class="pc">${x.pc} %</span></button>`).join('');
   const world20=world.slice(0,PRO_SIZE);
@@ -308,7 +290,6 @@ function renderCompet(){
   $('#competBody').innerHTML=`<div class="cp-head"><h1 class="h1">${t('cp_title')}</h1><button class="btn ghost sm" data-goview="ranking">${t('nav_ranking')}</button></div>
     <div class="cp-tabs">${[['leagues','cp_leagues'],['teamlg','cp_teamlg'],['tourneys','cp_tourneys']].map(([k,l])=>`<button class="${cpTab===k?'on':''}" data-cpt="${k}">${t(l)}</button>`).join('')}</div>
     ${cpTab==='leagues'?cpQuickBarHTML()+leaguesHTML():cpTab==='tourneys'?'<div id="tzBox"></div>':''}`;
-  // équipes et tournois réels : leagues.js (serveur : Cloud Functions team / tourney)
   $('#leagues').hidden=cpTab!=='teamlg';
   if(cpTab==='teamlg')renderLeagues();
   if(cpTab==='tourneys')tzRender();
@@ -335,7 +316,6 @@ $('#compet').addEventListener('input',e=>{
   }
 });
 
-/* ---------- Prestige des meilleurs joueurs ---------- */
 let PRO_RANK=null;
 function proRanks(){
   if(PRO_RANK)return PRO_RANK;
@@ -362,8 +342,6 @@ function decorateProfile(){
     :`<div class="pro-plaque elite"><b>${lgName(LEAGUES.at(-1))}</b>${t('pp_elite')}</div>`);
 }
 
-/* ---------- Recherche de joueurs (barre du haut) ---------- */
-// en ligne : vrais comptes uniquement (pseudos réservés dans usernames/, profils dans profiles/) ; hors ligne : démo locale
 let psT=null,psSeq=0;
 const psLive=()=>typeof fbLive==='function'&&fbLive()&&AUTH.mode==='firebase'&&!!FBA.uid;
 async function psReal(q){
@@ -387,22 +365,11 @@ $('#psIn').addEventListener('focus',e=>psRender(e.target.value));
 $('#psIn').addEventListener('keydown',e=>{if(e.key==='Escape'){e.target.value='';psRender('');e.target.blur()}if(e.key==='Enter'){const f=$('#psRes [data-ps]');if(f)f.click()}});
 $('#psRes').addEventListener('click',e=>{const b=e.target.closest('[data-ps]');if(!b)return;$('#psIn').value='';$('#psRes').hidden=true;openProfile(b.dataset.ps)});
 document.addEventListener('click',e=>{if(!e.target.closest('#psearch'))$('#psRes').hidden=true});
-// le placeholder suit la langue (mis à jour aussi par applyStatic dans nav-auth.js)
 const _applyPh=()=>$$('[data-i18n-ph]').forEach(el=>el.placeholder=t(el.dataset.i18nPh));
 _applyPh();
 
-/* ---------- Garde-fou : la page ne doit pas se fermer pendant une room de match ----------
-   Si le navigateur essaie de quitter la page (Steam, raccourci, mauvaise manip), il demande confirmation. */
 addEventListener('beforeunload',e=>{if(cur&&!cur.done&&Date.now()-steamLaunching>5000){e.preventDefault();e.returnValue=t('leave_guard');return t('leave_guard')}});
 
-/* =====================================================
-   CHAT EN DIRECT VIA FIREBASE (sans conserver les messages)
-   - Envoi : chaque message est écrit dans lobbyChat/<match>/msgs, puis SUPPRIMÉ par
-     son auteur au bout de 90 s (et à la fermeture de la page) -> rien ne s'accumule.
-   - Réception : flux temps réel Firebase (EventSource sur l'API REST, aucun SDK).
-   - Signalement : on garde UNIQUEMENT le message signalé + 8 messages de contexte
-     (140 caractères max chacun) dans chatReports -> quelques Ko par signalement.
-   ===================================================== */
 const LCF={es:null,room:null,mine:new Map(),seen:new Set()};
 const FB_ON=()=>typeof FB_URL==='string'&&typeof fbReq==='function'&&!!window.EventSource;
 function lcfOpen(matchId){
@@ -411,7 +378,7 @@ function lcfOpen(matchId){
   try{
     LCF.es=new EventSource(typeof fbUrl==='function'?fbUrl(`${LCF.room}/msgs`):`${FB_URL}/${LCF.room}/msgs.json`);
     const take=(key,m)=>{if(!m||typeof m!=='object'||LCF.mine.has(key)||LCF.seen.has(key))return;LCF.seen.add(key);
-      if(m.ch==='team'&&m.tm!==cur?.A?.[0]?.name)return; // canal équipe : seulement ma team
+      if(m.ch==='team'&&m.tm!==cur?.A?.[0]?.name)return;
       chatPush({id:'fb_'+key,from:String(m.from||'?').slice(0,24),team:m.tm===cur?.A?.[0]?.name?'A':'B',ch:m.ch==='team'?'team':'all',text:String(m.text||'').slice(0,300),at:+m.at||Date.now()})};
     const onEv=e=>{try{const d=JSON.parse(e.data);if(!d)return;
       if(d.path==='/'){if(d.data&&typeof d.data==='object')Object.entries(d.data).forEach(([k,v])=>take(k,v))}
@@ -442,11 +409,7 @@ async function reportMessage(m,where){
   if(where==='lobby')renderChat();else{saveDM();renderDkWin()}
 }
 
-/* =====================================================
-   MONTÉE DE NIVEAU : animation plein écran (ex. niveau 8 -> 9)
-   ===================================================== */
 function nextLevelAt(elo){const l=lvl(elo);return LV[l]!=null?LV[l]:null}
-// from / to : ELO avant et après (from = null après les matchs de placement)
 function levelUpFx(from,to){
   const R0=from==null?null:rankOf(from),R1=rankOf(to),N=RANKS[R1.i+1];
   const el=$('#lvup'),c=R1.fam.c,R=88,C=2*Math.PI*R;

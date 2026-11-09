@@ -1,12 +1,6 @@
-/* =====================================================
- * TICKRATE - Menu Profil : Stats, Graphique ELO interactif & Historique (profile.js)
- * ===================================================== */
-/* =====================================================
-   PROFIL
-   ===================================================== */
-let histShown=5,eloRange='20m',eloChartPts=[],eloMode='ranked';   // eloMode : courbe 5v5 ou Wingman (classements séparés)
+let histShown=5,eloRange='20m',eloChartPts=[],eloMode='ranked';
 function filterEloHistory(P,rng=eloRange){
-  const all=(P.history||[]).filter(x=>(x.mode==='wingman')===(eloMode==='wingman'));   // un seul classement à la fois
+  const all=(P.history||[]).filter(x=>(x.mode==='wingman')===(eloMode==='wingman'));
   if(!all.length)return [];
   const now=Date.now();
   if(rng==='7d'){
@@ -218,7 +212,6 @@ function renderProfile(){
   setTimeout(decorateProfile,0);
   const el=$('#profile'),isMe=!profileTarget,P=ensureDetails(profileTarget||ME),st=ME.steam;
   const online=isMe||P.status!=='offline';
-  // classement affiché : 5v5 ou Wingman (ELO, niveau, rang, stats et courbe séparés)
   const wm=eloMode==='wingman',E=wm?(P.eloWm??1000):P.elo,cal=!wm&&isMe&&isCalib(ME);
   const csId=typeof cardStyleOf==='function'?cardStyleOf(P):'default';
   const csObj=typeof cardObjOf==='function'?cardObjOf(csId):null;
@@ -321,7 +314,7 @@ function renderProfile(){
   on('pBack',()=>{if(window.history.length>1)history.back();else setView(prevView==='profile'?'play':prevView);});
   on('pInvite',()=>{invite(P);renderProfile()});
   on('pMsg',()=>openDM(P.name));
-  on('pFriend',async()=>{if(typeof sendFriendRequest==='function')await sendFriendRequest(P.name);else toast(t('friend_sent_toast',{n:P.name}));P.friendPending=true;renderProfile()});   // vraie demande (serveur)
+  on('pFriend',async()=>{if(typeof sendFriendRequest==='function')await sendFriendRequest(P.name);else toast(t('friend_sent_toast',{n:P.name}));P.friendPending=true;renderProfile()});
   on('pReport',()=>openReport(P));
   on('histMore',()=>{histShown+=5;renderProfile()});
   on('histLess',()=>{histShown=5;renderProfile();$('#profile .hist-card').scrollIntoView({block:'nearest'})});

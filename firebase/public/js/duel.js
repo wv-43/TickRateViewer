@@ -1,13 +1,3 @@
-/* =====================================================
- * TICKRATE - Arène 1v1 (duel.js)
- * Salon dédié au 1v1 Aim Arena : rangs propres au site (pas ceux de CS:GO), calculés depuis l'ELO 1v1 (eloDuel),
- * emblèmes hexagonaux dessinés ici, échelle des rangs, top 1v1 et bouton de recherche.
- * La recherche passe par la file normale (bouton #find de la page Jouer) : on choisit le mode 1v1 puis on clique dessus,
- * donc toutes les vérifications (Steam lié, chef de groupe, bannissement) restent les mêmes.
- * ===================================================== */
-// textes : js/i18n-modes.js (chargé tôt, avant le premier affichage de la page Jouer)
-
-// ---------- rangs ----------
 const DU_T=o=>({get(){return o[typeof lang==='string'?lang:'fr']||o.en}});
 const DU_FAM=[
   ['fer',     {fr:'Fer',en:'Iron',ru:'Железо'},                  '#7d838c','dot'],
@@ -26,7 +16,6 @@ const DU_RANKS=[['fer',0],['bronze',850],['bronze',950],['bronze',1050],['argent
     return Object.defineProperty({i,min,fam,step,steps},'name',{get(){return fam.n+(steps>1?' '+['I','II','III'][step-1]:'')}})});
 const duelRankOf=e=>[...DU_RANKS].reverse().find(r=>(e??1000)>=r.min)||DU_RANKS[0];
 
-// ---------- emblèmes : hexagone, signe de viseur par famille, repères des sous-rangs ----------
 const DU_ICON={
   dot:c=>`<circle cx="32" cy="30" r="9.5" fill="none" stroke="${c}" stroke-opacity=".55" stroke-width="2.4"/><circle cx="32" cy="30" r="3.6" fill="${c}"/>`,
   cross:c=>`<circle cx="32" cy="30" r="9" fill="none" stroke="${c}" stroke-width="2.6"/><path d="M32 15v8M32 37v8M17 30h8M39 30h8" stroke="${c}" stroke-width="2.6" stroke-linecap="round"/>`,
@@ -49,10 +38,8 @@ function duelSVG(r){
     ${DU_ICON[f.icon](f.c)}${pips}</svg>`;
   _DU_SVG.set(k,out);return out;
 }
-// pastille au format des niveaux (.lvl) : cartes du salon de groupe, barre du haut, tableaux
 const duelLvlHTML=(e,big=false)=>{const r=duelRankOf(e);return `<div class="lvl du-lvl du-${r.fam.id}${big?' lvl-lg':''}" title="${escA(r.name)} · ${e??1000} ELO 1v1">${duelSVG(r)}</div>`};
 
-// ---------- salon ----------
 const DU_LB={rows:null,at:0,loading:false,err:false};
 async function duLoadTop(force){
   if(DU_LB.loading||(!force&&DU_LB.rows&&Date.now()-DU_LB.at<60e3))return;
@@ -137,17 +124,14 @@ function renderDuel(){
     if(state.mode==='duel')$('#find').click();
     duSyncFind();
   });
-  // le bouton du salon suit l'état de la file (lancée ou annulée ici, sur la page Jouer ou par le chef du groupe)
   const oSet=setFind;setFind=function(){const r=oSet.apply(this,arguments);duSyncFind();return r};
   setInterval(()=>{if(state.searching&&state.mode==='duel'&&!box.hidden){const q=$('#duQt');if(q&&qStart)q.textContent=duFmt((Date.now()-qStart)/1000)}},1000);
-  // barre du haut et profil : rang de l'arène en mode 1v1
   if(typeof refreshMe==='function'){const o=refreshMe;refreshMe=function(){o.apply(this,arguments);
     if(state.mode==='duel'&&$('#topLvl'))$('#topLvl').innerHTML=duelLvlHTML(ME.eloDuel??1000)}}
   if(typeof decorateProfile==='function'){const o=decorateProfile;decorateProfile=function(){o.apply(this,arguments);
     const c=$('#profile .p-duel');if(!c||c.dataset.du)return;
     const ed=(profileTarget||ME).eloDuel??1000,r=duelRankOf(ed);
     c.dataset.du=1;c.innerHTML=`${duelSVG(r)}${escA(r.name)} · ${ed} ELO`;c.style.setProperty('--c',r.fam.c)}}
-  // langue changée : on redessine le salon s'il est affiché
   document.addEventListener('click',e=>{if(e.target.closest('[data-lang]'))setTimeout(()=>{if(!box.hidden)renderDuel()},0)});
   if(!box.hidden)renderDuel();
 })();

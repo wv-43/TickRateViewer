@@ -8,8 +8,6 @@ CS=/home/csgo/csgo-ds/csgo
 for f in tickrate_match tickrate_rules tickrate_skins tickrate_loadout tickrate_vigie tickrate_voice nolobbyreservation; do
   cp "$SRC/addons/sourcemod/plugins/$f.smx" $CS/addons/sourcemod/plugins/
 done
-# plugin de match recompilé ici depuis sa source (le .smx du dossier peut être plus ancien que le .sp) avec le compilateur
-# fourni par SourceMod sur le serveur ; en cas d'échec, le .smx copié ci-dessus reste en place
 SPC=$CS/addons/sourcemod/scripting/spcomp
 if [ -x "$SPC" ]; then
   B=$(mktemp -d)

@@ -1,13 +1,3 @@
-/* =====================================================================
-   TICKRATE - inventaire et pièces stockés sur le serveur (srveco.js)
-   Avec un compte Firebase, c'est le serveur qui décide : le site garde une copie (ECO / SHOP) qu'il
-   recharge après chaque action. À la première connexion, l'inventaire du navigateur est importé une
-   seule fois (plafonné, voir functions/lib/inv.js). Sans compte Firebase (mode local), rien ne change.
-   Actions serveur : openCase, buyCase, quickSell, marketList / marketCancel / marketBuy, buyNpc (marché
-   simulé du jour), tradeUp, claimPending (usure), buyShop (skins, agents, pass), claimMission, claimPass.
-   Missions, XP du pass et points de ligue sont calculés par le serveur à chaque fin de vrai match :
-   les matchs simulés (ligue, tournois) et le Vigie simulé ne donnent plus de pièces.
-   ===================================================================== */
 Object.assign(I18N.fr,{
   se_locked:'Palier pas encore atteint.',se_need_pass:'Il faut le pass premium.',se_not_done:'Mission pas encore terminée.',se_imported:'Ton inventaire est maintenant enregistré sur ton compte TICKRATE.',se_owned:'Tu l\'as déjà.',se_gone:'Cette offre n\'est plus disponible.',se_err:'Action impossible ({e})',mk_real:'Joueur',
   it_co:'Conteneurs',co_title:'Unités de stockage (Conteneurs)',co_desc:'Stockez jusqu\'à 1 000 skins par conteneur pour organiser votre inventaire comme sur Steam.',co_create:'Nouveau conteneur',co_name_prompt:'Nom de l\'unité de stockage :',co_name_ph:'Ex: Couteaux & Gants, Collection Rouge...',co_empty:'Aucun conteneur. Créez votre première unité de stockage !',co_deposit:'Déposer des skins',co_retrieve:'Retirer vers l\'inventaire',co_rename:'Renommer',co_delete:'Supprimer',co_items_cnt:'{n} / {max} objets',co_val:'Valeur stockée',co_open:'Ouvrir le conteneur',co_deposit_btn:'Déposer dans ce conteneur',co_retrieve_btn:'Retirer sélection',co_retrieve_all:'Tout retirer',co_del_confirm:'Supprimer ce conteneur vide ?',co_del_not_empty:'Le conteneur doit être vide avant suppression.',co_dev_btn:'Pack Dev (+50 Caisses)',co_dev_pack_ok:'50 caisses ajoutées à votre inventaire développeur !',co_err_full:'Ce conteneur est plein (max 1 000).',co_err_not_empty:'Le conteneur doit être vide avant de pouvoir être supprimé.',co_err_max:'Limite maximale de 25 conteneurs atteinte.',iv_deposit_co:'Ranger dans un conteneur'
@@ -39,9 +29,8 @@ function seErr(e){
   return t('se_err',{e});
 }
 
-// ---------- copie locale = état du serveur ----------
 function seApply(st,map){
-  if(map&&Object.keys(map).length){                       // import : les objets ont de nouveaux identifiants
+  if(map&&Object.keys(map).length){
     for(const w of Object.values(LOAD.w||{}))if(w&&w.iid&&map[w.iid])w.iid=map[w.iid];
     if(LOAD.cust)for(const [old,nw] of Object.entries(map))if(LOAD.cust[old]){LOAD.cust[nw]=LOAD.cust[old];delete LOAD.cust[old]}
     saveLoad();
@@ -51,7 +40,7 @@ function seApply(st,map){
     ...(x.listed?{listed:x.listed}:{}),new:SE.loaded&&!oldI.has(x.id)})).sort((a,b)=>b.at-a.at);
   ECO.cases=(st.cases||[]).filter(x=>CDB.cases.some(c=>c.id===String(x.c))).map(x=>({id:x.id,c:String(x.c),src:x.src||'drop',at:x.at||0,new:SE.loaded&&!oldC.has(x.id)}));
   ECO.pending=(st.pending||[]).filter(x=>CDB.items[x.k]).map(x=>({id:x.id,k:x.k,st:!!x.st,src:x.src||'drop',at:x.at||0}));
-  SE.stc=st.stattrak||{};                                   // kills StatTrak™ par exemplaire (comptés sur les serveurs de jeu)
+  SE.stc=st.stattrak||{};
   ECO.listings=ECO.items.filter(i=>i.listed).map(i=>i.id);
   ECO.containers=st.containers||[];
   SHOP.coins=st.coins||0;SHOP.skins=st.skins||[];SHOP.agents=st.agents||[];if(Array.isArray(st.cards))SHOP.cards=st.cards;if(Array.isArray(st.bgs))SHOP.bgs=st.bgs;SHOP.pass.prem=!!st.passPrem;
@@ -60,7 +49,6 @@ function seApply(st,map){
   if(st.beta!==undefined&&!!ME.beta!==!!st.beta){ME.beta=!!st.beta;roleChanged=true}
   if(st.plan&&ME.plan!==st.plan){ME.plan=st.plan;roleChanged=true}
   if(st.influencer!==undefined&&JSON.stringify(ME.influencer||null)!==JSON.stringify(st.influencer||null)){ME.influencer=st.influencer||null;roleChanged=true}
-  // récompenses calculées par le serveur : missions du jour, XP et paliers du pass, points de ligue
   if(st.missions){SE.mis=st.missions;SHOP.mis={day:st.missions.day,prog:st.missions.prog||{},got:st.missions.got||[],told:(SHOP.mis&&SHOP.mis.told)||[]}}
   if(st.pass){SHOP.pass.xp=st.pass.xp||0;SHOP.pass.claimed={f:st.pass.claimed.f||[],p:st.pass.claimed.p||[]}}
   if(typeof st.ladder==='number')SHOP.ladder=st.ladder;
@@ -78,6 +66,7 @@ function seApply(st,map){
 }
 async function seRefresh(){
   if(!srvOn())return;
+  SE.refreshAt=Date.now();
   const st=await fbCall('ecoState');
   if(!st.error)seApply(st);
 }
@@ -85,7 +74,7 @@ async function seLoad(){
   if(!srvOn()||SE.busy)return;
   SE.busy=true;SE.uid=FBA.uid;
   let st=await fbCall('ecoState');
-  if(!st.error&&!st.imported){                            // première connexion : import unique de l'inventaire du navigateur
+  if(!st.error&&!st.imported){
     st=await fbCall('ecoImport',{items:ECO.items.map(i=>({id:i.id,k:i.k,f:i.f,s:i.s,st:!!i.st,at:i.at,c:i.c||null})),cases:ECO.cases.map(c=>({c:c.c})),
       pending:ECO.pending.map(p=>({k:p.k})),coins:SHOP.coins,skins:SHOP.skins,agents:SHOP.agents,cards:SHOP.cards||[],bgs:SHOP.bgs||[],passPrem:!!SHOP.pass.prem});
     if(!st.error)toast(t('se_imported'));
@@ -93,11 +82,10 @@ async function seLoad(){
   if(!st.error)seApply(st,st.map);else SE.uid=null;
   SE.busy=false;
 }
-// connexion, changement de compte, puis toutes les 60 s (drops, ventes sur le marché…)
 setInterval(()=>{if(srvOn()&&SE.uid!==FBA.uid)seLoad()},3000);
-setInterval(()=>{if(srvOn()&&SE.loaded&&!document.hidden)seRefresh()},60e3);
+setInterval(()=>{if(srvOn()&&SE.loaded&&!document.hidden)seRefresh()},300e3);
+document.addEventListener('visibilitychange',()=>{if(!document.hidden&&srvOn()&&SE.loaded&&Date.now()-(SE.refreshAt||0)>120e3)seRefresh()});
 
-// missions du jour : celles du serveur (jour de Paris)
 (()=>{const tm=todayMissions;todayMissions=function(){return srvOn()&&SE.mis?SE.mis.ids:tm.apply(this,arguments)}})();
 function rewardName(rw){
   if(!rw)return '';
@@ -108,7 +96,6 @@ function rewardName(rw){
   return '';
 }
 
-// ---------- fiche objet : compteur StatTrak™ et réglages dev (usure, pattern, StatTrak) ----------
 Object.assign(I18N.fr,{st_kills:'Kills confirmés',st_kills_n:'{n} kills',dv_title:'Réglages dev',dv_sub:'visible par les devs · appliqué en jeu à la prochaine apparition',dv_wear:'Usure (float)',dv_seed:'Pattern',dv_apply:'Appliquer',dv_done:'Objet modifié',e_no_item:'Objet introuvable.',e_bad_wear:'Usure invalide.'});
 Object.assign(I18N.en,{st_kills:'Confirmed kills',st_kills_n:'{n} kills',dv_title:'Dev settings',dv_sub:'visible to devs · applied in game at next spawn',dv_wear:'Wear (float)',dv_seed:'Pattern',dv_apply:'Apply',dv_done:'Item updated',e_no_item:'Item not found.',e_bad_wear:'Invalid wear.'});
 Object.assign(I18N.ru,{st_kills:'Подтверждённые убийства',st_kills_n:'{n} убийств',dv_title:'Настройки dev',dv_sub:'видно разработчикам · применяется в игре при следующем появлении',dv_wear:'Износ (float)',dv_seed:'Паттерн',dv_apply:'Применить',dv_done:'Предмет изменён',e_no_item:'Предмет не найден.',e_bad_wear:'Неверный износ.'});
@@ -134,13 +121,10 @@ document.addEventListener('click',async e=>{
   const id=e.target.closest('[data-dvid]').dataset.dvid,b=$('#dvGo');b.disabled=true;
   const r=await fbCall('devItemEdit',{id,f:+$('#dvF').value,s:+$('#dvS').value,...($('#dvSt')?{st:$('#dvSt').checked}:{})});
   b.disabled=false;if(r.error)return toast(seErr(r.error));
-  // équipé : le casier suit (c'est lui que lit le serveur de jeu)
   for(const w of Object.values(LOAD.w||{}))if(w&&w.iid===id){w.f=r.item.f;w.seed=r.item.s;w.st=!!r.item.st}
   saveLoad();await seRefresh();toast(t('dv_done'));openItem(id);
 });
 
-// ---------- « Personnaliser » : usure et pattern réglables par les devs, sur tous les skins ----------
-// objet du serveur : enregistré par devItemEdit ; skin « dev » (tous les skins, virtuels) : gardé dans ce navigateur
 const DEVW_KEY='tr_devwear';
 const devWearAll=()=>{try{return JSON.parse(localStorage.getItem(DEVW_KEY)||'{}')}catch(e){return {}}};
 (()=>{const o=devItems;let done=false;devItems=function(){const l=o.apply(this,arguments);
@@ -168,16 +152,15 @@ document.addEventListener('input',e=>{
   o.apply(this,arguments);
   if(i.virtual){i.f=f;i.s=s;const ov=devWearAll();ov[i.k]={f,s};try{localStorage.setItem(DEVW_KEY,JSON.stringify(ov))}catch(e){}}
   else{const r=await fbCall('devItemEdit',{id:i.id,f,s});if(r.error)return toast(seErr(r.error));await seRefresh()}
-  if(W&&LOAD.w[W.id]&&(LOAD.w[W.id].iid===i.id||LOAD.w[W.id].p===it.p)){LOAD.w[W.id].f=f;LOAD.w[W.id].seed=s;saveLoad()}   // équipé : appliqué en jeu
+  if(W&&LOAD.w[W.id]&&(LOAD.w[W.id].iid===i.id||LOAD.w[W.id].p===it.p)){LOAD.w[W.id].f=f;LOAD.w[W.id].seed=s;saveLoad()}
   renderInventory();
 }})();
 
-// ---------- caisses ----------
 (()=>{const sp=spinCase;spinCase=async function(){
   if(!srvOn())return sp.apply(this,arguments);
   if(spinning)return;
   const cs=ECO.cases.find(x=>x.id===CASE_OPEN);if(!cs)return;
-  spinning=true;                                          // pas de double clic pendant la réponse du serveur
+  spinning=true;
   const btn=$('#csAct button[data-spin]');
   if(btn){
     btn.disabled=true;
@@ -194,7 +177,6 @@ document.addEventListener('input',e=>{
     if(crate)crate.classList.remove('opening');
     toast(seErr(r.error));return seRefresh();
   }
-  // l'animation du site utilise le tirage du serveur
   const win={k:r.item.k,f:r.item.f,s:r.item.s,st:!!r.item.st,c:cs.c};
   const oc=EC.openCase,ai=addItem;
   EC.openCase=()=>win;
@@ -210,7 +192,6 @@ document.addEventListener('input',e=>{
   toast(t('cs_bought',{x:(CDB.cases.find(c=>c.id===String(cid))||{n:''}).n}));
 }})();
 
-// ---------- contrat d'échange ----------
 (()=>{const ts=tuSign;tuSign=async function(){
   if(!srvOn())return ts.apply(this,arguments);
   if(tuItems().length<TU_MAX)return toast(t('tu_need',{n:TU_MAX-tuItems().length}));
@@ -222,7 +203,6 @@ document.addEventListener('input',e=>{
   if(typeof openItem==='function')openItem(r.item.id);
 }})();
 
-// ---------- marché : vraies offres des joueurs + offres simulées du jour (vérifiées par le serveur) ----------
 async function seMarket(){
   if(!srvOn()||Date.now()-SE.marketAt<15e3)return;
   SE.marketAt=Date.now();
@@ -239,26 +219,21 @@ setInterval(seMarket,20e3);
   return [...SE.market,...npc];
 }})();
 
-// ---------- clics interceptés (phase de capture : avant les actions locales) ----------
 function seConfirm(title,html,yes,fn){confirmBox(title,html,yes,t('cancel'),fn)}
 document.addEventListener('click',e=>{
   if(!srvOn())return;
   const stop=()=>{e.stopImmediatePropagation();e.preventDefault()};
-  // vente rapide
   const q=e.target.closest('[data-iquick]');
   if(q){stop();const i=ECO.items.find(x=>x.id===q.dataset.iquick);if(!i)return;const n=Math.floor(val(i)*ECO_CFG.quick);
     return seConfirm(t('i_quick',{x:''}).replace(' · ',''),`${escA(EC.name(CDB,i))} → ${n.toLocaleString(LOC[lang])} TC`,'OK',async()=>{
       const r=await fbCall('quickSell',{itemId:i.id});if(r.error)return toast(seErr(r.error));
       unequipIf(i);closeModal('itemModal');toast(t('coins_added',{n:r.coins}));beep(988,.08);seRefresh()})}
-  // mise en vente sur le marché
   const sg=e.target.closest('[data-sellgo]');
   if(sg){stop();const i=ECO.items.find(x=>x.id===sg.dataset.sellgo),p=Math.max(ECO_CFG.minList,Math.round(+$('#sellP').value||0));if(!i)return;
     return fbCall('marketList',{itemId:i.id,price:p}).then(r=>{if(r.error)return toast(seErr(r.error));unequipIf(i);closeModal('itemModal');toast(t('sell_ok'));seRefresh()})}
-  // retrait de la vente
   const ul=e.target.closest('[data-unlist]');
   if(ul){stop();const i=ECO.items.find(x=>x.id===ul.dataset.unlist);if(!i||!i.listed)return;
     return fbCall('marketCancel',{listingId:i.listed.lid}).then(async r=>{if(r.error)toast(seErr(r.error));await seRefresh();openItem(i.id)})}
-  // achat sur le marché (offre d'un joueur ou offre simulée)
   const mb=e.target.closest('[data-mkbuy]');
   if(mb){stop();const x=marketList().find(y=>y.id===mb.dataset.mkbuy);if(!x)return;
     return seConfirm(t('mk_buy'),`${escA(EC.name(CDB,x))} · ${x.price.toLocaleString(LOC[lang])} TC`,t('mk_buy'),async()=>{
@@ -266,32 +241,26 @@ document.addEventListener('click',e=>{
       if(r.error){toast(seErr(r.error));SE.marketAt=0;return seMarket()}
       if(!x.real)ECO.bought.push(x.id);
       toast(t('mk_bought',{x:EC.name(CDB,x)}));beep(988,.08);SE.marketAt=0;await seRefresh();seMarket();renderShop()})}
-  // usure choisie (PREMIUM) pour un skin gagné
   const w=e.target.closest('[data-wear]');
   if(w){stop();const [pid,wk]=w.dataset.wear.split(':');
     return fbCall('claimPending',{id:pid,wear:wk==='rand'?null:wk}).then(async r=>{if(r.error)return toast(seErr(r.error));closeModal('wearModal');toast(t('bought_toast',{x:EC.name(CDB,r.item)}));await seRefresh()})}
-  // mission terminée
   const mc=e.target.closest('[data-mclaim]');
   if(mc){stop();return fbCall('claimMission',{id:mc.dataset.mclaim}).then(async r=>{if(r.error)return toast(seErr(r.error));
     toast(`+${r.xp} XP${r.coins?` · +${r.coins} TC`:''}`);beep(988,.08);await seRefresh()})}
-  // palier du pass
   const pc=e.target.closest('[data-claim]');
   if(pc){stop();const [track,tier]=pc.dataset.claim.split(':');
     return fbCall('claimPass',{track,tier:+tier}).then(async r=>{if(r.error)return toast(seErr(r.error));
       toast(r.reward&&r.reward.type==='coins'?t('coins_added',{n:r.coins}):t('bought_toast',{x:rewardName(r.reward)}));beep(988,.08);await seRefresh();renderShop()})}
-  // boutique : skin, agent, carte de profil, pass premium
   const bs=e.target.closest('[data-buysk]'),ba=e.target.closest('[data-buyag]'),bp=e.target.closest('[data-buypass]'),bcard=e.target.closest('[data-buycard]');
   if(bs||ba||bp||bcard){stop();
     const cid=bcard?bcard.dataset.buycard:null;
     const cObj=cid&&typeof CARD_STYLES!=='undefined'?CARD_STYLES.find(x=>x.id===cid):null;
     const [kind,ref,name]=bs?['skin',bs.dataset.buysk,bs.dataset.buysk]:ba?['agent',+ba.dataset.buyag,(SKDB.agents.find(a=>a.def===+ba.dataset.buyag)||{name:''}).name.split('|')[0].trim()]:bcard?['card',cid,(cObj&&cObj.name)||cid]:['pass',null,t('pass_owned')];
     return fbCall('buyShop',{kind,ref}).then(async r=>{if(r.error)return toast(seErr(r.error));beep(988,.08);if(kind==='card'&&typeof equipCardStyle==='function'){if(!Array.isArray(SHOP.cards))SHOP.cards=[];if(!SHOP.cards.includes(cid))SHOP.cards.push(cid);equipCardStyle(cid,true)}toast(kind==='pass'?t('pass_owned'):t('bought_toast',{x:name}));await seRefresh();renderShop()})}
-  // pack developpeur : 50 caisses offertes
   const dp=e.target.closest('[data-dev-pack]');
   if(dp){stop();return seDevGrantCases(50)}
 },true);
 
-// ---------- API conteneurs / unités de stockage ----------
 async function seContainerCreate(name){
   if(!srvOn())return {error:'offline'};
   const r=await fbCall('containerCreate',{name});

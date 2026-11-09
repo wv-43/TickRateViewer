@@ -1,9 +1,3 @@
-/* =====================================================
- * TICKRATE - Profils : vrai statut des joueurs + modération dev (admin.js)
- * - le profil d'un autre joueur lit profiles/<uid> (badge INFLUENCEUR / PREMIUM réels)
- * - un compte roles/<uid> = "dev" voit un panneau « Modération » : influenceur, rôle dev, ban
- *   (Cloud Function devAction, voir functions/lib/admin.js : c'est le serveur qui vérifie le rôle)
- * ===================================================== */
 const ADM={dev:null,devUid:null,busy:false};
 const admOn=()=>typeof fbLive==='function'&&fbLive()&&AUTH.mode==='firebase'&&!!FBA.uid;
 const ADM_ROLES_KEY='tr_roles_cache_v1',ADM_ROLES_TTL=10*60e3;
@@ -119,16 +113,14 @@ Object.assign(I18N.en,{adm_title:'Moderation',adm_banned_tag:'Banned',adm_dev_no
 Object.assign(I18N.ru,{adm_title:'Модерация',adm_banned_tag:'Забанен',adm_dev_noban:'Аккаунт dev: бан невозможен (сними роль в консоли Firebase).',adm_dev_only:'видно только разработчикам',adm_role:'Роли',adm_inf:'Инфлюенсер',adm_beta:'Бета-тестер',adm_dev:'Dev',adm_ban:'Забанить',adm_unban:'Разбанить',adm_reason:'Причина бана',adm_banned:'Бан до {d}',adm_banned_perm:'Бан навсегда',adm_by:'от {b}',adm_ban_q:'Забанить {n}?',adm_ban_t:'Срок: {d}. Игрок убран из очереди и не может играть.',adm_ok:'Изменено',adm_perm:'навсегда',
   e_adm_self:'Нельзя для своего аккаунта.',e_adm_target_dev:'Сначала сними роль dev.'});
 
-// infos réelles d'un joueur (uid, plan, badge) + pour un dev : rôle et ban
 async function admEnrich(P){
   if(!admOn()||!P||P===ME)return;
   if(!P.uid){const k=String(P.name).toLowerCase().replace(/[.#$/[\]]/g,'_');P.uid=await fbReq(`usernames/${k}`)||null}
-  if(!P.uid&&typeof fbCall==='function'){const r=await fbCall('playerLookup',{name:P.name});P.uid=(r&&r.uid)||null}   // anciens comptes sans pseudo réservé
+  if(!P.uid&&typeof fbCall==='function'){const r=await fbCall('playerLookup',{name:P.name});P.uid=(r&&r.uid)||null}
   if(!P.uid)return;
   const prof=await fbReq(`profiles/${P.uid}`);
   if(prof){Object.assign(P,{plan:prof.plan||'free',planSource:prof.planSource||null,influencer:prof.influencer||null,beta:!!prof.beta,bgStyle:prof.bgStyle||null,eloWm:prof.eloWm??null,matchesWm:prof.matchesWm??null,winsWm:prof.winsWm??null,peakEloWm:prof.peakEloWm??null});if(typeof prof.elo==='number')P.elo=prof.elo;if(prof.avatar)P.steamAvatar=prof.avatar}
-  if(typeof applyLook==='function')await applyLook(P);   // bannière, avatar (perso ou Steam) et couleur du joueur
-  // vrais matchs : historique enregistré par le serveur sous l'identifiant du compte (K/D, ADR, HS %, KAST, rating)
+  if(typeof applyLook==='function')await applyLook(P);
   const hist=await fbReq(`history/${P.uid}`);
   if(hist&&typeof hist==='object'){
     const MN=n=>(MAPS.find(m=>'de_'+m.slug===n||m.slug===String(n).replace('de_',''))||{n:String(n).replace('de_','')}).n;
@@ -136,14 +128,13 @@ async function admEnrich(P){
       k:x.k||0,d:x.d||0,a:x.a||0,hs:x.hs||0,adr:x.adr||0,kast:x.kast||0,rating:x.rating||1,delta:x.delta||0,elo:x.elo||P.elo,mode:x.mode||'ranked'})).sort((a,b)=>b.date-a.date);
   }else P.history=[];
   if(prof&&typeof prof.matches==='number')P.matches=prof.matches;
-  // ban : durée et motif visibles par tous ; le dev qui a banni et l'historique, par les devs seulement
   const dev=await amDev();
   let ban;
   if(dev)ban=await fbReq(`bans/${P.uid}`);
   else{const [until,reason]=await Promise.all([fbReq(`bans/${P.uid}/until`),fbReq(`bans/${P.uid}/reason`)]);ban=until?{until,reason}:null}
   P.ban=ban&&ban.until>Date.now()?ban:null;
   const isTargetDev=(await fbReq(`roles/${P.uid}`))==='dev'||!!(prof&&prof.dev);
-  P.dev=isTargetDev;         // badge DEV, visible par tous
+  P.dev=isTargetDev;
   if(dev)P.adm={dev:isTargetDev};
   ADM_ROLES[P.uid]={dev:isTargetDev,beta:!!P.beta,plan:P.plan||'free',influencer:P.influencer||null,at:Date.now()};
   saveAdmRoles();
@@ -166,7 +157,6 @@ function admPanel(P){
     <div class="adm-row">${a.dev?`<span class="adm-l">${t('adm_dev_noban')}</span>`:b?`<span class="adm-ban">${b.by?t('adm_by',{b:escA(b.by)}):''}</span><button type="button" class="btn sm" data-adm="unban">${t('adm_unban')}</button>`
       :`<select id="admDur">${BAN_OPTS.map(([m,l])=>`<option value="${m}">${m?l:t('adm_perm')}</option>`).join('')}</select><input type="text" id="admReason" maxlength="200" placeholder="${t('adm_reason')}"><button type="button" class="btn sm adm-danger" data-adm="ban">${t('adm_ban')}</button>`}</div></div>`;
 }
-// bandeau visible par tout le monde sur le profil d'un joueur banni
 function banLine(b){const perm=b.until-Date.now()>50*365*864e5;
   return `<div class="p-banned"><b>${t('adm_banned_tag')}</b><span>${perm?t('adm_banned_perm'):t('adm_banned',{d:new Date(b.until).toLocaleString(LOC[lang])})}${b.reason?' · '+escA(b.reason):''}</span></div>`}
 (()=>{const o=profileActions;profileActions=function(P){const h=o(P);return P?(P.ban?banLine(P.ban):'')+h+(P.adm?admPanel(P):''):h}})();
@@ -185,11 +175,9 @@ document.addEventListener('click',e=>{
   confirmBox(t('adm_ban_q',{n:escA(P.name)}),t('adm_ban_t',{d:min?dur:t('adm_perm')}),t('adm_ban'),t('cancel'),()=>admRun(P,{action:'ban',minutes:min,reason}));
 });
 
-// ---------- retours de la bêta (!feedback en jeu), sur le profil d'un dev ----------
 Object.assign(I18N.fr,{fb_title:'Tickets et retours bêta',fb_sub:'page Support et !feedback en jeu · visible par les devs',fb_none:'Aucun ticket pour l’instant.',fb_reply:'Répondre',fb_close:'Clore',fb_reply_ph:'Réponse au joueur (visible sur sa page Support)'});
 Object.assign(I18N.en,{fb_title:'Tickets & beta feedback',fb_sub:'Support page and in-game !feedback · visible to devs',fb_none:'No tickets yet.',fb_reply:'Reply',fb_close:'Close',fb_reply_ph:'Reply to the player (shown on their Support page)'});
 Object.assign(I18N.ru,{fb_title:'Тикеты и отзывы беты',fb_sub:'страница поддержки и !feedback в игре · видно разработчикам',fb_none:'Тикетов пока нет.',fb_reply:'Ответить',fb_close:'Закрыть',fb_reply_ph:'Ответ игроку (виден на его странице поддержки)'});
-// tickets du site et !feedback en jeu : réponse visible par le joueur sur sa page Support, « Clore » = résolu
 async function devFeedback(box){
   const d=await fbReq('feedback?orderBy="$key"&limitToLast=60');
   const list=Object.entries(d||{}).map(([id,f])=>({id,...f})).sort((a,b)=>(a.status==='closed')-(b.status==='closed')||b.at-a.at);
@@ -207,19 +195,16 @@ document.addEventListener('click',async e=>{
   toast(t('adm_ok'));devFeedback(box);
 });
 
-// ---------- badge et profil des développeurs (roles/<uid> = "dev") ----------
 Object.assign(I18N.fr,{dev_badge:'DEV',dev_badge_t:'Développeur TICKRATE',dev_plaque:'Développeur'});
 Object.assign(I18N.en,{dev_badge:'DEV',dev_badge_t:'TICKRATE developer',dev_plaque:'Developer'});
 Object.assign(I18N.ru,{dev_badge:'РАЗРАБ',dev_badge_t:'Разработчик TICKRATE',dev_plaque:'Разработчик'});
 const DEV_ICON='<svg class="ic" aria-hidden="true" fill="currentColor" viewBox="0 0 512 512"><path d="M160 389a20.91 20.91 0 01-13.82-5.2l-128-112a21 21 0 010-31.6l128-112a21 21 0 0127.66 31.61L63.89 256l109.94 96.19A21 21 0 01160 389zM352 389a21 21 0 01-13.84-36.81L448.11 256l-109.94-96.19a21 21 0 0127.66-31.61l128 112a21 21 0 010 31.6l-128 112A20.89 20.89 0 01352 389zM208 437a21 21 0 01-20.12-27l96-320a21 21 0 1140.23 12l-96 320A21 21 0 01208 437z"/></svg>';
 const devBadge=()=>`<span class="pb dev" title="${t('dev_badge_t')}">${DEV_ICON}${t('dev_badge')}</span>`;
-// rôle « Bêta testeur » donné par un dev (panneau Modération du profil)
 Object.assign(I18N.fr,{beta_badge:'Bêta testeur',beta_badge_t:'A testé TICKRATE pendant la bêta'});
 Object.assign(I18N.en,{beta_badge:'Beta tester',beta_badge_t:'Tested TICKRATE during the beta'});
 Object.assign(I18N.ru,{beta_badge:'Бета-тестер',beta_badge_t:'Тестировал TICKRATE во время беты'});
 const BETA_ICON='<svg class="ic" aria-hidden="true" fill="currentColor" viewBox="0 0 512 512"><path d="M452.32 365L327.4 167.12a48.07 48.07 0 01-7.4-25.64V64h15.56c8.61 0 16-6.62 16.43-15.23A16 16 0 00336 32H176.45c-8.61 0-16 6.62-16.43 15.23A16 16 0 00176 64h16v77.48a47.92 47.92 0 01-7.41 25.63L59.68 365a74 74 0 00-2.5 75.84C70.44 465.19 96.36 480 124.13 480h263.74c27.77 0 53.69-14.81 66.95-39.21a74 74 0 00-2.5-75.79zM211.66 184.2A79.94 79.94 0 00224 141.48V68a4 4 0 014-4h56a4 4 0 014 4v73.48a79.94 79.94 0 0012.35 42.72l57.8 91.53a8 8 0 01-6.78 12.27H160.63a8 8 0 01-6.77-12.27z"/></svg>';
 const betaBadge=()=>`<span class="pb beta" title="${t('beta_badge_t')}">${BETA_ICON}${t('beta_badge')}</span>`;
-// badges cumulables jusqu'à 2 : si plus de 2, on affiche les 2 premiers + "+N"
 function getPlayerBadges(p){
   if(!p)return [];
   const list=[];
@@ -256,7 +241,6 @@ function formatBadgesWithLimit(list,max=2){
     if(typeof refreshMe==='function')setTimeout(refreshMe,0);
   }catch(e){}
 })();
-// profil décoré : bannière quadrillée, liseré et anneau d'avatar cyan-violet, plaque « Développeur »
 (()=>{const o=decorateProfile;decorateProfile=function(){
   o.apply(this,arguments);
   const el=$('#profile'),P=profileTarget||ME;

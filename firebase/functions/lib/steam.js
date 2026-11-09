@@ -1,10 +1,3 @@
-// =====================================================================
-//  Connexion Steam (OpenID 2.0) -> compte Firebase
-//  /start?mode=login|link&ret=<url du site>[&idToken=<jeton si on lie un compte existant>]
-//  /return  (Steam renvoie ici) -> vérification auprès de Steam -> retour sur le site :
-//     login : <ret>#ft=<custom token>   (le site l'échange contre une session Firebase)
-//     link  : <ret>#steam=linked|taken|error
-// =====================================================================
 const { rid, safeKey } = require('./core');
 const STEAM = 'https://steamcommunity.com/openid/login';
 const val = async ref => (await ref.get()).val();
@@ -51,10 +44,9 @@ async function verifyWithSteam(q, fetchImpl = fetch) {
   const m = /^https:\/\/steamcommunity\.com\/openid\/id\/(\d{17})$/.exec(q['openid.claimed_id'] || '');
   return m ? m[1] : null;
 }
-// avatar Steam : seule une image https des serveurs de Steam est gardée
 const okAvatar = u => (typeof u === 'string' && /^https:\/\/([a-z0-9-]+\.)*(steamstatic\.com|akamaihd\.net)\/[^'"()<>\s\\]+$/.test(u) ? u : null);
 async function persona(steamId, key, fetchImpl = fetch) {
-  if (!key) {   // sans clé d'API : profil public Steam (XML), pseudo + avatar
+  if (!key) {
     try {
       const r = await fetchImpl(`https://steamcommunity.com/profiles/${steamId}?xml=1`);
       const x = await r.text(), pick = tag => { const m = new RegExp(`<${tag}><!\\[CDATA\\[([^\\]]*)\\]\\]></${tag}>`).exec(x); return m ? m[1].trim() : null; };
@@ -78,7 +70,7 @@ async function claimName(db, uid, wanted) {
   return 'Joueur' + rid(4);
 }
 async function back(db, auth, q, opts, now = Date.now()) {
-  const sk = safeKey(String(q.state || '')).slice(0, 40);   // jamais de « / » dans le chemin
+  const sk = safeKey(String(q.state || '')).slice(0, 40);
   if (!sk) return { status: 400, body: 'session expirée, recommence' };
   const st = await val(db.ref(`authStates/${sk}`));
   await db.ref(`authStates/${sk}`).remove();
@@ -96,7 +88,7 @@ async function back(db, auth, q, opts, now = Date.now()) {
     return { redirect: st.ret + '#steam=linked' };
   }
   let uid = owner;
-  if (!uid) {   // nouveau joueur via Steam
+  if (!uid) {
     uid = 'steam_' + steamId;
     const per = await persona(steamId, opts.steamKey, opts.fetch);
     const name = await claimName(db, uid, per?.name || 'Steam' + steamId.slice(-4));
@@ -109,7 +101,6 @@ async function back(db, auth, q, opts, now = Date.now()) {
   const token = await auth.createCustomToken(uid);
   return { redirect: `${st.ret}#ft=${encodeURIComponent(token)}` };
 }
-// avatar du profil depuis Steam (au plus une fois par jour)
 async function refreshAvatar(db, uid, opts = {}, now = Date.now()) {
   const p = (await val(db.ref(`profiles/${uid}`))) || {};
   if (!p.steamId || (p.avatar && now - (p.avatarAt || 0) < 864e5)) return p.avatar || null;

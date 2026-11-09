@@ -17,7 +17,7 @@ $HOST {
 	respond 404
 }
 CFG
-ufw allow 80/tcp >/dev/null      # Let's Encrypt
+ufw allow 80/tcp >/dev/null
 ufw allow 443/tcp >/dev/null
 systemctl enable caddy >/dev/null 2>&1
 systemctl restart caddy

@@ -1,17 +1,8 @@
-/* =====================================================
- * TICKRATE - Menu Casier : Skins CS:GO, Agents & Stickers (loadout.js)
- * ===================================================== */
-/* =====================================================
-   CASIER : SKINS (inventaire Steam + catalogue PLUS) et AGENTS (PREMIUM)
-   Chaque choix = { defindex, paint, float, seed, stattrak, nametag, côté }
-   C'est exactement ce que le plugin du serveur lit pour ton SteamID.
-   ===================================================== */
 const SKDB=window.SKIN_DB||{weapons:[],agents:[]};
 const CATS=['pistol','rifle','smg','knife','gloves','agents'];
 let LOAD={w:{},ag:{T:null,CT:null}};
 try{const v=JSON.parse(localStorage.getItem('tr_loadout')||'null');if(v&&v.w&&v.ag)LOAD=v}catch(e){}
 const saveLoad=()=>{try{localStorage.setItem('tr_loadout',JSON.stringify(LOAD))}catch(e){};if(typeof fbReq==='function')fbReq(`loadouts/${fbUserKey()}`,'PUT',{steamId:ME.steam&&ME.steam.id,user:ME.name,loadout:LOAD,updatedAt:Date.now()})};
-// Inventaire Steam simulé (en vrai : API Steam "inventory" du joueur, appid 730)
 let INV=null;
 try{INV=JSON.parse(localStorage.getItem('tr_inv')||'null')}catch(e){}
 if(!Array.isArray(INV)){
@@ -21,7 +12,7 @@ if(!Array.isArray(INV)){
   try{localStorage.setItem('tr_inv',JSON.stringify(INV))}catch(e){}
 }
 const owned=(wid,p)=>INV.includes(wid+':'+p);
-const canUse=(wid,p)=>owned(wid,p)||boughtSkin(wid,p)||(typeof ecoOwns==='function'&&ecoOwns(wid,p))||(typeof devItems==='function'&&devItems().length>0)||(typeof betaOwns==='function'&&betaOwns(wid,p));   // compte dev : rien n'est retiré
+const canUse=(wid,p)=>owned(wid,p)||boughtSkin(wid,p)||(typeof ecoOwns==='function'&&ecoOwns(wid,p))||(typeof devItems==='function'&&devItems().length>0)||(typeof betaOwns==='function'&&betaOwns(wid,p));
 let lo={src:'inv',cat:'rifle',w:null,p:null,q:''},draftCfg=null;
 const wearKey=f=>f<.07?'w_fn':f<.15?'w_mw':f<.38?'w_ft':f<.45?'w_ww':'w_bs';
 const escA=x=>String(x).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -75,13 +66,9 @@ function weaponsHTML(){
   const middle=`<div><div class="fld" style="margin:0 0 10px"><input type="text" id="skQ" placeholder="${t('search_skin')}" value="${escA(lo.q)}"></div>${grid}</div>`;
   return `<div class="lo-grid"><div class="wlist">${wl}</div>${middle}${cfgHTML(W)}</div>`;
 }
-/* =====================================================
-   STICKERS (4 emplacements par arme, 1 en gratuit, 4 en PLUS)
-   ===================================================== */
 const STDB=window.STICKER_DB||[];
 const stkOf=id=>STDB.find(x=>x.id===id);
 const STK_SLOTS=4;
-// 4 emplacements d'autocollants et name tag : PLUS, ou compte dev (roles/<uid> = "dev") pour tester
 const stkPlus=()=>hasPlan('plus')||(typeof devItems==='function'&&devItems().length>0);
 const canSticker=W=>W&&W.cat!=='knife'&&W.cat!=='gloves'&&STDB.length>0;
 const slotOpen=i=>i===0||stkPlus();

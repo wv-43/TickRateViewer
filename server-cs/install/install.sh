@@ -68,7 +68,7 @@ rm -rf "$TMP"
 say "Plugins TICKRATE"
 P=$CS/addons/sourcemod/plugins
 for f in tickrate_match tickrate_rules tickrate_skins tickrate_loadout tickrate_vigie tickrate_voice nolobbyreservation; do cp "$SRC/addons/sourcemod/plugins/$f.smx" $P/; done
-mkdir -p $CS/addons/sourcemod/gamedata && cp "$SRC/addons/sourcemod/gamedata/nolobbyreservation.games.txt" $CS/addons/sourcemod/gamedata/   # connexion directe sans lobby Valve
+mkdir -p $CS/addons/sourcemod/gamedata && cp "$SRC/addons/sourcemod/gamedata/nolobbyreservation.games.txt" $CS/addons/sourcemod/gamedata/
 rm -f $P/tickrate_check.smx      
 mkdir -p $CS/addons/sourcemod/translations && cp "$SRC/addons/sourcemod/translations/tickrate.phrases.txt" $CS/addons/sourcemod/translations/
 mkdir -p $CS/addons/sourcemod/plugins/disabled
@@ -212,7 +212,6 @@ ufw --force enable >/dev/null
 
 cat > /etc/cron.daily/tickrate-clean <<EOF
 #!/bin/sh
-# demos GOTV de plus de $DEMO_DAYS jours, logs de plus de 14 jours
 find $CS -maxdepth 1 -name 'tickrate_*.dem' -mtime +$DEMO_DAYS -delete
 find $CS/logs $CS/addons/sourcemod/logs -name '*.log' -mtime +14 -delete 2>/dev/null
 exit 0

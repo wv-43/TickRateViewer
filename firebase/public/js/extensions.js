@@ -1,15 +1,4 @@
-/* =====================================================
- * TICKRATE - Extensions : Firebase Auth, Détail match, Spectateur, Caisses & Guide (extensions.js)
- * ===================================================== */
-/* =====================================================
-   FIREBASE v2
-   1. Authentification Firebase (optionnelle) : dès que FB_API_KEY est renseignée,
-      chaque appareil obtient un compte Firebase anonyme et toutes les requêtes
-      portent ?auth=<jeton>. Les règles « étape 2 » peuvent alors réserver
-      users/<id> à son propriétaire (champ uid).
-   2. Classement des vrais joueurs inscrits (users/ triés par ELO).
-   ===================================================== */
-var FB_API_KEY='AIzaSyB8tB0xv9Xry6mo69XzPJ611S4dpT6YI_Y';   // Console Firebase > Paramètres du projet > Général > « Clé API Web »
+var FB_API_KEY='AIzaSyB8tB0xv9Xry6mo69XzPJ611S4dpT6YI_Y';
 window.FB_API_KEY=FB_API_KEY;
 window.FB_URL=window.FB_URL||'https://tickratecsgo-default-rtdb.europe-west1.firebasedatabase.app';
 var FBA={uid:null,idToken:null,refresh:null,exp:0,pending:null,err:null};
@@ -21,12 +10,12 @@ async function fbAuthEnsure(){
   FBA.pending=(async()=>{
     try{
       let r,j;
-      if(FBA.refresh){   // renouvelle le jeton (1 h) sans recréer de compte
+      if(FBA.refresh){
         r=await fetch(`https://securetoken.googleapis.com/v1/token?key=${FB_API_KEY}`,{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:`grant_type=refresh_token&refresh_token=${encodeURIComponent(FBA.refresh)}`});
         j=await r.json();
         if(r.ok)Object.assign(FBA,{idToken:j.id_token,refresh:j.refresh_token,uid:j.user_id,exp:Date.now()+(+j.expires_in||3600)*1e3});
       }
-      if(!FBA.idToken){  // première fois : compte anonyme (à activer dans Authentication > Sign-in method)
+      if(!FBA.idToken){
         r=await fetch(`https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=${FB_API_KEY}`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({returnSecureToken:true})});
         j=await r.json();
         if(!r.ok)throw new Error(j.error&&j.error.message||'auth');
@@ -39,20 +28,17 @@ async function fbAuthEnsure(){
   })();
   return FBA.pending;
 }
-// URL REST : "chemin?query" -> https://…/chemin.json?query&auth=…
 function fbUrl(path){
   const [p,q]=String(path).split('?');const qs=new URLSearchParams(q||'');
   if(FBA&&FBA.idToken)qs.set('auth',FBA.idToken);
   const s=qs.toString();return `${FB_URL}/${p}.json${s?'?'+s:''}`;
 }
 
-// ---------- Classement des joueurs réels ----------
-const RLB={rows:null,at:0,err:null,loading:false,mode:'ranked'};   // mode : classement 5v5 ou Wingman
+const RLB={rows:null,at:0,err:null,loading:false,mode:'ranked'};
 async function fbLoadLeaderboard(force){
   if(RLB.loading||(!force&&RLB.rows&&Date.now()-RLB.at<60e3))return;
   RLB.loading=true;RLB.err=null;
   try{
-    // nécessite ".indexOn": ["elo"] sur users (voir firebase/database.rules.json) ; sinon on lit tout et on trie ici
     let d=await fbReq('users?orderBy=%22elo%22&limitToLast=100');
     if(!d)d=await fbReq('users');
     if(!d)throw new Error('offline');
@@ -73,20 +59,17 @@ function realRankingHTML(){
   return `<div class="rl-bar"><span>${t('rl_src',{n:rows.length})}</span><span>${t('rl_upd',{x:agoTxt(Date.now()-RLB.at)})}</span><span class="seg rl-modes"><button class="${RLB.mode==='wingman'?'':'on'}" data-rlmode="ranked">5v5</button><button class="${RLB.mode==='wingman'?'on':''}" data-rlmode="wingman">${t('pf_mode_wm')}</button></span><button class="btn ghost sm" data-rlrefresh>${t('rl_refresh')}</button></div>
     <div class="card" style="padding:0"><div class="tbl-wrap"><table class="tbl rk-table" style="min-width:600px"><thead><tr><th class="rk">${t('th_rank')}</th><th style="text-align:left">${t('th_player')}</th><th style="text-align:left">${t('th_country')}</th><th>${t('rl_lvl')}</th><th>ELO</th><th>${t('t_matches')}</th><th>${t('t_winrate')}</th><th>${t('trust_short')}</th></tr></thead><tbody>${tr}</tbody></table></div></div>`;
 }
-// apparence réelle des joueurs d'une liste (photo du site > Steam > défaut, couleur) ; réaffiche si quelque chose change
 async function lookRows(rows,max=24){
   if(typeof realLook!=='function'||!rows)return false;let ch=false;
   await Promise.all(rows.slice(0,max).map(async u=>{if(!u||!u.name)return;const L=await realLook(u.name,false);
     if(L.avatar&&L.avatar!==u.avatar){u.avatar=L.avatar;ch=true}if(L.steamAvatar&&L.steamAvatar!==u.steamAvatar){u.steamAvatar=L.steamAvatar;ch=true}if(L.color&&L.color!==u.color){u.color=L.color;ch=true}}));
   return ch;
 }
-// podium des 3 premiers (vrais joueurs)
 function realPodiumHTML(rows){
   if(!rows||rows.length<3)return '';
   return `<div class="podium">${rows.slice(0,3).map((u,i)=>`<div class="pod r${i+1}"><div class="rk">${i+1}</div><span data-profile="${escA(u.name)}">${avHTML({name:u.name,avatar:u.avatar,steamAvatar:u.steamAvatar,color:u.color})}</span>
     <div><div class="nm" data-profile="${escA(u.name)}">${escA(u.name)}</div><div class="el">${u.elo} ELO</div></div>${lvlHTML(u.elo)}</div>`).join('')}</div>`;
 }
-// ladder de la semaine (serveur : ladderBoard) - récompenses versées le lundi
 const RLD={bracket:null,data:null,loading:false};
 const RL_BR=[['b9_10','Master',9,10],['b6_8','Diamond',6,8],['b4_5','Gold',4,5],['b1_3','Contender',1,3]];
 const RL_RW=[[1,1,5000],[2,2,3000],[3,3,2000],[4,10,800],[11,50,300],[51,100,100]],RL_MULT={b9_10:1,b6_8:.75,b4_5:.55,b1_3:.4};
@@ -116,8 +99,6 @@ function realLadderHTML(){
 }
 (()=>{
   const oR=renderRanking;
-  // en ligne : les deux onglets montrent les vrais joueurs (ELO depuis profiles/, ladder de la semaine depuis le serveur) ;
-  // hors ligne (démo), on garde le classement simulé de ranking.js
   renderRanking=function(){
     if(!fbLive())return oR();
     if(rkTab==='ladder'){$('#ranking').innerHTML=rkHead()+realLadderHTML();return}
@@ -132,9 +113,6 @@ Object.assign(I18N.fr,{rk_tab_real:'Joueurs inscrits',rl_loading:'Chargement des
 Object.assign(I18N.en,{rk_tab_real:'Registered players',rl_loading:'Loading players from Firebase…',rl_err:'Cannot reach Firebase right now.',rl_none:'No registered player yet.',rl_you:'You',rl_src:'{n} real players (Firebase)',rl_upd:'updated {x}',rl_refresh:'Refresh',rl_lvl:'Level'});
 Object.assign(I18N.ru,{rk_tab_real:'Реальные игроки',rl_loading:'Загрузка игроков из Firebase…',rl_err:'Firebase сейчас недоступен.',rl_none:'Пока нет игроков.',rl_you:'Ты',rl_src:'{n} реальных игроков (Firebase)',rl_upd:'обновлено {x}',rl_refresh:'Обновить',rl_lvl:'Уровень'});
 
-/* =====================================================
-   v6 : détail d'un match (depuis l'historique), checklist « Bien démarrer »
-   ===================================================== */
 Object.assign(I18N.fr,{md_title:'Détail du match',md_rounds:'Rounds',md_half:'Mi-temps',md_you:'Toi',md_demo:'Demo du match',md_copy:'Copier la commande',md_gen:'Match ancien : composition des équipes reconstituée.',md_open:'Voir le détail',md_elo:'ELO',md_mvp:'MVP',md_first:'1re mi-temps',md_second:'2e mi-temps',md_streak:'Plus longue série : {n} rounds',
   ob_t:'Bien démarrer sur TICKRATE',ob_s:'{a}/{b} étapes · +{c} pièces à la fin',ob_steam:'Lier ton compte Steam',ob_audio:'Régler ton micro et ton casque',ob_match:'Jouer ton premier match',ob_friends:'Trouver des amis',ob_vigie:'Découvrir la Vigie (fair-play)',ob_done:'Tout est prêt ! +{c} pièces',ob_hide:'Masquer'});
 Object.assign(I18N.en,{md_title:'Match details',md_rounds:'Rounds',md_half:'Half-time',md_you:'You',md_demo:'Match demo',md_copy:'Copy command',md_gen:'Older match: team line-ups reconstructed.',md_open:'See details',md_elo:'ELO',md_mvp:'MVP',md_first:'1st half',md_second:'2nd half',md_streak:'Longest streak: {n} rounds',
@@ -142,15 +120,13 @@ Object.assign(I18N.en,{md_title:'Match details',md_rounds:'Rounds',md_half:'Half
 Object.assign(I18N.ru,{md_title:'Детали матча',md_rounds:'Раунды',md_half:'Смена сторон',md_you:'Ты',md_demo:'Демка матча',md_copy:'Скопировать команду',md_gen:'Старый матч: составы восстановлены.',md_open:'Подробнее',md_elo:'ELO',md_mvp:'MVP',md_first:'1-я половина',md_second:'2-я половина',md_streak:'Лучшая серия: {n} раундов',
   ob_t:'Начало на TICKRATE',ob_s:'{a}/{b} шагов · +{c} монет в конце',ob_steam:'Привязать Steam',ob_audio:'Настроить микрофон и наушники',ob_match:'Сыграть первый матч',ob_friends:'Найти друзей',ob_vigie:'Узнать про Дозор (фейр-плей)',ob_done:'Всё готово! +{c} монет',ob_hide:'Скрыть'});
 
-// ---------- détail d'un match ----------
 function mdPack(A,B,mvp){const f=r=>({n:r.p.name,c:r.p.color,k:r.k,a:r.a,d:r.d,adr:r.adr,hs:r.hs,r:+r.rating.toFixed(2),e:r.ch.d,me:!!r.p.me,mvp:r===mvp});return {A:A.map(f),B:B.map(f)}}
-function mdRounds(sW,sL,wonA){   // le vainqueur gagne forcément le dernier round
+function mdRounds(sW,sL,wonA){
   const W=wonA?'A':'B',L=wonA?'B':'A',arr=[...Array(sW-1).fill(W),...Array(sL).fill(L)];
   for(let i=arr.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[arr[i],arr[j]]=[arr[j],arr[i]]}
   return arr.concat(W).join('');
 }
 function mdSeeded(seed){let s=seed>>>0||1;return()=>{s^=s<<13;s^=s>>>17;s^=s<<5;return ((s>>>0)%1e6)/1e6}}
-// anciens matchs sans tableau enregistré : on reconstitue (même résultat à chaque ouverture)
 function mdFill(x,P){
   if(x.sb&&x.rs)return x;
   const R=mdSeeded(+new Date(x.date)||7),pk=a=>a[Math.floor(R()*a.length)],[sa,sb]=String(x.score).split('-').map(Number);
@@ -189,7 +165,6 @@ $('#profile').addEventListener('click',e=>{
   openMatchDetail(profileTarget||ME,+tr.dataset.md);
 });
 
-// ---------- checklist « Bien démarrer » ----------
 const OB_REWARD=150;
 let OB={};try{OB=JSON.parse(localStorage.getItem('tr_ob')||'{}')||{}}catch(e){}
 const obSave=()=>{try{localStorage.setItem('tr_ob',JSON.stringify(OB))}catch(e){}};
@@ -223,9 +198,6 @@ $('#play').addEventListener('click',e=>{
 document.addEventListener('click',e=>{if(e.target.closest('[data-sttab="audio"]')&&!OB.audio){OB.audio=1;obSave()}},true);
 renderOnboard();
 
-/* =====================================================
-   v7 : lien d'invitation de groupe, comparaison de joueurs, matchs en direct (spectateur)
-   ===================================================== */
 Object.assign(I18N.fr,{pl_btn:'Lien d\'invitation',pl_title:'Inviter avec un lien',pl_sub:'Envoie ce lien à tes amis : en l\'ouvrant, ils rejoignent directement ton groupe.',pl_copy:'Copier',pl_copied:'Lien copié',pl_exp:'Expire dans {x}',pl_new:'Nouveau lien',pl_joined:'Arrivés par le lien',pl_none:'Personne pour l\'instant.',pl_off:'Firebase injoignable : en démo, un ami simulé rejoindra dans quelques secondes.',pl_full:'Le groupe est complet.',
   pl_join_ok:'Tu as rejoint le groupe de {n}',pl_join_bad:'Ce lien d\'invitation a expiré ou n\'existe pas.',pl_join_full:'Le groupe de {n} est complet.',pl_in:'{n} a rejoint ton groupe par le lien',
   cmp_btn:'Comparer',cmp_title:'Comparaison',cmp_elo:'Courbe d\'ELO (20 derniers matchs)',cmp_maps:'Win rate par map',cmp_better:'{n} devant sur {k}/{t} stats',cmp_none:'Pas de map en commun sur les derniers matchs.',
@@ -239,7 +211,6 @@ Object.assign(I18N.ru,{pl_btn:'Ссылка-приглашение',pl_title:'П
   cmp_btn:'Сравнить',cmp_title:'Сравнение',cmp_elo:'ELO (последние 20 матчей)',cmp_maps:'Винрейт по картам',cmp_better:'{n} впереди по {k}/{t} показателям',cmp_none:'Нет общих карт в последних матчах.',
   lv_title:'Матчи в прямом эфире',lv_sub:'Смотри лучшие матчи как зритель (GOTV, задержка 90 с).',lv_watch:'Смотреть',lv_round:'Раунд {n}',lv_friend:'{n} играет',lv_feed:'Лента убийств',lv_gotv:'Смотреть в CS:GO',lv_gotv_go:'Открываем CS:GO в режиме зрителя… (команда скопирована: вставь её в консоль, если ничего не произошло)',lv_gotv_t:'Открывает CS:GO в режиме зрителя (GOTV). Задержка 90 с против читов.',lv_end:'Матч окончен',lv_next:'Новый матч через несколько секунд',lv_viewers:'{n} зрителей',lv_avg:'Ср. ELO {n}',lv_none:'Сейчас нет матчей в эфире.',lv_none_off:'Войди, чтобы смотреть матчи в эфире.'});
 
-/* ---------- 1. Lien d'invitation de groupe ---------- */
 const PL={code:null,exp:0,joined:[],poll:null,off:false,sim:null};
 const plCode=()=>Array.from({length:6},()=>'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'[Math.floor(Math.random()*32)]).join('');
 const plLink=()=>`${location.href.split(/[?#]/)[0]}?party=${PL.code}&n=${encodeURIComponent(ME.name)}&e=${ME.elo}`;
@@ -274,7 +245,6 @@ async function plPoll(){
   if(lookChanged)renderParty();
 }
 async function plAdd(v){
-  // données écrites par d'autres joueurs : pseudo et couleur filtrés avant tout affichage
   if(!v||!/^[A-Za-z0-9_.-]{1,25}$/.test(String(v.name||'')))return;
   if(v.color&&!/^#[0-9a-fA-F]{3,8}$/.test(v.color))v.color=null;
   if(state.party.length>=maxParty()){toast(t('pl_full'));return}
@@ -282,7 +252,7 @@ async function plAdd(v){
   if(!p){p=makePlayer(v.name,+v.elo||1500,'high',0);p.elo=+v.elo||p.elo;p.color=v.color||p.color;REG.set(p.name,p)}
   if(v.cardStyle&&typeof validCardId==='function')p.cardStyle=validCardId(v.cardStyle);
   putAv(p,v.avatar);
-  if(typeof applyLook==='function')applyLook(p).then(ch=>{if(ch)renderParty()});   // vraie photo, bannière et couleur
+  if(typeof applyLook==='function')applyLook(p).then(ch=>{if(ch)renderParty()});
   p.viaLink=true;
   if(v.steam)p.steam=v.steam;
   else if(typeof fbReq==='function'&&typeof fbMailbox==='function'){
@@ -385,7 +355,6 @@ document.addEventListener('submit',async e=>{
     renderPL();
   }
 });
-// côté invité : ?party=CODE dans l'URL
 const PL_JOIN=(()=>{const q=new URLSearchParams(location.search);if(!q.has('party'))return null;
   const j={code:q.get('party'),n:q.get('n')||'',e:+q.get('e')||1500};
   try{const u=new URL(location.href);['party','n','e'].forEach(k=>u.searchParams.delete(k));history.replaceState(null,'',u.pathname+u.search)}catch(_){}
@@ -397,7 +366,7 @@ async function plJoin(j){
   const myBox = typeof fbMailbox==='function'?fbMailbox(ME.name):ME.name.toLowerCase();
   if(d&&d.kicked&&(d.kicked[myBox]||d.kicked[ME.name.toLowerCase()]))return toast("Tu as été retiré de ce groupe.");
   if(d&&Object.keys(d.members||{}).length+1>=(d.size||5))return toast(t('pl_join_full',{n:L.name}));
-  if(!L){if(!j.n)return toast(t('pl_join_bad'));L={name:j.n,elo:j.e}}       // hors ligne : on se fie au lien
+  if(!L){if(!j.n)return toast(t('pl_join_bad'));L={name:j.n,elo:j.e}}
   if(L.name.toLowerCase()===ME.name.toLowerCase())return;
   window.CURRENT_PARTY_CODE=j.code;
   if(d)await fbReq(`parties/${j.code}/members/${myBox}`,'PUT',{
@@ -420,7 +389,6 @@ async function plJoin(j){
 }
 if(PL_JOIN){let n=0;const w=setInterval(()=>{if(AUTH.session&&ME&&ME.name){clearInterval(w);plJoin(PL_JOIN)}else if(++n>120)clearInterval(w)},500)}
 
-// Synchronisation temps réel de l'équipe (Lancement de match pour toute la team)
 async function partySyncPoll(){
   if(!window.CURRENT_PARTY_CODE || (typeof FBA !== 'undefined' && FBA && !FBA.idToken))return;
   const pCode=window.CURRENT_PARTY_CODE;
@@ -438,7 +406,6 @@ async function partySyncPoll(){
     const myBox=typeof fbMailbox==='function'?fbMailbox(ME.name):ME.name.toLowerCase();
 
     if(!isLeader){
-      // 1. Vérifier si j'ai été expulsé par le chef
       if(pData.kicked&&(pData.kicked[myBox]||pData.kicked[ME.name.toLowerCase()])){
         state.party=[ME];
         window.CURRENT_PARTY_CODE=null;
@@ -448,7 +415,6 @@ async function partySyncPoll(){
         return;
       }
 
-      // 2. Vérifier si je suis toujours dans la liste des membres
       const membersList=pData.members?Object.values(pData.members):[];
       const stillInMembers=membersList.some(m=>(m.name||'').toLowerCase()===ME.name.toLowerCase());
       if(!stillInMembers){
@@ -460,7 +426,6 @@ async function partySyncPoll(){
         return;
       }
 
-      // 3. Synchroniser la composition pour les membres
       const leaderObj=pData.leader;
       const expectedNames=[leaderObj.name,...membersList.map(m=>m.name)];
 
@@ -526,8 +491,6 @@ async function partySyncPoll(){
         }
       }
     }else{
-      // Je suis le leader
-      // 1. Détecter si un membre a quitté le groupe volontairement
       const fbMemberBoxes=pData.members?Object.keys(pData.members):[];
       const currentTeammates=state.party.slice(1);
       let partyChanged=false;
@@ -548,7 +511,6 @@ async function partySyncPoll(){
         }
       }
 
-      // 2. Vérifier si les membres ont Steam lié ou ont changé de carte de profil
       if(pData.members){
         let memberLookCh=false;
         for(const m of Object.values(pData.members)){
@@ -571,8 +533,6 @@ async function partySyncPoll(){
   }catch(e){}
 }
 setInterval(partySyncPoll,1000);
-// le groupe survit au rechargement de la page : code mémorisé par compte, puis rétabli depuis le serveur
-// (chef : on reprend l'écoute des membres ; membre : la synchro reconstruit la composition)
 const PS={ready:false,last:null,key:()=>'tr_party_'+((typeof FBA!=='undefined'&&FBA.uid)||'')};
 setInterval(()=>{
   if(!PS.ready)return;
@@ -596,13 +556,11 @@ async function partyRestore(){
 }
 (()=>{let n=0;const w=setInterval(()=>{
   if(typeof FBA!=='undefined'&&FBA.uid&&FBA.idToken&&AUTH.session&&ME&&ME.name&&typeof fbLive==='function'&&fbLive()){clearInterval(w);
-    // file d'attente restée sur le serveur après un rechargement : retirée (sinon match trouvé « dans le dos » et pénalité de non-acceptation)
     if(!state.searching&&typeof fbCall==='function')fbCall('queueLeave');
     partyRestore()}
   else if(++n>120){clearInterval(w);PS.ready=true}
 },500)})();
 
-/* ---------- 2. Comparaison de joueurs ---------- */
 function pStats(P){
   ensureDetails(P);const h=P.history.slice(0,20),n=h.length||1,sum=f=>h.reduce((s,x)=>s+f(x),0),K=sum(x=>x.k),D=sum(x=>x.d);
   return {elo:P.elo,lvl:lvl(P.elo),wr:Math.round(sum(x=>x.won?1:0)/n*100),kd:+(D?K/D:K).toFixed(2),hs:Math.round(sum(x=>x.hs)/n),adr:Math.round(sum(x=>x.adr)/n),rating:+(sum(x=>x.rating)/n).toFixed(2),trust:+trust(P).toFixed(1),matches:P.matches,h};
@@ -635,9 +593,6 @@ document.body.insertAdjacentHTML('beforeend',`<div class="overlay" id="cmpModal"
 document.addEventListener('click',e=>{const c=e.target.closest('[data-compare]');if(c){e.stopPropagation();openCompare(c.dataset.compare)}});
 (()=>{const o=profileActions;profileActions=function(P){return o(P).replace('<div class="p-actions">',`<div class="p-actions"><button class="btn sm" data-compare="${escA(P.name)}"><svg class="ic" aria-hidden="true" fill="currentColor" viewBox="0 0 512 512" style="width:14px;height:14px"><path d="M218.31 340.69A16 16 0 00191 352v32h-20a28 28 0 01-28-28V152a64 64 0 10-64-1.16V356a92.1 92.1 0 0092 92h20v32a16 16 0 0027.31 11.31l64-64a16 16 0 000-22.62zM112 64a32 32 0 11-32 32 32 32 0 0132-32zM432 360.61V156a92.1 92.1 0 00-92-92h-20V32a16 16 0 00-27.31-11.31l-64 64a16 16 0 000 22.62l64 64A16 16 0 00320 160v-32h20a28 28 0 0128 28v204.61a64 64 0 1064 0zM400 448a32 32 0 1132-32 32 32 0 01-32 32z"/></svg>${t('cmp_btn')}</button>`)}})();
 
-/* ---------- 3. Matchs en direct + spectateur ---------- */
-// Les matchs viennent de liveMatches/<matchId> (Cloud Functions, voir functions/lib/live.js) :
-// créés quand les 10 joueurs sont connectés, mis à jour à chaque round par le serveur de jeu.
 const LIVE=[];let lvTimer=null,lvOpen=null,lvLoaded=false;
 const LV_POLL=10e3;
 const lvColor=n=>`hsl(${[...String(n)].reduce((h,c)=>(h*31+c.charCodeAt(0))%360,7)},45%,42%)`;
@@ -650,11 +605,11 @@ function lvFrom(id,x){
 async function lvFetch(){
   if(!(typeof fbLive==='function'&&fbLive()&&AUTH.session)){LIVE.length=0;lvLoaded=true;return}
   const all=await fbReq('liveMatches');lvLoaded=true;
-  if(all===null&&LIVE.length)return;            // erreur réseau : on garde le dernier état
+  if(all===null&&LIVE.length)return;
   const avg=m=>[...m.A,...m.B].reduce((s,p)=>s+p.elo,0)/Math.max(1,m.A.length+m.B.length);
   LIVE.splice(0,LIVE.length,...Object.entries(all||{}).map(([id,x])=>lvFrom(id,x)).sort((a,b)=>avg(b)-avg(a)).slice(0,6));
 }
-async function lvStep(){await lvFetch();renderLive();if(lvOpen)renderSpec()}
+async function lvStep(){if(document.hidden&&!lvOpen)return;await lvFetch();renderLive();if(lvOpen)renderSpec()}
 function renderLive(){
   let el=$('#live');if(!el){const miss=$('#missions');miss.insertAdjacentHTML('afterend','<section id="live"></section>');el=$('#live')}
   const avgE=arr=>arr.length?Math.round(arr.reduce((s,p)=>s+p.elo,0)/arr.length):0;
@@ -682,28 +637,16 @@ function renderSpec(){
 }
 document.body.insertAdjacentHTML('beforeend',`<div class="overlay" id="specModal"><div class="modal md-modal spec-modal"><div class="m-h"><h3 data-i18n="lv_title">${t('lv_title')}</h3><button class="x2" data-close>×</button></div><div id="specBody"></div></div></div>`);
 document.addEventListener('click',async e=>{
-  // GOTV : même lancement que « Rejoindre » (steam://connect ouvre CS:GO legacy et se connecte, jeu ouvert ou non) ;
-  // la commande est aussi copiée, au cas où (à coller dans la console)
   const g=e.target.closest('[data-gotv]');if(g){e.preventDefault();e.stopPropagation();
     try{await navigator.clipboard.writeText('connect '+g.dataset.gotv)}catch(_){}
     steamOpen(`steam://connect/${g.dataset.gotv}`);toast(t('lv_gotv_go'));beep(990,.06);return}
   const c=e.target.closest('[data-live]');if(c){lvOpen=c.dataset.live;renderSpec();openModal('specModal');return}
   if(e.target.closest('#specModal [data-close]')||e.target.id==='specModal')lvOpen=null;
 });
-// le profil d'un joueur ouvert depuis le spectateur ferme la fenêtre
 document.addEventListener('click',e=>{if(e.target.closest('#specModal [data-profile]')){closeModal('specModal');lvOpen=null}},true);
 (()=>{const sv=setView;setView=function(v,k){const r=sv.call(this,v,k);if(v==='play'){lvStep();clearInterval(lvTimer);lvTimer=setInterval(lvStep,LV_POLL)}else if(!lvOpen){clearInterval(lvTimer);lvTimer=null}return r}})();
-// premier chargement après la fin du script : fbLive / fbReq sont déclarés plus bas
 renderLive();setTimeout(lvStep,0);clearInterval(lvTimer);lvTimer=setInterval(lvStep,LV_POLL);
 
-/* =====================================================
-   v8 : MODE FIREBASE (vrais comptes)
-   S'active dès que FB_API_KEY est renseignée (plus haut dans ce fichier).
-   - Comptes e-mail / mot de passe : Firebase Authentication (API REST)
-   - Connexion Steam : fonction steamAuth (OpenID vérifié côté serveur) -> jeton Firebase
-   - Profil, ELO, niveau : lus dans profiles/<uid>, écrits UNIQUEMENT par les Cloud Functions
-   Sans clé : le site reste en mode démo, comme avant.
-   ===================================================== */
 var FB_PROJECT='tickratecsgo';
 const FB_FN=()=>`https://europe-west1-${FB_PROJECT}.cloudfunctions.net`;
 const fbLive=()=>!!FB_API_KEY;
@@ -711,10 +654,9 @@ Object.assign(I18N.fr,{e_auth_disabled:'La connexion par e-mail est désactivée
 Object.assign(I18N.en,{e_auth_disabled:'Email sign-in is disabled on the server for now. Use Google meanwhile.',au_migrate:'Accounts are now stored online: log in once with your email and password to transfer your account.',au_fb:'TICKRATE accounts (Firebase)',e_use_email:'Log in with your email address.',e_steam_cancel:'Steam sign-in cancelled.',e_rename_cooldown:'You already changed your username in the last 30 days.',e_unlink_firebase:'To unlink Steam, contact support.'});
 Object.assign(I18N.ru,{e_auth_disabled:'Вход по e-mail сейчас отключён на сервере. Пока используй Google.',au_migrate:'Аккаунты теперь хранятся онлайн: войди один раз по e-mail и паролю, чтобы перенести аккаунт.',au_fb:'Аккаунты TICKRATE (Firebase)',e_use_email:'Войди по адресу e-mail.',e_steam_cancel:'Вход через Steam отменён.',e_rename_cooldown:'Ник уже меняли за последние 30 дней.',e_unlink_firebase:'Чтобы отвязать Steam, напиши в поддержку.'});
 
-const FB_ERR={bad_credentials:'bad_credentials',rate_limited:'rate_limited',   // codes renvoyés par nos fonctions (loginName, resetName)
+const FB_ERR={bad_credentials:'bad_credentials',rate_limited:'rate_limited',
   PASSWORD_LOGIN_DISABLED:'auth_disabled',OPERATION_NOT_ALLOWED:'auth_disabled',EMAIL_EXISTS:'email_taken',INVALID_LOGIN_CREDENTIALS:'bad_credentials',INVALID_PASSWORD:'bad_credentials',EMAIL_NOT_FOUND:'bad_credentials',USER_DISABLED:'bad_credentials',TOO_MANY_ATTEMPTS_TRY_LATER:'too_many_attempts',INVALID_EMAIL:'bad_email',MISSING_PASSWORD:'missing_fields',username_taken:'username_taken',rename_cooldown:'rename_cooldown'};
 const fbErr=m=>{m=String(m||'');const k=Object.keys(FB_ERR).find(x=>m.startsWith(x));return k?FB_ERR[k]:m.startsWith('WEAK_PASSWORD')?'pw_short':'server_error'};
-// uid lu dans le jeton (la réponse de signInWithCustomToken, utilisée après Steam, ne contient pas localId)
 const fbUidOf=tok=>{try{const b=tok.split('.')[1].replace(/-/g,'+').replace(/_/g,'/');return JSON.parse(decodeURIComponent(escape(atob(b+'==='.slice((b.length+3)%4))))).user_id||null}catch(e){return null}};
 function fbSetTokens(j){
   FBA.idToken=j.idToken||j.id_token;FBA.refresh=j.refreshToken||j.refresh_token;FBA.uid=j.localId||j.user_id||fbUidOf(FBA.idToken)||FBA.uid;FBA.exp=Date.now()+(+(j.expiresIn||j.expires_in)||3600)*1e3;
@@ -724,14 +666,12 @@ async function fbIdt(op,body){
   try{const r=await fetch(`https://identitytoolkit.googleapis.com/v1/accounts:${op}?key=${FB_API_KEY}`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
     const j=await r.json();return r.ok?j:{error:fbErr(j.error&&j.error.message)}}catch(e){return {error:'network'}}
 }
-// appelle une Cloud Function « callable » (même protocole que le SDK Firebase)
 async function fbCall(name,data={}){
   await fbAuthEnsure();
   try{const r=await fetch(`${FB_FN()}/${name}`,{method:'POST',headers:{'Content-Type':'application/json',...(FBA.idToken?{Authorization:'Bearer '+FBA.idToken}:{})},body:JSON.stringify({data})});
     const j=await r.json().catch(()=>({}));
     if(j.error)return {error:fbErr(j.error.message)||j.error.message};return j.result||{}}catch(e){return {error:'network'}}
 }
-// pas de compte anonyme en mode Firebase : seulement le renouvellement d'une vraie session
 (()=>{const o=fbAuthEnsure;fbAuthEnsure=async function(){if(fbLive()&&!FBA.refresh&&!FBA.idToken)return null;return o()}})();
 
 async function fbBuildSession(){
@@ -740,7 +680,7 @@ async function fbBuildSession(){
   if(!prof){
     const pending=FBA.pendingName||localStorage.getItem('tr_pending_name')||sessionStorage.getItem('tr_pending_name')||'';
     try{const r=await fbCall('profileInit',{name:pending,country:ME.country||'FR'});prof=r&&r.profile}catch(e){}
-    if(!prof)return null;   // profil créé uniquement par profileInit (serveur)
+    if(!prof)return null;
   }
   try{localStorage.removeItem('tr_pending_name');sessionStorage.removeItem('tr_pending_name')}catch(_){}
   if(!prof)return null;
@@ -752,16 +692,15 @@ async function fbBuildSession(){
     }
     return null;
   }
-  // l'ELO et le niveau viennent du serveur
   ME.uid=FBA.uid;
   ME.plan=prof.plan||'free';
   ME.influencer=prof.influencer||null;
   ME.beta=!!prof.beta;
   if(prof.dev)ME.dev=true;
   if(typeof prof.elo==='number')ME.elo=prof.elo;
-  if(typeof prof.eloWm==='number')ME.eloWm=prof.eloWm;   // classement Wingman séparé
-  ME.steamAvatar=prof.avatar||null;                          // avatar Steam : affiché seulement si pas de photo choisie sur le site
-  if(ME.avatar&&!/^data:image\//.test(ME.avatar))ME.avatar=null;   // ancienne copie de l'avatar Steam (les photos du site sont des data:)
+  if(typeof prof.eloWm==='number')ME.eloWm=prof.eloWm;
+  ME.steamAvatar=prof.avatar||null;
+  if(ME.avatar&&!/^data:image\//.test(ME.avatar))ME.avatar=null;
   for(const k of ['matchesWm','winsWm','peakEloWm','eloDuel','matchesDuel','winsDuel','peakEloDuel'])if(typeof prof[k]==='number')ME[k]=prof[k];
   const myBox=typeof fbMailbox==='function'?fbMailbox(prof.name):prof.name.toLowerCase();
   let hist=await fbReq(`history/${FBA.uid}`);
@@ -824,7 +763,6 @@ async function fbEnter(msg){
     try{
       await fbCall('profileInit',{name:chosenName,country:ME.country||'FR'});
     }catch(e){console.warn('profileInit during register error',e)}
-    // Envoi de l'e-mail de confirmation Firebase avec la langue choisie et retour sur tickrate.eu
     try{
       const contUrl=(location.origin||'https://tickrate.eu').replace(/^http:\/\//i,'https://')+'/';
       let r=await fetch(`https://identitytoolkit.googleapis.com/v1/accounts:sendOobCode?key=${FB_API_KEY}`,{
@@ -850,16 +788,14 @@ async function fbEnter(msg){
       refreshToken:j.refreshToken
     };
   };
-  // Firebase actif : plus jamais de repli silencieux sur un compte local (il ne pourrait ni payer ni être vérifié).
-  // Un ancien compte local (même e-mail + même mot de passe) est transféré une fois vers Firebase.
   doLogin=async function(f){
     if(!fbLive())return oLog(f);
     let email=String(f.login).trim();
     let j=null;
     if(!email.includes('@')){
       const a=dAcc().find(x=>x.username.toLowerCase()===email.toLowerCase());
-      if(a&&a.email)email=a.email;                             // ancien compte local : transfert ci-dessous
-      else{                                                    // pseudo : le serveur retrouve l'e-mail et vérifie le mot de passe
+      if(a&&a.email)email=a.email;
+      else{
         const r=await fbCall('loginName',{name:email,password:f.password});
         if(r.error)return {error:r.error==='rate_limited'?r.error:'bad_credentials',field:'login'};
         j=r;
@@ -868,7 +804,6 @@ async function fbEnter(msg){
     if(!j)j=await fbIdt('signInWithPassword',{email,password:f.password,returnSecureToken:true});
     if(!j.error){
       fbSetTokens(j);
-      // Vérification que l'adresse e-mail a été validée
       const info=await fbIdt('lookup',{idToken:j.idToken});
       const u=info&&info.users&&info.users[0]||{};
       if(u.emailVerified===false){
@@ -886,7 +821,7 @@ async function fbEnter(msg){
       const s=await fbBuildSession();if(!s)return {error:'server_error'};AUTH.mode='firebase';return {ok:true,session:s}
     }
     if(j.error!=='bad_credentials')return j;
-    const loc=await oLog({...f,login:email});                 // mot de passe vérifié sur le compte local
+    const loc=await oLog({...f,login:email});
     try{localStorage.removeItem('tr_auth');sessionStorage.removeItem('tr_auth')}catch(e){}
     if(!loc.ok)return {error:'bad_credentials'};
     const up=await fbIdt('signUp',{email,password:f.password,returnSecureToken:true});
@@ -910,15 +845,13 @@ async function fbEnter(msg){
     }catch(e){}
     AUTH.session=null;
   };
-  // Steam : fonction steamAuth (OpenID vérifié côté serveur). Déconnecté = connexion / création de compte,
-  // connecté = liaison au compte actuel. Le retour (#ft=… ou #steam=…) est traité au démarrage plus bas.
   doSteam=async function(){
     if(!fbLive())return oSteam();
     const secureOrigin=(location.origin||'https://tickrate.eu').replace(/^http:\/\//i,'https://');
     const p=new URLSearchParams({ret:secureOrigin+location.pathname});
     if(AUTH.mode==='firebase'&&FBA.uid){await fbAuthEnsure();if(!FBA.idToken)return {error:'server_error'};p.set('mode','link');p.set('idToken',FBA.idToken)}
     location.href=`${FB_FN()}/steamAuth?${p}`;
-    return new Promise(()=>{});      // la page part vers Steam
+    return new Promise(()=>{});
   };
   window.fbInitApp=function(){
     if(window.firebase&&window.FB_API_KEY&&!firebase.apps.length){
@@ -962,12 +895,10 @@ async function fbEnter(msg){
     fbSetTokens(j);a.has_password=true;return {ok:true};
   };
   doUnlinkSteam=async function(){return oUnl();};
-  // l'écran de connexion indique le mode
   const oShow=showAuth;showAuth=function(tab){
-    if(fbLive()&&AUTH.mode==='firebase'&&AUTH.session)return;      // déjà connecté : on ignore (évite la course avec l'ancien démarrage)
+    if(fbLive()&&AUTH.mode==='firebase'&&AUTH.session)return;
     const r=oShow(tab);if($('#authMode'))$('#authMode').textContent='';return r;
   };
-  // classement « Joueurs inscrits » : profils officiels (profiles/) au lieu des copies users/
   const oLB=fbLoadLeaderboard;fbLoadLeaderboard=async function(force){
     if(!fbLive())return oLB(force);
     if(RLB.loading||(!force&&RLB.rows&&Date.now()-RLB.at<60e3))return;RLB.loading=true;RLB.err=null;
@@ -979,7 +910,6 @@ async function fbEnter(msg){
     RLB.loading=false;if(!$('#ranking').hidden&&rkTab!=='ladder')renderRanking();
   };
 })();
-// démarrage : retour de Steam (#ft=…) ou session enregistrée
 (async()=>{
   if(!fbLive())return;
   const h=new URLSearchParams(location.hash.slice(1)),ft=h.get('ft'),sp=h.get('steam');
@@ -995,8 +925,6 @@ async function fbEnter(msg){
       return;
     }
   }
-  // ancienne session locale (compte enregistré seulement dans ce navigateur) : on demande de se reconnecter,
-  // la connexion transfère alors le compte vers Firebase (voir doLogin)
   const old=typeof dSessionGet==='function'&&dSessionGet();
   try{localStorage.removeItem('tr_auth');sessionStorage.removeItem('tr_auth')}catch(e){}
   AUTH.mode='demo';AUTH.session=null;showAuth('login');
@@ -1005,16 +933,9 @@ async function fbEnter(msg){
   if(sp==='cancel')$('#liErr')&&($('#liErr').textContent=t('e_steam_cancel'));
 })();
 
-/* =====================================================
-   v9 : ÉCONOMIE DES SKINS
-   inventaire d'objets uniques (float + pattern), vraies caisses CS:GO, drops de fin de match,
-   pass de combat (caisses + skins), marché entre joueurs, usure au choix pour PREMIUM.
-   Moteur commun site / serveur : eco-core.js · données : cases-data.js
-   ===================================================== */
 var ECO=null;
 const CDB=window.CASE_DB||{cases:[],items:{},rare:{},pre:''},EC=window.ECO_CORE;
 const ECO_CFG={fee:0.10,quick:0.40,minList:5};
-// noms de rareté et d'usure dans la langue du site (le moteur EC les garde en anglais pour le serveur)
 Object.assign(I18N.fr,{rar_0:'Qualité militaire',rar_1:'Restreint',rar_2:'Classifié',rar_3:'Secret',rar_4:'★ Rare',iv_new:'NOUVEAU'});
 Object.assign(I18N.en,{rar_0:'Mil-Spec',rar_1:'Restricted',rar_2:'Classified',rar_3:'Covert',rar_4:'★ Rare',iv_new:'NEW'});
 Object.assign(I18N.ru,{rar_0:'Армейское',rar_1:'Запрещённое',rar_2:'Засекреченное',rar_3:'Тайное',rar_4:'★ Редкое',iv_new:'НОВОЕ'});
@@ -1026,7 +947,6 @@ const W_TEAM={'Tec-9':'T','P2000':'CT','Sawed-Off':'T','MAG-7':'CT','AUG':'CT','
 const RN=['Mil-Spec Grade','Restricted','Classified','Covert','Extraordinary'];
 if(!CATS.includes('heavy'))CATS.splice(CATS.indexOf('knife'),0,'heavy');
 
-// 1) les skins des caisses deviennent équipables dans le casier ; les skins du casier existent dans le moteur de prix
 (function bridge(){
   for(const [k,it] of Object.entries(CDB.items)){
     let W=SKDB.weapons.find(w=>w.name===it.w);
@@ -1042,7 +962,6 @@ if(!CATS.includes('heavy'))CATS.splice(CATS.indexOf('knife'),0,'heavy');
 const keyOf=(wid,p)=>{const W=weaponOf(wid);return W&&Object.keys(CDB.items).find(k=>CDB.items[k].w===W.name&&CDB.items[k].p===p)};
 const itemW=item=>{const it=CDB.items[item.k];return SKDB.weapons.find(w=>w.name===it.w)};
 
-// 2) état
 const isoWeek=()=>{const d=new Date();d.setHours(0,0,0,0);d.setDate(d.getDate()+3-(d.getDay()+6)%7);const w1=new Date(d.getFullYear(),0,4);return d.getFullYear()+'-'+(1+Math.round(((d-w1)/864e5-3+(w1.getDay()+6)%7)/7))};
 try{ECO=JSON.parse(localStorage.getItem('tr_eco')||'null')}catch(e){}
 if(!ECO||!Array.isArray(ECO.items))ECO={items:[],cases:[],listings:[],sold:[],bought:[],week:{w:isoWeek(),cases:0,items:0},pending:[],n:0};
@@ -1051,7 +970,6 @@ const eid=()=>'i'+Date.now().toString(36)+(ECO.n++).toString(36);
 function ecoWeek(){if(ECO.week.w!==isoWeek())ECO.week={w:isoWeek(),cases:0,items:0};return ECO.week}
 function addItem(it,src){const x={id:eid(),k:it.k,f:it.f,s:it.s,st:!!it.st,src,at:Date.now(),c:it.c||null,new:true};ECO.items.unshift(x);ecoSave();return x}
 function addCase(cid,src){const x={id:eid(),c:String(cid),src,at:Date.now(),new:true};ECO.cases.unshift(x);ecoSave();return x}
-// migration : skins de l'ancien système (boutique / pass) -> vrais objets avec usure
 if(!ECO.migrated){
   (SHOP.skins||[]).forEach(s=>{const [w,p]=s.split(':'),k=keyOf(w,+p);if(k)addItem(EC.makeItem(CDB,k,Math.random,{st:false}),'legacy')});
   SHOP.skins=[];saveShop();ECO.migrated=true;ecoSave();
@@ -1061,7 +979,6 @@ const ecoInst=(wid,p)=>ECO.items.filter(i=>!i.listed&&itemW(i)&&itemW(i).id===wi
 const val=i=>EC.price(CDB,i).v;
 const wearShort={fn:'FN',mw:'MW',ft:'FT',ww:'WW',bs:'BS'};
 
-// 3) textes
 Object.assign(I18N.fr,{it_title:'Objet',nav_inv:'Inventaire',cat_heavy:'Lourdes',inv_title:'Inventaire',inv_sub:'Tes skins et tes caisses. Chaque objet est unique : usure, pattern et StatTrak™.',inv_value:'Valeur estimée',inv_items:'{n} objets',inv_cases:'Caisses : {n}',
   it_all:'Tout',it_w:'Armes',it_k:'Couteaux & gants',it_c:'Caisses',it_tu:'Contrat d\'échange',tu_hint:'Choisis 10 objets de même rareté (et même StatTrak™) : tu reçois un objet de la rareté au-dessus, tiré des caisses de tes objets. Son usure suit l\'usure moyenne des 10.',tu_odds:'Résultats possibles',tu_need:'Encore {n} objet(s)',tu_sign:'Signer le contrat',tu_clear:'Vider',tu_bad:'Objet non utilisable : même rareté et même StatTrak™ que les autres, pas équipé ni en vente.',tu_full:'Le contrat a déjà 10 objets.',tu_done:'Contrat signé : {x}',src_tradeup:'Contrat d\'échange',iv_wtype:'Type d\'arme',iv_wall:'Toutes les armes',iv_wone:'Arme',cat_pistol:'Pistolets',cat_smg:'Pistolets-mitrailleurs',cat_rifle:'Fusils',cat_heavy:'Lourdes',cat_knife:'Couteaux',cat_gloves:'Gants',so_new:'Récents',so_val:'Valeur',so_rar:'Rareté',so_flt:'Float',inv_empty:'Rien ici pour l\'instant. Joue des matchs : tu peux drop des caisses et des armes à la fin de chaque partie.',
   c_open:'Ouvrir',c_contains:'Contenu de la caisse',c_rare:'★ Objet rare spécial',c_free:'Ouverture gratuite : les caisses se gagnent en jouant, pas de clé à acheter.',c_skip:'Passer l\'animation',c_keep:'Garder',c_again:'Ouvrir une autre',c_odds:'Probabilités',
@@ -1102,7 +1019,6 @@ Object.assign(I18N.ru,{it_title:'Предмет',nav_inv:'Инвентарь',ca
   plan_plus_d:'Чтобы чаще получать дропы.',plan_prem_d:'Чтобы выбирать износ скинов.',
   inv_hint:'Твои скины: кейсы, дропы, пропуск, маркет и инвентарь Steam.',n_drop:'Дроп: {x}',n_sold:'Продано: {x}'});
 
-// 4) formules : PREMIUM à 5,47 €, plus de « catalogue de skins »
 PRICES.premium={m:5.47,y:45.99};
 FEATS.free=['f_mm_free','f_stats','f_drops','f_inv','f_hist'];
 FEATS.plus=['f_mm_plus','f_drop_plus','f_tag','f_stk','f_badge_plus'];
@@ -1110,7 +1026,6 @@ FEATS.premium=['f_mm_prem','f_wear','f_agents','f_review','f_demo','f_hist_unl',
 CMP.length=0;CMP.push(['cmp_gap','±400','±250','±150'],['cmp_trust',2],['f_mm',0],['f_stats',0],['f_drops',0],['f_inv',0],['f_hist',0],['f_drop_plus',1],['f_tag',1],['f_stk',1],['f_wear',2],['f_agents',2],['f_review',2],['f_demo',2],['f_hist_unl',2],['f_profile',2],['f_support',2]);
 lo.src='inv';
 
-// 5) carte d'objet + helpers d'affichage
 function patBadge(i){const p=EC.pattern(CDB,i);return p.label?`<span class="pt-b ${p.tier||''}">${escA(p.label)}</span>`:''}
 function itemCard(i,extra=''){
   const it=CDB.items[i.k],pr=EC.price(CDB,i);
@@ -1125,24 +1040,18 @@ function floatBar(i){
   return `<div class="fbar"><div class="fb-seg">${seg}</div><span class="fb-off" style="left:0;width:${it.mn*100}%"></span><span class="fb-off" style="left:${it.mx*100}%;right:0"></span><span class="fb-mk" style="left:${i.f*100}%"></span></div>`;
 }
 
-// 6) INVENTAIRE - grille paginée façon ancien inventaire CS:GO
-// cases sombres + barre de rareté, nom sur 2 lignes, infobulle au survol, menu d'actions au clic
 let invTab='all',invSort='new',invQ='',invPage=0,invMenu=null;
-let invW='';   // filtre par type d'arme : '' | 'cat:pistol' … | nom d'arme (« AK-47 »)
-let TU=[];     // contrat d'échange : ids des objets choisis (10)
+let invW='';
+let TU=[];
 const INV_PAGE=24;
 Object.assign(I18N.fr,{src_beta:'Bêta testeur : skin débloqué',src_dev:'Compte dev : tous les skins',src_steam:'Inventaire Steam',iv_steam_new:'Skin récent (CS2) : pas encore équipable',iv_steam_priv:'Ton inventaire Steam est privé : rends-le public dans Steam pour voir tes armes ici.',iv_save:'Enregistrer',iv_cust_t:'Personnaliser',iv_ag_t:'Agents',src_shop:'Acheté en boutique',iv_eq_both:'Équiper (T et CT)',iv_eq_T:'Équiper côté T',iv_eq_CT:'Équiper côté CT',iv_unequip:'Retirer',iv_custom:'Personnaliser (autocollants, name tag)',iv_slot:'Équipement',iv_rifle:'Fusil CT',iv_pistol:'Pistolet CT',iv_agents:'Agents',iv_slot_hint:'Arme donnée au menu d’achat en jeu',iv_equipped:'Équipé',iv_inspect:'Inspecter',iv_equip:'Équiper',iv_sell:'Vendre sur le marché',iv_quick:'Vente rapide',iv_open:'Ouvrir la caisse',iv_page:'Page {p} / {n}',iv_items:'{n} objets',iv_coll:'Collection',iv_ext:'Usure',iv_val:'Valeur'});
 Object.assign(I18N.en,{src_beta:'Beta tester: unlocked skin',src_dev:'Dev account: every skin',src_steam:'Steam inventory',iv_steam_new:'Recent skin (CS2): cannot be equipped yet',iv_steam_priv:'Your Steam inventory is private: make it public on Steam to see your weapons here.',iv_save:'Save',iv_cust_t:'Customize',iv_ag_t:'Agents',src_shop:'Bought in the shop',iv_eq_both:'Equip (T and CT)',iv_eq_T:'Equip T side',iv_eq_CT:'Equip CT side',iv_unequip:'Unequip',iv_custom:'Customize (stickers, name tag)',iv_slot:'Loadout',iv_rifle:'CT rifle',iv_pistol:'CT pistol',iv_agents:'Agents',iv_slot_hint:'Weapon given in the in-game buy menu',iv_equipped:'Equipped',iv_inspect:'Inspect',iv_equip:'Equip',iv_sell:'Sell on market',iv_quick:'Quick sell',iv_open:'Open case',iv_page:'Page {p} / {n}',iv_items:'{n} items',iv_coll:'Collection',iv_ext:'Exterior',iv_val:'Value'});
 Object.assign(I18N.ru,{src_beta:'Бета-тестер: открытый скин',src_dev:'Аккаунт dev: все скины',src_steam:'Инвентарь Steam',iv_steam_new:'Новый скин (CS2): пока нельзя экипировать',iv_steam_priv:'Твой инвентарь Steam скрыт: открой его в Steam, чтобы видеть оружие здесь.',iv_save:'Сохранить',iv_cust_t:'Настройка',iv_ag_t:'Агенты',src_shop:'Куплено в магазине',iv_eq_both:'Экипировать (T и CT)',iv_eq_T:'Экипировать за T',iv_eq_CT:'Экипировать за CT',iv_unequip:'Снять',iv_custom:'Настроить (наклейки, name tag)',iv_slot:'Снаряжение',iv_rifle:'Винтовка CT',iv_pistol:'Пистолет CT',iv_agents:'Агенты',iv_slot_hint:'Оружие в меню покупки в игре',iv_equipped:'Экипировано',iv_inspect:'Осмотреть',iv_equip:'Экипировать',iv_sell:'Продать на маркете',iv_quick:'Быстрая продажа',iv_open:'Открыть кейс',iv_page:'Стр. {p} / {n}',iv_items:'{n} предметов',iv_coll:'Коллекция',iv_ext:'Износ',iv_val:'Цена'});
-// slots CT : M4A4 ou M4A1-S, USP-S ou P2000 (lu par le plugin tickrate_loadout pour le menu d'achat)
-// comme le casier de CS:GO : M4, pistolet CT, Deagle / R8, Five-SeveN-Tec-9 / CZ75-Auto, MP7 / MP5-SD
 const SLOT_PAIRS={m4:['m4a4','m4a1-s'],ctp:['usp-s','p2000'],dg:['desert-eagle','r8-revolver'],cz:['five-seven','cz75-auto'],mp:['mp7','mp5-sd']};
 const SLOT_DEF={m4:'m4a4',ctp:'usp-s',dg:'desert-eagle',cz:'five-seven',mp:'mp7'};
 LOAD.pref={...SLOT_DEF,...(LOAD.pref||{})};
 const slotOf=wid=>Object.keys(SLOT_PAIRS).find(k=>SLOT_PAIRS[k].includes(wid));
-// skins achetés en boutique : affichés dans la grille (pas vendables, pas d'usure propre)
 function shopItems(){return SHOP.skins.map(x=>{const [w,p]=x.split(':'),k=keyOf(w,+p);return k?{id:'shop:'+x,k,f:.1,s:0,st:false,at:0,src:'shop',virtual:true}:null}).filter(Boolean)}
-// vrai inventaire Steam (Cloud Function steamInventory) : retrouvé dans la base de skins par son nom
 const STEAMINV={at:0,items:null,private:false,loading:false};
 const WEAR_MID=[.035,.11,.265,.415,.6];
 async function steamInvLoad(){
@@ -1150,7 +1059,6 @@ async function steamInvLoad(){
   STEAMINV.loading=true;const r=await fbCall('steamInventory');STEAMINV.loading=false;STEAMINV.at=Date.now();
   if(r&&!r.error){STEAMINV.items=r.items||[];STEAMINV.private=!!r.private;if(!$('#inventory').hidden)renderInventory()}
 }
-// skin Steam absent des caisses du site (skins CS2, collections…) : le serveur donne arme + paint index, on l'ajoute au catalogue
 function steamBridge(x,w,n){
   if(!x.def||x.p==null)return null;
   const key='stm_'+x.def+'_'+x.p;
@@ -1170,13 +1078,11 @@ function steamItems(){
     const it=CDB.items[k],f=Math.min(it.mx,Math.max(it.mn,WEAR_MID[x.wear]??.2));
     return {id:'steam:'+x.id,k,f:+f.toFixed(4),s:0,st:x.st,at:1,src:'steam',virtual:true}});
 }
-// compte dev (roles/<uid> = "dev", lu par admin.js) : tous les skins du catalogue, pour tester inventaire et équipements
 let DEV_ITEMS=null;
 function devItems(){
   if(typeof ADM==='undefined'||!ADM.dev||ADM.devUid!==FBA.uid)return [];
   return DEV_ITEMS||(DEV_ITEMS=Object.keys(CDB.items).filter(k=>!k.startsWith('stm_')).map(k=>({id:'dev:'+k,k,f:.03,s:0,st:false,at:0,src:'dev',virtual:true})));
 }
-// rôle Bêta testeur : une partie des skins (sélection fixe d'eco-core, la même que celle du serveur)
 let BETA_ITEMS=null;
 function betaItems(){
   if(!ME.beta||(typeof ADM!=='undefined'&&ADM.dev))return [];
@@ -1184,11 +1090,8 @@ function betaItems(){
 }
 function betaOwns(wid,p){return betaItems().some(i=>{const W=itemW(i);return W&&W.id===wid&&CDB.items[i.k].p===p})}
 const invFind=id=>ECO.items.find(x=>x.id===id)||shopItems().find(x=>x.id===id)||steamItems().find(x=>x.id===id)||devItems().find(x=>x.id===id)||betaItems().find(x=>x.id===id);
-// camp équipé ('T' | 'CT' | 'both') ou null
 function equippedTeam(i){const W=itemW(i),c=W&&LOAD.w[W.id];if(!c)return null;
   const ok=i.virtual?(!c.iid&&c.p===CDB.items[i.k].p):c.iid===i.id;return ok?(W.team==='both'?(c.team||'both'):W.team):null}
-// couteaux et gants : un seul emplacement par camp, quel que soit le modèle (Bayonet, Karambit…)
-// équiper l'un retire les autres de ce camp : « T et CT » -> l'ancien garde l'autre camp, sinon il est retiré
 function freeSlot(W,team){
   if(W.cat!=='knife'&&W.cat!=='gloves')return;
   for(const O of SKDB.weapons){
@@ -1205,17 +1108,15 @@ function invEquip(i,team){
     LOAD.w[W.id]={p,f:i.src==='steam'?i.f:prev.p===p&&prev.f!=null?prev.f:.1,seed:prev.seed||0,st:i.src==='steam'&&!!i.st,tag:prev.tag||'',team:'both',stk:Array.isArray(prev.stk)?prev.stk:Array(STK_SLOTS).fill(null)};
     toast(t('equipped_toast',{x:EC.name(CDB,i)}))}
   else equipItem(i);
-  const cu=(LOAD.cust||{})[i.id];          // personnalisation de cet exemplaire (et non de l'arme précédente)
-  if(cu&&cu.st!=null)LOAD.w[W.id].st=!!cu.st;            // StatTrak choisi dans « Personnaliser »
+  const cu=(LOAD.cust||{})[i.id];
+  if(cu&&cu.st!=null)LOAD.w[W.id].st=!!cu.st;
   LOAD.w[W.id].tag=cu?cu.tag||'':'';LOAD.w[W.id].stk=cu&&Array.isArray(cu.stk)?cu.stk.map(x=>x&&{...x}):Array(STK_SLOTS).fill(null);
   LOAD.w[W.id].team=W.team==='both'?(team||'both'):W.team;
-  const sl=slotOf(W.id);if(sl)LOAD.pref={...LOAD.pref,[sl]:W.id};      // équiper une M4A1-S la met aussi dans le slot
+  const sl=slotOf(W.id);if(sl)LOAD.pref={...LOAD.pref,[sl]:W.id};
   saveLoad();renderInventory();
 }
 function invUnequip(i){const W=itemW(i);if(W&&equippedTeam(i)){delete LOAD.w[W.id];saveLoad();renderInventory()}}
-// fenêtre « Personnaliser » : name tag, autocollants, camp (l'ancienne page Casier n'est plus utilisée)
 let CUST=null;
-// personnalisation enregistrée par exemplaire (LOAD.cust[id] = { tag, stk }), équipé ou non
 function custOpen(i){
   const W=itemW(i);if(!W)return;
   if(!LOAD.cust)LOAD.cust={};
@@ -1224,7 +1125,6 @@ function custOpen(i){
   draftCfg={w:W.id,p:CDB.items[i.k].p,team:c?c.team||'both':'both',st:cu.st!=null?!!cu.st:c?!!c.st:!!i.st,tag:cu.tag||'',stk:Array.isArray(cu.stk)?cu.stk.map(x=>x&&{...x}):Array(STK_SLOTS).fill(null)};stkSel=0;
   custRender();openModal('custModal');
 }
-// sous-page « choisir un autocollant », affichée dans la fenêtre (et non dans une 2e fenêtre derrière)
 function custPickerHTML(){
   const q=stkQ.trim().toLowerCase(),fx=[['all','stk_all'],['Holo','Holo'],['Foil','Foil'],['Gold','Gold'],['Other','stk_paper']];
   const list=STDB.filter(x=>(stkFx==='all'||x.fx===stkFx)&&(!q||x.n.toLowerCase().includes(q))).slice(0,240);
@@ -1247,17 +1147,15 @@ function custSave(){
   const W=weaponOf(CUST.wid),d=draftCfg;
   let tag=d.tag||'',stk=canSticker(W)&&Array.isArray(d.stk)?d.stk:null;
   if(!stkPlus()){tag='';if(stk)stk=stk.map((x,i)=>i===0?x:null)}
-  const st=!!d.st&&(!!CUST.i.st||stkPlus());              // StatTrak : objet StatTrak possédé, ou PLUS / dev
+  const st=!!d.st&&(!!CUST.i.st||stkPlus());
   LOAD.cust[CUST.i.id]={tag,stk,st};
   if(CUST.eq&&LOAD.w[W.id])freeSlot(W,W.team==='both'?d.team||'both':W.team);
   if(CUST.eq&&LOAD.w[W.id])LOAD.w[W.id].st=st;
-  if(CUST.eq&&LOAD.w[W.id]){LOAD.w[W.id].tag=tag;if(stk)LOAD.w[W.id].stk=stk;else delete LOAD.w[W.id].stk;LOAD.w[W.id].team=W.team==='both'?d.team||'both':W.team}   // arme équipée : appliqué en jeu
+  if(CUST.eq&&LOAD.w[W.id]){LOAD.w[W.id].tag=tag;if(stk)LOAD.w[W.id].stk=stk;else delete LOAD.w[W.id].stk;LOAD.w[W.id].team=W.team==='both'?d.team||'both':W.team}
   saveLoad();closeModal('custModal');CUST=null;draftCfg=null;toast(t('adm_ok'));renderInventory();
 }
-// fenêtre « Agents » (T et CT)
 function agOpen(){$('#agBody').innerHTML=agentsHTML();openModal('agModal')}
 const CHECK_SVG='<svg class="ic" aria-hidden="true" fill="currentColor" viewBox="0 0 512 512"><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="32" d="M416 128L192 384l-96-96"/></svg>';
-// arme | skin séparés comme dans le jeu (StatTrak et ★ restent sur la 1re ligne)
 function invNames(i){const full=EC.name(CDB,{...i,st:false}),k=full.indexOf(' | ');
   return {w:(i.st?'StatTrak™ ':'')+(k<0?full:full.slice(0,k)),n:k<0?'':full.slice(k+3)}}
 function invTile(i,n=1){
@@ -1278,13 +1176,12 @@ function invExtTile(x){
 function invCaseTile(cs){const C=CDB.cases.find(c=>c.id===cs.c);if(!C)return '';
   return `<button class="csi-t case ${cs.new?'is-new':''}" style="--rc:#b0c3d9" data-ivc="${cs.id}"><span class="csi-im">${imgTag(EC.img(CDB,C.i))}</span>
     <span class="csi-n"><b>${escA(C.n)}</b><small>${C.y||''}</small></span></button>`}
-// panneau « Équipement » : pour chaque emplacement, les deux armes possibles en image (celle choisie en surbrillance)
 Object.assign(I18N.fr,{sl_m4:'Fusil CT',sl_ctp:'Pistolet de départ CT',sl_dg:'Pistolet lourd',sl_cz:'Pistolet (T / CT)',sl_mp:'Pistolet-mitrailleur',sl_cz_a:'Five-SeveN · Tec-9',sl_title:'Équipement',sl_sub:'Comme le casier de CS:GO : l’arme choisie remplace l’autre dans le menu d’achat en jeu.'});
 Object.assign(I18N.en,{sl_m4:'CT rifle',sl_ctp:'CT starting pistol',sl_dg:'Heavy pistol',sl_cz:'Pistol (T / CT)',sl_mp:'SMG',sl_cz_a:'Five-SeveN · Tec-9',sl_title:'Loadout',sl_sub:'Like the CS:GO loadout: the chosen weapon replaces the other one in the in-game buy menu.'});
 Object.assign(I18N.ru,{sl_m4:'Винтовка CT',sl_ctp:'Стартовый пистолет CT',sl_dg:'Тяжёлый пистолет',sl_cz:'Пистолет (T / CT)',sl_mp:'Пистолет-пулемёт',sl_cz_a:'Five-SeveN · Tec-9',sl_title:'Снаряжение',sl_sub:'Как в снаряжении CS:GO: выбранное оружие заменяет другое в меню покупки в игре.'});
 function slotImg(wid){
   const W=weaponOf(wid);if(!W)return '';
-  const eq=LOAD.w[wid],sk=eq&&W.skins.find(s=>s.p===eq.p);   // skin équipé, sinon silhouette de l'arme
+  const eq=LOAD.w[wid],sk=eq&&W.skins.find(s=>s.p===eq.p);
   return sk?`<img src="${sk.img}" alt="" loading="lazy" referrerpolicy="no-referrer">`:W.skins[0]?`<img class="sl-ghost" src="${W.skins[0].img}" alt="" loading="lazy" referrerpolicy="no-referrer">`:'';
 }
 function slotsHTML(){
@@ -1293,7 +1190,6 @@ function slotsHTML(){
   return `<div class="sl-panel"><div class="sl-h"><b>${t('sl_title')}</b><small>${t('sl_sub')}</small><button class="csi-agents" data-ivagents>${t('iv_agents')}</button></div>
     <div class="sl-grid">${Object.keys(SLOT_PAIRS).map(k=>`<div class="sl-card"><span class="sl-l">${t('sl_'+k)}</span><div class="sl-pair">${SLOT_PAIRS[k].map((w,i)=>opt(k,w,i)).join('<span class="sl-or">/</span>')}</div></div>`).join('')}</div></div>`;
 }
-// ---------- Unités de stockage / Conteneurs (Steam / CS:GO) ----------
 let CO_ACTIVE_ID=null, CO_DEP_SEL=new Set(), CO_RET_SEL=new Set();
 
 function containerSvg(c){
@@ -1552,14 +1448,14 @@ function renderInventory(){
   const ext=steamItems().filter(x=>x.ext&&invTab!=='c'&&(!invQ||x.name.toLowerCase().includes(invQ.toLowerCase())));
   const own=[...items,...shopItems(),...steamItems().filter(x=>!x.ext)],have=new Set(own.map(i=>i.k));
   let list=invTab==='c'?[]:[...own,...devItems().filter(i=>!have.has(i.k)),...betaItems().filter(i=>!have.has(i.k))].filter(i=>{const it=CDB.items[i.k];return invTab==='all'||(invTab==='k'?it.t===4:it.t<4)});
-  if(invTab==='tu')list=ECO.items.filter(tuOk);                 // contrat : seulement les objets utilisables
+  if(invTab==='tu')list=ECO.items.filter(tuOk);
   const wpnNames=[...new Set(list.map(i=>(itemW(i)||{}).name).filter(Boolean))].sort();
   if(invW)list=list.filter(i=>{const W=itemW(i);return W&&(invW.startsWith('cat:')?W.cat===invW.slice(4):W.name===invW)});
   if(invQ)list=list.filter(i=>EC.name(CDB,i).toLowerCase().includes(invQ.toLowerCase()));
   const srt={new:(a,b)=>b.at-a.at,val:(a,b)=>val(b)-val(a),rar:(a,b)=>CDB.items[b.k].t-CDB.items[a.k].t||val(b)-val(a),flt:(a,b)=>a.f-b.f}[invSort];
-  list=[...list].sort((a,b)=>(!!equippedTeam(b))-(!!equippedTeam(a))||srt(a,b));     // objets équipés en premier
+  list=[...list].sort((a,b)=>(!!equippedTeam(b))-(!!equippedTeam(a))||srt(a,b));
   const cases=invTab==='all'||invTab==='c'?ECO.cases.filter(c=>!invQ||(CDB.cases.find(x=>x.id===c.c)||{n:''}).n.toLowerCase().includes(invQ.toLowerCase())):[];
-  const stacks=invTab==='tu'?list.map(i=>[i]):invStack(list);   // doublons empilés (×N), toujours revendables un par un
+  const stacks=invTab==='tu'?list.map(i=>[i]):invStack(list);
   const tiles=[...cases.map(invCaseTile),...stacks.map(g=>invTile(g[0],g.length)),...(invTab==='k'||invTab==='tu'||invW?[]:ext.map(invExtTile))].filter(Boolean);
   const seg=(k,lbl)=>`<div class="csi-slot"><span>${lbl}</span><div>${SLOT_PAIRS[k].map(w=>`<button class="${LOAD.pref[k]===w?'on':''}" data-slot="${k}:${w}">${escA((weaponOf(w)||{name:w}).name)}</button>`).join('')}</div></div>`;
   const pages=Math.max(1,Math.ceil(tiles.length/INV_PAGE));invPage=Math.min(invPage,pages-1);
@@ -1587,10 +1483,8 @@ function renderInventory(){
     <div class="csi-foot"><span class="csi-week">${t('dr_week',{c:wk.cases,cm:EC.DROP.caseWeek[pl],i:wk.items,im:EC.DROP.itemWeek[pl]})}${hasPlan('plus')?'':` · <button class="link" data-go="premium">${t('f_drop_plus')}</button>`}</span>
       <div class="csi-pg"><button data-ipg="-1" ${invPage?'':'disabled'} aria-label="‹">‹</button><span>${t('iv_page',{p:invPage+1,n:pages})}</span><button data-ipg="1" ${invPage<pages-1?'':'disabled'} aria-label="›">›</button></div></div>
     <div class="csi-menu" id="invMenu" hidden></div></div>`;
-  // les « nouveaux » ne le sont plus après affichage
   let ch=false;ECO.items.forEach(i=>{if(i.new){i.new=false;ch=true}});ECO.cases.forEach(c=>{if(c.new){c.new=false;ch=true}});if(ch)ecoSave();
 }
-// menu d'actions sous la case cliquée
 function invOpenMenu(tile){
   const m=$('#invMenu');if(!m)return;
   const id=tile.dataset.iv,cid=tile.dataset.ivc;
@@ -1637,7 +1531,7 @@ document.addEventListener('click',e=>{
     }
     openItem(id);
     const btn=act==='sell'?'[data-isell]':act==='quick'?'[data-iquick]':null;
-    if(btn)$('#itemBody '+btn)?.click();      // réutilise les actions de la fiche objet
+    if(btn)$('#itemBody '+btn)?.click();
     return}
   const tile=e.target.closest('#inventory .csi-t:not(.empty)');if(tile)return invTab==='tu'?tuToggle(tile.dataset.iv):invOpenMenu(tile);
   if(e.target.closest('#inventory [data-tusign]'))return tuSign();
@@ -1650,22 +1544,19 @@ document.addEventListener('click',e=>{
 document.addEventListener('keydown',e=>{if(e.key==='Escape')invCloseMenu()});
 document.addEventListener('input',e=>{if(e.target.id==='invQ'){invQ=e.target.value;invPage=0;const p=e.target.selectionStart;renderInventory();const q=$('#invQ');q.focus();q.setSelectionRange(p,p)}});
 document.addEventListener('change',e=>{if(e.target.id==='invSort'){invSort=e.target.value;invPage=0;renderInventory()}if(e.target.id==='invW'){invW=e.target.value;invPage=0;renderInventory()}});
-// doublons : même skin et même StatTrak -> une seule case « ×N » ; les objets équipés ou virtuels restent à part
 function invStack(list){
   const g=new Map(),out=[];
   for(const i of list){const k=i.virtual||equippedTeam(i)?'u:'+i.id:i.k+'|'+(i.st?1:0);if(g.has(k))g.get(k).push(i);else{const a=[i];g.set(k,a);out.push(a)}}
   return out;
 }
 
-// ---------- contrat d'échange (trade up) : 10 objets de même rareté -> 1 objet de la rareté au-dessus ----------
-// le résultat vient des caisses des objets donnés (chaque objet pèse 1/10), son usure suit l'usure moyenne des 10
 const TU_MAX=10;
 const tuCase=i=>i.c||(CDB.cases.find(c=>(c.c||[]).includes(i.k))||{}).id||null;
 function tuOk(i){
   const it=CDB.items[i.k];
-  if(!it||i.virtual||i.listed||equippedTeam(i)||it.t>2||!tuCase(i))return false;   // jusqu'à Classified -> Covert ; pas de couteau
+  if(!it||i.virtual||i.listed||equippedTeam(i)||it.t>2||!tuCase(i))return false;
   const f=TU.length&&ECO.items.find(x=>x.id===TU[0]);
-  return !f||(CDB.items[f.k].t===it.t&&!!f.st===!!i.st);              // même rareté, même StatTrak
+  return !f||(CDB.items[f.k].t===it.t&&!!f.st===!!i.st);
 }
 const tuItems=()=>TU.map(id=>ECO.items.find(x=>x.id===id)).filter(Boolean);
 function tuToggle(id){
@@ -1708,7 +1599,6 @@ function tuSign(){
   if(typeof openItem==='function')openItem(x.id);
 }
 
-// 7) FICHE OBJET
 let ITEM_OPEN=null;
 function openItem(id){
   const i=ECO.items.find(x=>x.id===id);if(!i)return;ITEM_OPEN=id;
@@ -1746,22 +1636,20 @@ document.addEventListener('click',e=>{
 });
 document.addEventListener('input',e=>{if(e.target.id==='sellP'){const p=+e.target.value||0,i=ECO.items.find(x=>x.id===ITEM_OPEN),v=i?val(i):0;$('#sellNet').innerHTML=`${t('sell_sugg',{x:tcHTML(v)})} · ${t('sell_net',{x:tcHTML(Math.floor(p*(1-ECO_CFG.fee))),p:ECO_CFG.fee*100})}`}});
 
-// 8) OUVERTURE DE CAISSE (façon CS:GO : bande qui ralentit, « ★ Objet rare spécial » pour couteaux et gants, écran « Vous avez reçu »)
 Object.assign(I18N.fr,{c_unlock:'Déverrouiller le conteneur',c_recv:'Vous avez reçu',c_unlocking:'Déverrouillage…',c_val_est:'Valeur estimée'});
 Object.assign(I18N.en,{c_unlock:'Unlock container',c_recv:'You received',c_unlocking:'Unlocking…',c_val_est:'Estimated value'});
 Object.assign(I18N.ru,{c_unlock:'Открыть контейнер',c_recv:'Вы получили',c_unlocking:'Открытие…',c_val_est:'Оценочная стоимость'});
 let CASE_OPEN=null,spinning=false,CASE_SKIP=null;
 const CS_LEN=36,CS_WIN=28,CS_DUR=5000;
-const csTile=k=>{                              // tuile CS:GO : arme, finition, dégradé et barre de la couleur de rareté
+const csTile=k=>{
   if(k==='__rare')return `<div class="cs-rt rare" style="--rc:#e4ae39"><div class="cs-rt-im"><span class="rare-q">★</span></div><div class="cs-rt-n"><small>${t('c_rare')}</small><b>★ Special Item ★</b></div></div>`;
-  const it=CDB.items[k];      // images chargées tout de suite : en « lazy », les tuiles qui défilent resteraient vides
+  const it=CDB.items[k];
   return `<div class="cs-rt t${it.t}" style="--rc:${EC.RARITY[it.t].c}"><div class="cs-rt-im">${imgTag(EC.img(CDB,k)).replace(' loading="lazy"','')}</div><div class="cs-rt-n"><small>${escA(it.w)}</small><b>${escA(it.n)}</b></div></div>`;
 };
-// ---- sons de l'ouverture (Web Audio, synthétisés : pas de fichier à charger) ----
 const sfxOn=()=>!(typeof SET!=='undefined'&&SET&&SET.notif&&!SET.notif.sounds);
 function sfxBus(){
   try{AC=AC||new (window.AudioContext||window.webkitAudioContext)();if(AC.state==='suspended')AC.resume()}catch(e){return null}
-  if(!AC.trBus){const c=AC.createDynamicsCompressor();c.threshold.value=-14;c.ratio.value=6;c.connect(AC.destination);AC.trBus=c}   // évite la saturation quand tout sonne en même temps
+  if(!AC.trBus){const c=AC.createDynamicsCompressor();c.threshold.value=-14;c.ratio.value=6;c.connect(AC.destination);AC.trBus=c}
   return AC;
 }
 function sTone(f,at,d,{type='sine',vol=.06,to=0,att=.008}={}){
@@ -1777,9 +1665,8 @@ function sNoise(at,d,{vol=.06,f0=400,f1=4000,q=.8,type='bandpass',peak=.3}={}){
   g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(vol,t+d*peak);g.gain.exponentialRampToValueAtTime(.0001,t+d);
   n.buffer=b;n.connect(f).connect(g).connect(ac.trBus);n.start(t);n.stop(t+d);
 }
-const sChord=(fs,at,d,o={})=>fs.forEach(f=>{sTone(f,at,d,o);sTone(f*1.004,at,d,{...o,vol:(o.vol||.03)*.6})});   // léger désaccord : son plus large
+const sChord=(fs,at,d,o={})=>fs.forEach(f=>{sTone(f,at,d,o);sTone(f*1.004,at,d,{...o,vol:(o.vol||.03)*.6})});
 const sSparkle=(n,at,span,base=2400)=>{for(let k=0;k<n;k++)sTone(base+Math.random()*2200,at+Math.random()*span,.12+Math.random()*.2,{type:'sine',vol:.018})};
-// clic mécanique immédiat au déverrouillage de la caisse
 function caseUnlockSfx(){
   if(!sfxOn())return;
   sTone(520,0,.08,{type:'triangle',vol:.15,to:140,att:.002});
@@ -1787,7 +1674,6 @@ function caseUnlockSfx(){
   sNoise(.02,.12,{vol:.09,f0:1900,f1:350,q:2.5,peak:.05});
   sTone(160,.06,.22,{type:'triangle',vol:.18,to:40,att:.005});
 }
-// cliquetis mécanique authentique CS:GO à chaque passage de tuile
 function caseTickSfx(intensity=1){
   if(!sfxOn())return;
   const ac=sfxBus();if(!ac)return;
@@ -1804,7 +1690,6 @@ function caseTickSfx(intensity=1){
   og.gain.setValueAtTime(vol*0.6,t);og.gain.exponentialRampToValueAtTime(0.001,t+0.025);
   osc.connect(og).connect(ac.trBus);osc.start(t);osc.stop(t+0.03);
 }
-// montée de tension quand la bande s'arrête sur un rouge ou un ★
 function caseSuspense(tier){
   if(!sfxOn())return;
   sNoise(0,1.3,{vol:tier===4?.08:.06,f0:300,f1:6000,q:2,peak:.95});
@@ -1813,11 +1698,10 @@ function caseSuspense(tier){
 }
 function caseRevealSfx(tier){
   if(!sfxOn())return;
-  sTone(150,0,.35,{type:'triangle',vol:.25,to:38,att:.003});                      // coup d'impact sourd (boom)
-  sNoise(0,.55,{vol:.07,f0:250,f1:3800});                                         // souffle de l'apparition
+  sTone(150,0,.35,{type:'triangle',vol:.25,to:38,att:.003});
+  sNoise(0,.55,{vol:.07,f0:250,f1:3800});
   if(tier<=1){sTone(784,.05,.3,{type:'triangle',vol:.05});sTone(1175,.13,.4,{type:'triangle',vol:.045});return}
   if(tier===2){[659,880,1319,1760].forEach((f,k)=>sTone(f,.04+k*.07,.45,{type:'triangle',vol:.045}));sSparkle(6,.25,.6);return}
-  // rouge et ★ : impact grave, arpège rapide, accord tenu, scintillements
   const gold=tier===4;
   sTone(gold?170:150,0,gold?1.1:.8,{vol:.32,to:38});
   sNoise(0,gold?.9:.6,{vol:.16,f0:900,f1:60,type:'lowpass',q:.5,peak:.02});
@@ -1826,9 +1710,8 @@ function caseRevealSfx(tier){
   const ch=gold?[523,659,784,1047,1568]:[440,554,659,880];
   sChord(ch,.12+arp.length*.055,gold?2.8:1.8,{type:'sine',vol:.035,att:.08});
   sSparkle(gold?22:10,.35,gold?2.4:1.3,gold?2800:2300);
-  if(gold){sTone(65,.05,2.2,{vol:.12,att:.05});sNoise(.5,2.2,{vol:.03,f0:5000,f1:9000,q:1,peak:.2})}   // sous-basse et « poussière d'or »
+  if(gold){sTone(65,.05,2.2,{vol:.12,att:.05});sNoise(.5,2.2,{vol:.03,f0:5000,f1:9000,q:1,peak:.2})}
 }
-// ---- particules (canvas) ----
 const reduceMotion=()=>matchMedia('(prefers-reduced-motion: reduce)').matches;
 function caseParticles(cv,color,tier){
   if(reduceMotion())return;
@@ -1838,7 +1721,7 @@ function caseParticles(cv,color,tier){
   const cols=gold?['#ffd76a','#e4ae39','#fff4c8','#ffffff']:tier===3?[color,'#ff8a7a','#ffd0c8','#ffffff']:[color,'#ffffff'];
   const burst=(n,sp)=>{for(let k=0;k<n;k++){const a=Math.random()*Math.PI*2,v=sp*(.35+Math.random());P.push({x:cx,y:cy,vx:Math.cos(a)*v,vy:Math.sin(a)*v-1.5,l:1,d:.008+Math.random()*.012,s:1+Math.random()*2.4,c:cols[k%cols.length],star:gold&&Math.random()<.3})}};
   burst([18,24,45,150,230][tier],tier>=3?13:8);
-  if(tier>=3)setTimeout(()=>burst(gold?120:60,9),260);                            // deuxième vague
+  if(tier>=3)setTimeout(()=>burst(gold?120:60,9),260);
   let t0=performance.now(),emberEnd=gold?4200:tier===3?2200:0;
   const star=(x,y,r)=>{ctx.beginPath();for(let k=0;k<8;k++){const rr=k%2?r*.35:r,a=k*Math.PI/4;ctx.lineTo(x+Math.cos(a)*rr,y+Math.sin(a)*rr)}ctx.closePath();ctx.fill()};
   const step=now=>{
@@ -1851,7 +1734,7 @@ function caseParticles(cv,color,tier){
       ctx.globalAlpha=Math.min(1,p.l*1.4);ctx.fillStyle=ctx.strokeStyle=p.c;
       if(p.star)star(p.x,p.y,p.s*2.2);
       else if(p.fall){ctx.beginPath();ctx.arc(p.x,p.y,p.s,0,7);ctx.fill()}
-      else{ctx.lineWidth=p.s;ctx.lineCap='round';ctx.beginPath();ctx.moveTo(p.x,p.y);ctx.lineTo(p.x-p.vx*2.2,p.y-p.vy*2.2);ctx.stroke()}   // étincelle étirée dans le sens du mouvement
+      else{ctx.lineWidth=p.s;ctx.lineCap='round';ctx.beginPath();ctx.moveTo(p.x,p.y);ctx.lineTo(p.x-p.vx*2.2,p.y-p.vy*2.2);ctx.stroke()}
     }
     if(P.length||now-t0<emberEnd)requestAnimationFrame(step);else ctx.clearRect(0,0,W,H);
   };
@@ -1874,19 +1757,17 @@ function spinCase(){
   if(spinning)return;const cs=ECO.cases.find(x=>x.id===CASE_OPEN);if(!cs)return;spinning=true;
   const C=CDB.cases.find(c=>c.id===cs.c);
   caseUnlockSfx();
-  // en ligne : le tirage est fait par le serveur (Cloud Function « openCase ») ; ici en démo
   const win=EC.openCase(CDB,C.id);
   ECO.cases=ECO.cases.filter(x=>x.id!==cs.id);const item=addItem(win,'case');refreshEco();
   const keys=EC.reel(CDB,C.id,win,Math.random,CS_LEN,CS_WIN);
-  if(CDB.items[win.k].t===4)keys[CS_WIN]='__rare';        // comme dans CS:GO, un couteau ou des gants passent sous la tuile dorée
+  if(CDB.items[win.k].t===4)keys[CS_WIN]='__rare';
   const stage=$('#csStage');if(stage)stage.classList.remove('revealed');
   stage.innerHTML=`<div class="cs-reel" id="csReel"><div class="cs-strip" id="csStrip">${keys.map(csTile).join('')}</div><div class="cs-mark"><i class="cs-mark-t"></i><i class="cs-mark-line"></i><i class="cs-mark-b"></i></div></div>`;
   $('#csAct').innerHTML=`<button class="btn ghost" data-spinskip>${t('c_skip')}</button>`;
   const strip=$('#csStrip'),reelEl=$('#csReel'),tiles=strip.children;
   const TW=tiles[1].offsetLeft-tiles[0].offsetLeft,box=reelEl.clientWidth;
-  // arrêt organique centré dans la tuile gagnante
   const target=CS_WIN*TW+tiles[0].offsetWidth*(.24+Math.random()*.52)-box/2;
-  const ease=p=>1-Math.pow(1-p,3.4);                   // accélération nerveuse, décélération prolongée et suspense final
+  const ease=p=>1-Math.pow(1-p,3.4);
   let t0=null,last=-1,raf=0;
   const place=x=>{strip.style.transform=`translate3d(${-x}px,0,0)`};
   const markEl=$('#csReel .cs-mark');
@@ -1900,7 +1781,7 @@ function spinCase(){
   };
   const frame=ts=>{
     if(!spinning)return;
-    if(!$('#caseModal').classList.contains('on')){finish();return}   // fenêtre fermée : on termine sans bruit
+    if(!$('#caseModal').classList.contains('on')){finish();return}
     if(t0===null)t0=ts;
     const p=Math.min(1,(ts-t0)/CS_DUR),x=target*ease(p);place(x);
     const idx=Math.floor((x+box/2)/TW);
@@ -1947,7 +1828,6 @@ function showCaseResult(i){
 }
 document.addEventListener('click',e=>{if(e.target.closest('[data-spin]'))return spinCase();if(e.target.closest('[data-spinskip]')&&CASE_SKIP)CASE_SKIP()});
 
-// 9) USURE AU CHOIX (PREMIUM)
 function grantSkin(k,src){
   if(hasPlan('premium')){const p={id:eid(),k,src,at:Date.now()};ECO.pending.push(p);ecoSave();chooseWear(p.id);return null}
   const i=addItem(EC.makeItem(CDB,k,Math.random,{st:false}),src);toast(t('bought_toast',{x:EC.name(CDB,i)}));refreshEco();return i;
@@ -1962,7 +1842,6 @@ function chooseWear(pid){
 document.addEventListener('click',e=>{const w=e.target.closest('[data-wear]');if(!w)return;const [pid,wk]=w.dataset.wear.split(':'),p=ECO.pending.find(x=>x.id===pid);if(!p)return;
   ECO.pending=ECO.pending.filter(x=>x.id!==pid);const i=addItem(EC.makeItem(CDB,p.k,Math.random,{st:false,wear:wk}),p.src);closeModal('wearModal');toast(t('bought_toast',{x:EC.name(CDB,i)}));refreshEco();openItem(i.id)});
 
-// 10) PASS DE COMBAT : caisses + skins (plus de doublons « catalogue »)
 (function rebuildPass(){
   const r=seeded(7777),pick1=a=>a[Math.floor(r()*a.length)];
   const recent=[...CDB.cases].sort((a,b)=>b.y-a.y).slice(0,12).map(c=>c.id);
@@ -1994,7 +1873,6 @@ grant=function(rw){
   return _grant(rw);
 };
 
-// 11) DROPS DE FIN DE MATCH
 let LAST_DROPS=null;
 function rollDrops(){
   const wk=ecoWeek(),pl=ME.plan||'free',d=EC.matchDrops(CDB,pl,wk),got={cases:[],items:[],pend:[]};
@@ -2021,7 +1899,6 @@ function renderDropCard(){
 }
 (()=>{const sm=simulateMatch;simulateMatch=function(){const r=sm.apply(this,arguments);try{rollDrops();renderDropCard()}catch(e){console.error(e)}return r}})();
 
-// 12) MARCHÉ (Boutique) : offres d'autres joueurs (simulées en démo) + mes ventes
 let mkQ='',mkType='all',mkRar='-1',mkWear='all',mkSort='asc';
 function marketList(){
   const day=Math.floor(Date.now()/864e5);
@@ -2065,9 +1942,8 @@ function myListingsHTML(){
   return `<div class="sec-t">${t('mk_active')}</div>${act.length?`<div class="inv-grid">${act.map(i=>itemCard(i,`<span class="mk-lp">${tcHTML(i.listed.price)}</span>`)).join('')}</div>`:`<div class="card m-hint">${t('mk_empty')}</div>`}
     <div class="sec-t" style="margin-top:22px">${t('mk_hist')}</div>${sold.length?`<div class="card" style="padding:0"><table class="tbl"><tbody>${sold.map(s=>`<tr><td style="text-align:left">${escA(s.n)}</td><td>${fmtDate(new Date(s.at))}</td><td class="rt pos">+${s.net.toLocaleString(LOC[lang])} TC</td></tr>`).join('')}</tbody></table></div>`:`<div class="card m-hint">—</div>`}`;
 }
-// ventes simulées : plus le prix est bas par rapport à la valeur, plus ça part vite
 function simulateSales(){
-  if(typeof srvOn==='function'&&srvOn())return;           // compte en ligne : vrai marché entre joueurs (srveco.js)
+  if(typeof srvOn==='function'&&srvOn())return;
   let ch=false;
   ECO.items.filter(i=>i.listed&&Date.now()-i.listed.at>30e3).forEach(i=>{
     const ratio=i.listed.price/Math.max(1,val(i)),p=ratio<=.95?.5:ratio<=1.05?.25:ratio<=1.2?.08:.01;
@@ -2101,12 +1977,10 @@ function fixShopTabs(){
   c.innerHTML=tabs.map(([k,l])=>`<button class="${shopTab===k?'on':''}" data-stab="${k}">${t(l)}${k==='mine'&&ECO.items.some(i=>i.listed)?` <span class="pill">${ECO.items.filter(i=>i.listed).length}</span>`:''}</button>`).join('');
 }
 shopTab='market';
-// ---- caisses achetables avec les Tick Coins ----
 Object.assign(I18N.fr,{shop_cases:'Caisses',shop_cards:'Cartes de profil',shop_bgs:'Fonds de profil',cs_shop_hint:'Le prix suit la valeur moyenne de ce que contient la caisse : les anciennes caisses, plus rares, coûtent plus cher.',cs_buy_open:'Acheter et ouvrir',cs_have:'Tu en as {n}',cs_bought:'{x} ajoutée à ton inventaire',cs_q:'Rechercher une caisse',c_rebuy:'Racheter · {x}'});
 Object.assign(I18N.en,{shop_cases:'Cases',shop_cards:'Profile Cards',shop_bgs:'Profile Backgrounds',cs_shop_hint:'Prices follow the average value of what the case contains: older, rarer cases cost more.',cs_buy_open:'Buy & open',cs_have:'You own {n}',cs_bought:'{x} added to your inventory',cs_q:'Search a case',c_rebuy:'Buy again · {x}'});
 Object.assign(I18N.ru,{shop_cases:'Кейсы',shop_cards:'Карточки профиля',shop_bgs:'Фоны профиля',cs_shop_hint:'Цена зависит от средней стоимости содержимого: старые и более редкие кейсы стоят дороже.',cs_buy_open:'Купить и открыть',cs_have:'У тебя {n}',cs_bought:'{x} добавлен в инвентарь',cs_q:'Найти кейс',c_rebuy:'Купить ещё · {x}'});
 const CASE_PRICE={};
-// prix = valeur moyenne d'une ouverture (2000 tirages à graine fixe, donc stable) + 15 %, arrondi à 10
 function casePrice(cid){
   if(CASE_PRICE[cid])return CASE_PRICE[cid];
   const r=EC.mulberry(EC.hash('case'+cid));let sum=0;
@@ -2137,7 +2011,6 @@ document.addEventListener('click',e=>{
 document.addEventListener('input',e=>{if(e.target.id==='mkQ'){mkQ=e.target.value;const p=e.target.selectionStart;renderShop();const q=$('#mkQ');q.focus();q.setSelectionRange(p,p)}});
 document.addEventListener('change',e=>{const m={mkType:v=>mkType=v,mkRar:v=>mkRar=v,mkWear:v=>mkWear=v,mkSort:v=>mkSort=v}[e.target.id];if(m){m(e.target.value);renderShop()}});
 
-// 13) CASIER : un skin = un exemplaire de ton inventaire (float / pattern / StatTrak™ fixés)
 function ecoCfgFix(W,sk){
   const d=draftCfg;if(!d||d.w!==W.id||d.p!==sk.p)return '';
   const insts=ecoInst(W.id,sk.p);if(!insts.length){delete d.iid;return ''}
@@ -2147,10 +2020,8 @@ function ecoCfgFix(W,sk){
     <div class="io-f" style="margin-top:6px"><div class="ir"><span>${EC.wearOf(i.f).n}${i.st?' · StatTrak™':''}</span><b class="mono">${i.f.toFixed(6)} · #${i.s} ${patBadge(i)}</b></div>${floatBar(i)}</div></div>`;
 }
 document.addEventListener('change',e=>{if(e.target.id==='cfI'&&draftCfg){draftCfg.iid=e.target.value;renderLoadout()}});
-// on enregistre l'exemplaire équipé (le plugin du serveur lira float + seed + StatTrak)
 document.addEventListener('click',e=>{if(e.target.closest('#loadout [data-equip]')&&draftCfg&&draftCfg.iid){const W=weaponOf(draftCfg.w);setTimeout(()=>{if(LOAD.w[W.id]){LOAD.w[W.id].iid=draftCfg.iid;saveLoad()}},0)}},true);
 
-// 14) vue Inventaire + modales
 document.querySelector('#loadout').insertAdjacentHTML('afterend','<main class="page" id="inventory" hidden></main>');
 document.body.insertAdjacentHTML('beforeend',`<div class="overlay" id="itemModal"><div class="modal io-modal"><div class="m-h"><h3 data-i18n="it_title">${t('it_title')}</h3><button class="x2" data-close>×</button></div><div id="itemBody"></div></div></div>
   <div class="overlay" id="caseModal"><div class="modal cs-modal"><div class="m-h"><h3 data-i18n="it_c">${t('it_c')}</h3><button class="x2" data-close>×</button></div><div id="caseBody"></div></div></div>
@@ -2188,7 +2059,7 @@ $('#agModal').addEventListener('click',e=>{
   $('#agBody').innerHTML=agentsHTML();
 });
 (()=>{const sv=setView;setView=function(v,k,skipHistory){
-  if(v==='loadout')v='inventory';      // l'ancien casier est remplacé par l'inventaire
+  if(v==='loadout')v='inventory';
   if(v==='inventory'){
     ['play','lobby','result','profile','friends','ranking','loadout','premium','shop','compet','settings','vigie','influencer'].forEach(id=>{const x=$('#'+id);if(x)x.hidden=true});
     $('#inventory').hidden=false;
@@ -2200,26 +2071,19 @@ $('#agModal').addEventListener('click',e=>{
     }
     return;
   }
-  $('#inventory').hidden=true;          // la page inventaire est ajoutée à part : setView ne la cache pas lui-même
+  $('#inventory').hidden=true;
   const [vv,sub]=String(v).split(':');
   if(vv==='shop'&&sub){shopTab=sub}
   return sv.call(this,vv,k,skipHistory);
 }})();
 function refreshEco(){if(!$('#inventory').hidden)renderInventory();if(!$('#shop').hidden)renderShop();if(!$('#loadout').hidden)renderLoadout()}
-// badge « nouveau » sur Casier & Inventaire
 setInterval(()=>{
   const n=ECO.items.filter(i=>i.new).length+ECO.cases.filter(c=>c.new).length+ECO.pending.length;
   $$('.rail-btn[data-view="loadout"]').forEach(b=>{b.classList.toggle('has-new',n>0);b.dataset.n=n});
 },1500);
 applyStatic();
 
-/* =====================================================
-   v10 : COMMENT JOUER + vérification que CS:GO est installé
-   Un site ne peut pas lire le disque du joueur. On vérifie donc en 3 temps :
-   1) compte Steam lié  2) Counter-Strike dans la bibliothèque Steam (API Steam, côté serveur)
-   3) CS:GO se lance vraiment : le joueur rejoint notre serveur de test, le plugin le confirme.
-   ===================================================== */
-var CSGO_TEST_SERVER='';   // ex. '51.68.12.34:27016' : serveur de test (plugin tickrate_check). Vide = test sans serveur.
+var CSGO_TEST_SERVER='';
 let CC={owns:null,verified:false,at:0,skip:false};
 try{const v=JSON.parse(localStorage.getItem('tr_cc')||'null');if(v)CC=Object.assign(CC,v)}catch(e){}
 const ccSave=()=>{try{localStorage.setItem('tr_cc',JSON.stringify(CC))}catch(e){}};
@@ -2263,7 +2127,7 @@ Object.assign(I18N.ru,{nav_howto:'Как играть',hw_title:'Как игра
 
 async function ccCheckOwns(){
   if(typeof fbLive==='function'&&fbLive()&&AUTH.session){const r=await fbCall('steamGames');CC.owns=r&&!r.error?(r.private?'private':r.owns):null}
-  else CC.owns=ME.steam&&ME.steam.linked?true:null;     // démo : on suppose que oui
+  else CC.owns=ME.steam&&ME.steam.linked?true:null;
   ccSave();renderHowto();
 }
 function ccStartTest(){
@@ -2314,23 +2178,19 @@ document.addEventListener('click',e=>{
   if(a==='gate-go'){closeModal('ccGate');return setView('howto')}
   if(a==='gate-skip'){CC.skip=true;ccSave();closeModal('ccGate');return $('#find').onclick()}
 });
-// avant la première recherche : on prévient si CS:GO n'est pas vérifié
 (()=>{const f=$('#find'),orig=f.onclick;f.onclick=function(e){
   if(!state.searching&&!CC.verified&&!CC.skip&&ME.steam&&ME.steam.linked&&!banned()){openModal('ccGate');return}
   return orig.call(this,e)}})();
 document.body.insertAdjacentHTML('beforeend',`<div class="overlay" id="ccGate"><div class="modal" style="max-width:460px"><div class="m-h"><h3 data-i18n="cc_gate_t">${t('cc_gate_t')}</h3><button class="x2" data-close>×</button></div>
   <p class="m-hint" style="margin:0 0 16px" data-i18n="cc_gate_d">${t('cc_gate_d')}</p><div class="cc-btns"><button class="btn primary" data-cc="gate-go" data-i18n="cc_gate_go">${t('cc_gate_go')}</button><button class="btn ghost" data-cc="gate-skip" data-i18n="cc_gate_skip">${t('cc_gate_skip')}</button></div></div></div>`);
-// vue + entrée dans le menu (section Jouer)
 document.querySelector('#play').insertAdjacentHTML('afterend','<main class="page" id="howto" hidden></main>');
 $$('.rail-btn[data-view="ranking"]').forEach(b=>b.insertAdjacentHTML('afterend',`<button class="rail-btn" data-view="howto" data-i18n-title="nav_howto"><svg class="ic" aria-hidden="true" fill="currentColor" viewBox="0 0 512 512"><path d="M256 64C150 64 64 150 64 256s86 192 192 192 192-86 192-192S362 64 256 64zm-6 304a20 20 0 1120-20 20 20 0 01-20 20zm33.44-102C267.23 276.88 265 286.85 265 296a14 14 0 01-28 0c0-21.91 10.08-39.33 30.82-53.26C287.1 229.8 298 221.6 298 203.57c0-12.26-7-21.57-21.49-28.46-3.41-1.62-11-3.2-20.34-3.09-11.72.15-20.82 2.95-27.83 8.59C215.12 191.25 214 202.83 214 203a14 14 0 11-28-1.35c.11-2.43 1.8-24.32 24.77-42.8 11.91-9.58 27.06-14.56 45-14.78 12.7-.15 24.63 2 32.72 5.82C312.7 161.34 326 180.43 326 203.57c0 33.83-22.61 49.02-42.56 62.43z"/></svg><span class="rl" data-i18n="nav_howto">${t('nav_howto')}</span></button>`));
 $$('.rail-btn[data-view="howto"]').forEach(b=>b.addEventListener('click',()=>setView('howto')));
 (()=>{const sv=setView;setView=function(v,k){
   if(v==='howto'){$$('main.page').forEach(x=>x.hidden=x.id!=='howto');$$('[data-view]').forEach(e=>e.classList.toggle('active',e.dataset.view==='howto'));renderHowto();window.scrollTo({top:0});return}
   $('#howto').hidden=true;return sv.call(this,v,k)}})();
-// étape dans « Bien démarrer »
 (()=>{if(typeof obSteps!=='function')return;const o=obSteps;obSteps=function(){const s=o();s.splice(1,0,['csgo',!!CC.verified,'howto']);return s}})();
 
-// ---------- Événements Conteneurs & Stockage Steam ----------
 document.addEventListener('click',e=>{
   const nc=e.target.closest('[data-co-act="new"]');
   if(nc){

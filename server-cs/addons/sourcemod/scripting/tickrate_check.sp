@@ -1,14 +1,3 @@
-/*
- * TICKRATE — serveur de test « CS:GO installé ? »
- * -----------------------------------------------
- * À lancer sur un petit serveur séparé (ex. port 27016, map de_mirage, 1 slot suffit).
- * Quand un joueur se connecte depuis le site (bouton « Lancer le test »), le plugin
- * prévient le back-end : le site affiche alors « CS:GO est prêt ✓ ».
- * Le joueur reçoit un message puis est déconnecté au bout de 8 s.
- *
- * Dépendances : SourceMod 1.11+, REST in Pawn (ripext).
- * ConVars : tr_check_url (ex. https://europe-west1-<projet>.cloudfunctions.net/gameApi), tr_check_key (= SERVER_KEY)
- */
 #include <sourcemod>
 #include <ripext>
 #include <tickrate>

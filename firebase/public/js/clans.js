@@ -1,9 +1,3 @@
-/* =====================================================
- * TICKRATE - Clans (clans.js)
- * Communautés de joueurs (jusqu'à 50) avec un tag unique. Le tag équipé s'affiche devant le nom en jeu
- * (envoyé au serveur avec la liste des joueurs du match, appliqué par le plugin tickrate_match).
- * Tout passe par la fonction « clan » (functions/lib/clans.js) ; textes : js/i18n-clans.js
- * ===================================================== */
 if (typeof FB_ERR === 'object') ['clan_already', 'clan_bad_name', 'clan_bad_tag', 'clan_tag_taken', 'clan_full', 'clan_unknown', 'clan_reqs_full', 'clan_other', 'forbidden', 'no_profile'].forEach(k => { if (!FB_ERR[k]) FB_ERR[k] = k; });
 
 const CL = { me: null, list: null, q: '', open: false, sort: 'points', busy: false, creating: false, editing: false, loading: false };
@@ -144,7 +138,6 @@ function renderClans() {
   renderClansList();
 }
 
-// ----- actions -----
 document.addEventListener('click', async e => {
   const b = e.target.closest('[data-cl]'); if (!b || !$('#clans') || !b.closest('#clans')) return;
   const a = b.dataset.cl, uid = b.dataset.uid, name = b.dataset.name;

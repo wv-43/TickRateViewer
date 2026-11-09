@@ -1,17 +1,3 @@
-// =====================================================================
-//  Clans : communautés de joueurs (jusqu'à 50), séparées des équipes de ligue (comp.js, lineups de 5).
-//  Un membre peut « équiper » le tag du clan : il s'affiche alors devant son nom dans le tableau des scores
-//  en jeu (envoyé au serveur dans le roster du match, appliqué par le plugin tickrate_match).
-//
-//  clans/<cid>        { name, tag, desc, color, owner, open, points, w, l, at,
-//                       members:{ uid:{ name, role:'owner'|'officer'|'member', at } } }
-//  clanOf/<uid>       cid                     clanTags/<TAG>   cid
-//  clanReq/<cid>/<uid>  { name, at }          demande d'entrée (clan sur demande)
-//  clanReqOf/<uid>/<cid>  true                 ses demandes en cours (pour les annuler)
-//  profiles/<uid>/clanTagOff  true            tag déséquipé (absent = équipé)
-//
-//  Points : +25 par match classé gagné, +5 par match joué et perdu (pas les matchs de test ni privés).
-// =====================================================================
 const val = async ref => (await ref.get()).val();
 const { rid } = require('./core');
 const key = x => String(x || '').replace(/[.#$/[\]]/g, '_').slice(0, 64);
@@ -28,7 +14,6 @@ async function clanOf(db, uid) { return loadClan(db, await val(db.ref(`clanOf/${
 const summary = c => ({ id: c.id, name: c.name, tag: c.tag, desc: c.desc || '', color: c.color, open: !!c.open,
   points: c.points || 0, level: levelOf(c.points), w: c.w || 0, l: c.l || 0, n: Object.keys(c.members || {}).length, max: MAX_MEMBERS, at: c.at });
 
-// ---------- lecture ----------
 async function get(db, uid) {
   const c = await clanOf(db, uid), p = (await val(db.ref(`profiles/${uid}`))) || {};
   const myReqs = Object.keys((await val(db.ref(`clanReqOf/${uid}`))) || {});
@@ -48,13 +33,11 @@ async function list(db, uid, d = {}) {
   if (d.open) rows = rows.filter(c => c.open && c.n < c.max);
   const sort = { points: (a, b) => b.points - a.points, members: (a, b) => b.n - a.n, new: (a, b) => b.at - a.at }[d.sort] || ((a, b) => b.points - a.points);
   rows.sort(sort);
-  // rang toujours calculé sur les points, quel que soit le tri affiché
   const byPts = [...rows].sort((a, b) => b.points - a.points || a.at - b.at);
   byPts.forEach((c, i) => { c.rank = i + 1; });
   return { clans: rows.slice(0, 100), total: rows.length };
 }
 
-// ---------- création, entrée, sortie ----------
 async function create(db, uid, d = {}, now = Date.now()) {
   if (await val(db.ref(`clanOf/${uid}`))) return { error: 'clan_already' };
   const p = (await val(db.ref(`profiles/${uid}`))) || {};
@@ -93,7 +76,6 @@ async function addMember(db, c, uid, name, now) {
   await dropReqs(db, uid);
   return true;
 }
-// clan ouvert : entrée directe ; sinon : demande, à accepter par le chef ou un officier
 async function join(db, uid, d = {}, now = Date.now()) {
   if (await val(db.ref(`clanOf/${uid}`))) return { error: 'clan_already' };
   const c = await loadClan(db, d.cid); if (!c) return { error: 'clan_unknown' };
@@ -133,7 +115,7 @@ async function leave(db, uid) {
   const others = Object.entries(c.members || {}).filter(([u]) => u !== uid);
   if (!others.length) { await disbandClan(db, c); return get(db, uid); }
   const upd = { [`clans/${c.id}/members/${uid}`]: null, [`clanOf/${uid}`]: null };
-  if (c.owner === uid) {          // le chef part : un officier (le plus ancien), sinon le membre le plus ancien, prend la tête
+  if (c.owner === uid) {
     const next = others.sort((a, b) => (a[1].role === 'officer' ? 0 : 1) - (b[1].role === 'officer' ? 0 : 1) || (a[1].at || 0) - (b[1].at || 0))[0][0];
     upd[`clans/${c.id}/owner`] = next; upd[`clans/${c.id}/members/${next}/role`] = 'owner';
   }
@@ -146,11 +128,10 @@ async function disband(db, uid) {
   return get(db, uid);
 }
 
-// ---------- gestion ----------
 async function kick(db, uid, d = {}) {
   const c = await clanOf(db, uid), u = key(d.uid), me = rankOf(c, uid), them = rankOf(c, u);
   if (!isStaff(c, uid) || !them || u === uid) return { error: 'forbidden' };
-  if (them === 'owner' || (them === 'officer' && me !== 'owner')) return { error: 'forbidden' };   // un officier n'exclut que des membres
+  if (them === 'owner' || (them === 'officer' && me !== 'owner')) return { error: 'forbidden' };
   await db.ref().update({ [`clans/${c.id}/members/${u}`]: null, [`clanOf/${u}`]: null });
   return get(db, uid);
 }
@@ -176,14 +157,11 @@ async function edit(db, uid, d = {}) {
   if (Object.keys(upd).length) await db.ref().update(upd);
   return get(db, uid);
 }
-// équiper / déséquiper le tag en jeu
 async function equip(db, uid, d = {}) {
   await db.ref(`profiles/${uid}/clanTagOff`).set(d.on ? null : true);
   return get(db, uid);
 }
 
-// ---------- utilisé par le matchmaking ----------
-// tag à afficher en jeu pour chaque joueur du match : { uid: 'TAG' } (seulement les tags équipés)
 async function tagsFor(db, uids) {
   const out = {};
   await Promise.all(uids.map(async u => {
@@ -193,8 +171,7 @@ async function tagsFor(db, uids) {
   }));
   return out;
 }
-// fin de match classé : points et bilan du clan de chaque joueur
-async function award(db, results) {      // results = [{ uid, won }]
+async function award(db, results) {
   const per = {};
   for (const { uid, won } of results) {
     const cid = await val(db.ref(`clanOf/${uid}`)); if (!cid) continue;

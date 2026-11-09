@@ -1,10 +1,3 @@
-/* =====================================================
- * TICKRATE - Menu Paramètres & Système de Thèmes / Custom CSS (settings.js)
- * ===================================================== */
-/* =====================================================
-   PARAMÈTRES (page dédiée) : compte, audio & vocal, notifications, interface, confidentialité
-   Stockés dans ce navigateur + copiés dans Firebase (private/<id>/settings, lisible par toi seul) quand tu es connecté.
-   ===================================================== */
 const CSS_THEMES=[
   {id:'amber',n:'th_amber',d:'th_amber_d',c:'#ffb21f'},
   {id:'crimson',n:'Crimson Red',d:'th_crimson_d',c:'#ff4d5e'},
@@ -92,7 +85,6 @@ function applySet(){
   if(customEl)customEl.textContent=sanitizeCustomCss(SET.ui.customCss||'');
   renderThemePop();
 }
-// interrupteur d'un réglage (lu par le listener 'change' ci-dessous via son id)
 const tog=(id,on,label,hint)=>`<label class="st-tog"><span><b>${label}</b>${hint?`<small>${hint}</small>`:''}</span><input type="checkbox" id="${id}"${on?' checked':''}><i class="sw"></i></label>`;
 function renderSettings(){
   const el=$('#settings'),a=AUTH.session&&AUTH.session.account;
@@ -111,7 +103,7 @@ function renderSettings(){
       <div class="st-card st-danger-zone"><h3>${t('del_acc_t')}</h3><div class="st-row"><span><b>${t('del_acc_btn')}</b><small>${t('del_acc_d')}</small></span><button class="btn danger" data-st="delete-account">${t('del_acc_btn')}</button></div></div>`;
   }else if(stTab==='notif'){
     body=`<div class="st-card"><h3>${t('st_notif')}</h3>${tog('stSnd',SET.notif.sounds,t('st_sounds'),t('st_sounds_h'))}${tog('stDm',SET.notif.dm,t('st_dm'),t('st_dm_h'))}${tog('stDesk',SET.notif.desktop,t('st_desk'),t('st_desk_h'))}</div>`;
-    body+=TRMatchSound.card();
+    body+=TRSfx.card(tog)+TRMatchSound.card();
   }else if(stTab==='ui'){
     const curT=SET.ui.theme||'amber',curS=SET.ui.surface||'carbon';
     body=`<div class="st-card"><h3>${t('th_title_css')}</h3>
@@ -124,7 +116,7 @@ function renderSettings(){
         <div class="st-actions"><button class="btn" data-st="bgpick">${t(TRUserBg.has()?'ubg_change':'ubg_pick')}</button>${TRUserBg.has()?`<button class="btn ghost" data-st="bgclear">${t('ubg_remove')}</button>`:''}</div>
         <input type="file" id="stBgFile" accept="image/png,image/jpeg,image/webp" hidden>
         ${TRUserBg.has()?`<label class="st-row" style="margin-top:10px;gap:16px"><span><b>${t('ubg_dim')}</b></span><input type="range" id="stBgDim" min="${TRUserBg.range.min}" max="${TRUserBg.range.max}" value="${TRUserBg.dim()}" style="flex:1;max-width:260px;accent-color:var(--acc)"></label>`:''}</div>
-      <div class="st-card"><h3>${t('st_ui')}</h3>${tog('stRm',SET.ui.reduceMotion,t('st_rm'),t('st_rm_h'))}</div>
+      <div class="st-card"><h3>${t('st_ui')}</h3>${tog('stRm',SET.ui.reduceMotion,t('st_rm'),t('st_rm_h'))}${tog('stMusic',TRMusic.visible(),t('mu_show'),t('mu_show_h'))}</div>
       <div class="st-card"><h3>${t('th_custom')}</h3>
         <div class="st-note">${t('th_custom_d')}</div>
         <textarea id="stCustomCss" class="css-editor" placeholder="/* Exemple :&#10;:root { --acc: #ff6b00; }&#10;.map { border-radius: 10px; } */" spellcheck="false">${escA(SET.ui.customCss||'')}</textarea>
@@ -137,7 +129,6 @@ function renderSettings(){
     <div class="st-wrap"><nav class="st-nav">${tabs.map(([k,l])=>`<button class="${stTab===k?'on':''}" data-sttab="${k}">${t(l)}</button>`).join('')}</nav><div class="st-body">${body}</div></div>`;
   TRMatchSound.draw();
 }
-// ----- interactions page Paramètres -----
 $('#settings').addEventListener('input',e=>{const id=e.target.id;
   if(id==='stCustomCss'){SET.ui.customCss=e.target.value;saveSet()}
   if(id==='stBgDim')TRUserBg.setDim(e.target.value);
@@ -158,6 +149,7 @@ addEventListener('click',()=>$('#themePop')?.classList.remove('open'));
 $('#settings').addEventListener('change',e=>{const id=e.target.id,c=e.target.checked;
   const map={stSnd:['notif','sounds'],stDm:['notif','dm'],stRm:['ui','reduceMotion'],stOnline:['privacy','showOnline'],stDmF:['privacy','dmFriendsOnly'],stPub:['privacy','profilePublic']};
   if(map[id]){const [g,k]=map[id];SET[g][k]=c;saveSet();toast(t('st_saved'))}
+  if(id==='stMusic'){TRMusic.setVisible(c);toast(t('st_saved'))}
   if(id==='stBgFile'){const f=e.target.files[0];if(f){TRUserBg.set(f).then(()=>{toast(t('ubg_ok'));renderSettings()}).catch(err=>toast(t('ubg_err_'+err.message)))}}
   if(id==='stDesk'){if(c&&'Notification' in window){Notification.requestPermission().then(r=>{SET.notif.desktop=r==='granted';saveSet();if(r!=='granted')toast(t('st_desk_denied'));renderSettings()})}else{SET.notif.desktop=false;saveSet()}}
   });
@@ -251,16 +243,14 @@ async function doDeleteAccount(){
       sessionStorage.removeItem(k);
     });
   }catch(e){}
-  try{await TRUserBg.clear();TRMatchSound.clear();TRMusic.clear()}catch(e){}
+  try{await TRUserBg.clear();TRMatchSound.clear();TRMusic.clear();TRSfx.clear()}catch(e){}
   AUTH.session=null;
   return {ok:true};
 }
 
-/* ---------- Toast ---------- */
 let tt;
 function toast(msg){const el=$('#toast');el.textContent=msg;el.classList.add('on');clearTimeout(tt);tt=setTimeout(()=>el.classList.remove('on'),2800)}
 
-/* ---------- Init ---------- */
 loadSavedProfile();
 seedHistory();
 initFriends();

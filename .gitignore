@@ -1,10 +1,7 @@
-# Liste blanche : tout est ignoré sauf ce qui est explicitement autorisé ici.
-# Un nouveau fichier n'est donc jamais publié par accident.
 /*
 !/.gitignore
 !/README.md
 
-# Site, règles de la base et fonctions serveur
 !/firebase/
 /firebase/*
 !/firebase/LISEZ-MOI.md
@@ -30,7 +27,6 @@
 /firebase/tools/seo/liens-externes.md
 /firebase/tools/seo/indexnow-state.json
 
-# Serveurs de jeu : sources, réglages et scripts d'installation
 !/server-cs/
 /server-cs/*
 !/server-cs/LISEZ-MOI.md
@@ -45,12 +41,10 @@
 !/server-cs/addons/sourcemod/translations/
 !/server-cs/addons/sourcemod/scripting/
 
-# Anti-triche : les seuils de détection aideraient les tricheurs à passer dessous
 /firebase/functions/lib/vigie.js
 /server-cs/addons/sourcemod/scripting/tickrate_vigie.sp
 /firebase/functions/test/run.js
 
-# Jamais publiés, où qu'ils soient
 node_modules/
 .env
 *.pem

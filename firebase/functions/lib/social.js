@@ -1,15 +1,8 @@
-// =====================================================================
-//  Demandes d'ami et liste d'amis, écrites par le serveur (avant : directement par le site, ce qui
-//  dépendait des règles de la base et pouvait échouer en silence). Même format que le site :
-//  boîtes = pseudo en minuscules (fbMailbox) ; friendRequests/<cible>/<moi>, friends/<moi>/<ami>,
-//  friendAccepts/<cible>/<moi> (notification d'acceptation).
-// =====================================================================
 const val = async ref => (await ref.get()).val();
 const box = n => String(n || '').trim().toLowerCase().replace(/[.#$/[\]:\s]/g, '_');
 const okCol = c => (typeof c === 'string' && /^#[0-9a-fA-F]{3,8}$/.test(c) ? c : null);
 const okImg = u => (typeof u === 'string' && u.length <= 300000 && /^(data:image\/(png|jpeg|webp|gif);base64,[A-Za-z0-9+/=]+|https:\/\/[^'"()<>\s\\]+)$/.test(u) ? u : null);
 
-// mon profil (pseudo, ELO, avatar) + couleur choisie sur le site
 async function me(db, uid, d) {
   const p = (await val(db.ref(`profiles/${uid}`))) || {};
   if (!p.name) return null;
@@ -30,7 +23,6 @@ async function send(db, uid, d = {}, now = Date.now()) {
   if (!t) return { error: 'player_not_found' };
   if (t.uid === uid) return { error: 'cannot_add_self' };
   if (await val(db.ref(`friends/${m.box}/${t.box}`))) return { error: 'already_friends' };
-  // la cible m'avait déjà demandé : on devient amis directement
   if (await val(db.ref(`friendRequests/${m.box}/${t.box}`))) return accept(db, uid, { ...d, name: t.name }, now);
   await db.ref(`friendRequests/${t.box}/${m.box}`).set({ from: m.name, fromMailbox: m.box, elo: m.elo, color: m.color, avatar: m.avatar, country: m.country, at: now });
   return { ok: true, sent: t.name };

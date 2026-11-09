@@ -1,9 +1,3 @@
-// =====================================================================
-//  Unités de stockage (Conteneurs) : comme sur Steam / CS:GO
-//  Permet de ranger jusqu'à 1 000 skins par conteneur pour organiser
-//  son inventaire, donner un nom personnalisé et libérer de l'espace.
-//  Base de données : containers/<uid>/<containerId>
-// =====================================================================
 const EC = require('./eco-core');
 const DB = require('../data/cases.json');
 const val = async ref => (await ref.get()).val();
@@ -21,7 +15,6 @@ function safeId(id) {
   return String(id || '').replace(/[.#$/[\]]/g, '_').slice(0, 64);
 }
 
-// Liste tous les conteneurs d'un utilisateur avec le décompte et la valeur totale
 async function list(db, uid) {
   if (!uid) return { error: 'unauthenticated' };
   const raw = (await val(db.ref(`containers/${uid}`))) || {};
@@ -54,7 +47,6 @@ async function list(db, uid) {
   return out.sort((a, b) => (b.at || 0) - (a.at || 0));
 }
 
-// Création d'une nouvelle unité de stockage
 async function create(db, uid, name, now = Date.now()) {
   if (!uid) return { error: 'unauthenticated' };
   const cur = (await val(db.ref(`containers/${uid}`))) || {};
@@ -88,7 +80,6 @@ async function create(db, uid, name, now = Date.now()) {
   };
 }
 
-// Renommer un conteneur
 async function rename(db, uid, containerId, name) {
   if (!uid) return { error: 'unauthenticated' };
   const cid = safeId(containerId);
@@ -101,15 +92,12 @@ async function rename(db, uid, containerId, name) {
   return { ok: true, id: cid, name: cName };
 }
 
-// prend un objet de façon atomique (transaction) : renvoie sa valeur si on l'a bien retiré, sinon null.
-// Une vente, une mise sur le marché ou un échange simultané ne peut donc pas le dupliquer.
 async function take(ref, ok) {
   let got = null;
   await ref.transaction(x => { got = null; if (x === null) return null; if (!ok(x)) return undefined; got = x; return null; });
   return got;
 }
 
-// Déposer des skins depuis l'inventaire actif vers le conteneur
 async function deposit(db, uid, containerId, itemIds, now = Date.now()) {
   if (!uid) return { error: 'unauthenticated' };
   const cid = safeId(containerId);
@@ -125,7 +113,6 @@ async function deposit(db, uid, containerId, itemIds, now = Date.now()) {
   const curCount = Object.keys(c.items || {}).length;
   if (curCount + ids.length > MAX_ITEMS_PER_CONTAINER) return { error: 'container_full' };
 
-  // chaque objet est retiré de l'inventaire par transaction, puis rangé tel quel (aucun champ perdu)
   const valid = [];
   for (const id of ids) {
     const it = await take(db.ref(`inventory/${uid}/items/${id}`), x => !x.listed && DB.items[x.k]);
@@ -137,7 +124,6 @@ async function deposit(db, uid, containerId, itemIds, now = Date.now()) {
   const upd = {};
   for (const { id, it } of valid) upd[`containers/${uid}/${cid}/items/${id}`] = { ...it, at: it.at || now, depositedAt: now };
 
-  // Si équipé dans le loadout, déséquiper
   const loadout = await val(db.ref(`loadouts/${uid}/w`));
   if (loadout && typeof loadout === 'object') {
     for (const [slotKey, slotVal] of Object.entries(loadout)) {
@@ -151,7 +137,6 @@ async function deposit(db, uid, containerId, itemIds, now = Date.now()) {
   return { ok: true, containerId: cid, count: valid.length };
 }
 
-// Retirer des skins du conteneur vers l'inventaire actif
 async function retrieve(db, uid, containerId, itemIds, now = Date.now()) {
   if (!uid) return { error: 'unauthenticated' };
   const cid = safeId(containerId);
@@ -164,7 +149,6 @@ async function retrieve(db, uid, containerId, itemIds, now = Date.now()) {
   const ids = [...new Set(rawIds.map(safeId).filter(Boolean))].slice(0, 200);
   if (!ids.length) return { error: 'no_items' };
 
-  // retrait du conteneur par transaction, puis remise dans l'inventaire telle quelle
   const valid = [];
   for (const id of ids) {
     const it = await take(db.ref(`containers/${uid}/${cid}/items/${id}`), x => DB.items[x.k]);
@@ -180,7 +164,6 @@ async function retrieve(db, uid, containerId, itemIds, now = Date.now()) {
   return { ok: true, containerId: cid, count: valid.length };
 }
 
-// Supprimer un conteneur (doit être vide)
 async function remove(db, uid, containerId) {
   if (!uid) return { error: 'unauthenticated' };
   const cid = safeId(containerId);

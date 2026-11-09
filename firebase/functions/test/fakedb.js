@@ -1,4 +1,3 @@
-// Mini Realtime Database en mémoire (pour les tests, sans émulateur)
 const clone = v => (v === undefined ? null : JSON.parse(JSON.stringify(v)));
 function norm(v) {
   if (v === null || v === undefined) return null;

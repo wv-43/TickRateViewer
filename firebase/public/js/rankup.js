@@ -1,9 +1,3 @@
-/* =====================================================
- * TICKRATE - écran de fin de match (rankup.js), façon FACEIT
- * À la fin d'un vrai match (ou d'un test « fin réelle ») : victoire / défaite, map et score,
- * compteur d'ELO animé, barre de niveau qui se remplit (passage de niveau), rang CS:GO
- * (l'emblème change avec un flash en cas de promotion), stats du match et drops.
- * ===================================================== */
 Object.assign(I18N.fr,{mr_win:'Victoire',mr_loss:'Défaite',mr_draw:'Égalité',mr_level:'Niveau {n}',mr_lvl_up:'Niveau supérieur !',mr_lvl_down:'Niveau perdu',
   mr_rank_up:'Promotion',mr_rank_down:'Rétrogradation',mr_next:'{n} ELO avant le niveau {l}',mr_max:'Niveau maximum',mr_drops:'Drops du match',mr_continue:'Continuer',mr_rank:'Rang'});
 Object.assign(I18N.en,{mr_win:'Victory',mr_loss:'Defeat',mr_draw:'Draw',mr_level:'Level {n}',mr_lvl_up:'Level up!',mr_lvl_down:'Level lost',
@@ -16,7 +10,6 @@ function mrMap(map){
   const s=mrSlug(map),m=(typeof MAPS!=='undefined'?MAPS:[]).find(x=>x.slug===s||x.wm?.bsp===map||x.wm?.slug===s);
   return {n:m?m.n:s.charAt(0).toUpperCase()+s.slice(1),img:`maps/${m&&m.wm?.bsp===map&&m.wm.slug?m.wm.slug:m?m.slug:s}.jpg?v=2.50`};
 }
-// part de la barre du niveau courant (0..1)
 function mrProg(e){const l=lvl(e);if(l>=10)return 1;const lo=LV[l-1],hi=LV[l];return Math.max(0,Math.min(1,(e-lo)/(hi-lo)))}
 function mrDropNames(d){
   if(!d||typeof CDB==='undefined')return [];
@@ -64,7 +57,6 @@ function matchResultShow(m,r,drops){
   el.addEventListener('click',ev=>{if(ev.target===el)close()});
   mrAnimate(el,e0,e1,k0,k1);
 }
-// compteur et barre : on avance l'ELO pas à pas ; à chaque changement de niveau la barre repart de zéro
 function mrAnimate(el,e0,e1,k0,k1){
   const num=el.querySelector('[data-mrnum]'),bar=el.querySelector('[data-mrbar]'),lv=el.querySelector('[data-mrlv]'),
     nx=el.querySelector('[data-mrnext]'),badge=el.querySelector('[data-mrlvl]'),ban=el.querySelector('[data-mrban]');
@@ -74,7 +66,7 @@ function mrAnimate(el,e0,e1,k0,k1){
   const step=now=>{
     const p=Math.max(0,Math.min(1,(now-t0)/T)),q=1-Math.pow(1-p,3),e=Math.round(e0+(e1-e0)*q),l=lvl(e);
     num.textContent=e;
-    if(l!==curL){                         // passage de niveau : badge qui saute, bandeau, barre repartie
+    if(l!==curL){
       const up=l>curL;curL=l;
       badge.innerHTML=lvlHTML(e,true);badge.classList.remove('pop');void badge.offsetWidth;badge.classList.add('pop');
       lv.textContent=t('mr_level',{n:l});ban.textContent=t(up?'mr_lvl_up':'mr_lvl_down');ban.className=`mr-banner ${up?'up':'down'}`;ban.hidden=false;
@@ -87,7 +79,6 @@ function mrAnimate(el,e0,e1,k0,k1){
   };
   requestAnimationFrame(step);
 }
-// fin d'un vrai match : l'écran remplace le simple message
 (()=>{const o=rmEnd;rmEnd=function(m,mid){
   try{const r=m&&m.status==='finished'&&(m.results||{})[FBA.uid];
     if(r&&(!m.test||m.testReal)&&typeof r.elo==='number'&&typeof r.delta==='number')setTimeout(()=>matchResultShow(m,r,(m.drops||{})[FBA.uid]),500)}catch(e){}

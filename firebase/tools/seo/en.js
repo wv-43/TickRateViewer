@@ -1,4 +1,3 @@
-// English pages (same rules as fr.js). alt.fr = the French page they translate (hreflang).
 module.exports = [
   {
     slug: 'en/csgo-server', alt: { fr: 'serveur-csgo' }, main: true,
@@ -212,7 +211,6 @@ cl_interp_ratio 1</code></pre>
   }
 ];
 
-// --- News (content in tools/seo/news.js)
 const NEWS = require('./news');
 const enDate = d => new Date(d + 'T12:00:00Z').toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' });
 module.exports.push({

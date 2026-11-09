@@ -1,11 +1,3 @@
-/* =====================================================
- * TICKRATE - Menu Vigie : Anti-cheat & Revue communautaire (vigie.js)
- * ===================================================== */
-/* =====================================================
-   VIGIE : fair-play sans rien installer
-   reports pondérés + analyse des matchs (plugin serveur) + revue communautaire
-   (en mode serveur : /api/vigie/*, /api/reports ; ici en démo tout est simulé)
-   ===================================================== */
 Object.assign(I18N.fr,{vg_copy:'Copier',nav_vigie:'Vigie',vg_title:'Vigie',vg_tag:'Le fair-play de TICKRATE. Rien à installer sur ton PC.',
   vg_s1:'Reports pondérés',vg_s1t:'Chaque report a un poids. Si tes reports sont souvent confirmés, ils comptent plus. Si tu reportes à chaque défaite, ils comptent moins.',
   vg_s2:'Analyse des matchs',vg_s2t:'Le serveur CS:GO mesure ton jeu, pas ton PC : temps de réaction, flicks, viseur qui suit un ennemi derrière un mur… comparé aux joueurs de ton niveau, sur plusieurs matchs.',
@@ -72,14 +64,13 @@ Object.assign(I18N.ru,{vg_copy:'Копировать',nav_vigie:'Дозор',vg_
   vg_next:'Следующее дело',vg_hist:'Мои последние проверки',vg_none:'Проверок пока нет.',
   vg_what:'Чего Дозор не делает',vg_w1:'На твой ПК ничего не ставится: всё измеряет игровой сервер.',vg_w2:'Никаких автобанов: забанить может только вердикт проверки (30 дней, затем навсегда).',vg_w3:'Одного яркого матча мало: оценка строится по нескольким матчам с учётом уровня.',vg_w4:'Твой балл подозрения никогда не показывается, чтобы читеры не держались чуть ниже порога.',
   vg_rep_weight:'Вес твоей жалобы: ×{w}',vg_resolved:'Твоя жалоба на {n}: {x}',vg_conf_s:'подтверждена',vg_rej_s:'отклонена',anticheat:'Дозор активен'});
-// on ne parle plus d'« anti-cheat » : rien n'est installé chez le joueur
 I18N.fr.au_sub='Serveurs 128 tick, ELO basé sur tes performances, trust factor et Vigie (fair-play sans logiciel à installer). Crée ton compte, lie Steam et lance ta première partie.';I18N.fr.au_b3='reports pondérés et analyse des matchs';
 I18N.en.au_sub='128-tick servers, ELO based on your performance, trust factor and Watch (fair play, nothing to install). Create your account, link Steam and play your first match.';I18N.en.au_b3='weighted reports and match analysis';
 I18N.ru.au_sub='Серверы 128 тик, ELO по твоей игре, траст и Дозор (фейр-плей без установки). Создай аккаунт, привяжи Steam и сыграй первый матч.';I18N.ru.au_b3='взвешенные жалобы и анализ матчей';
 
 const VG_FEAT={hidden:{fmt:v=>Math.round(v*100)+' %',dir:1},react:{fmt:v=>Math.round(v)+' ms',dir:-1},flick:{fmt:v=>Math.round(v*100)+' %',dir:1},preaim:{fmt:v=>Math.round(v*100)+' %',dir:1},through:{fmt:v=>Math.round(v*100)+' %',dir:1},hs:{fmt:v=>Math.round(v*100)+' %',dir:1},acc:{fmt:v=>Math.round(v*100)+' %',dir:1}};
 const VG_BASE={hidden:[.05,.025],react:[330,70],flick:[.06,.05],preaim:[.18,.08],through:[.05,.05],hs:[.42,.10],acc:[.20,.05]};
-const VG_REWARD=10,VG_WATCH=10;   // démo : 10 s avant de voter (60 s en ligne)
+const VG_REWARD=10,VG_WATCH=10;
 let VG={repAcc:.6,revAcc:.6,reviews:[],sent:[],cur:null,nextId:1040+Math.floor(Math.random()*400),paid:[]};
 try{const v=JSON.parse(localStorage.getItem('tr_vigie')||'null');if(v&&typeof v.repAcc==='number')VG=Object.assign(VG,v)}catch(e){}
 const vgSave=()=>{try{localStorage.setItem('tr_vigie',JSON.stringify(VG))}catch(e){}};
@@ -88,7 +79,6 @@ const vgWeight=()=>+(vgClamp(VG.repAcc/.6,.2,1.6)*(.3+.7*trust(ME)/10)).toFixed(
 const vgPool=()=>trust(ME)<4?'low':'normal';
 const vgElig=()=>lvl(ME.elo)>=6&&ME.matches>=50&&trust(ME)>=7&&!(typeof banned==='function'&&banned());
 
-// --- dossier simulé (en ligne : GET /api/vigie/review) ---
 function vgMakeCase(){
   const truth=Math.random()<.35?'aim':Math.random()<.55?'wall':'clean';
   const elo=rnd(1250,2300),k=(elo-1500)/1000,R=rnd(20,30),kills=rnd(15,32),stats={};
@@ -104,7 +94,6 @@ function vgMakeCase(){
   const map=pick(MAPS.filter(m=>m.g==='active')),win=Math.random()<.5;
   return {id:VG.nextId++,map:map.n,slug:map.slug,score:win?[16,rnd(4,14)]:[rnd(4,14),16],rounds:R,kills,stats,moments:mm,at:Date.now(),truth,demo:'tickrate_m_'+Math.random().toString(16).slice(2,10),totalTicks:tr};
 }
-// verdict simulé des autres examinateurs (ils ont raison ~80 % du temps)
 function vgDecide(c){
   const n=rnd(6,10);let g=0;
   for(let i=0;i<n;i++){const right=Math.random()<.8;g+=(c.truth!=='clean')===right?1:0}
@@ -121,7 +110,6 @@ function vgVote(v){
   VG.reviews.unshift({id:c.id,map:c.map,at:Date.now(),my:v,final:d.final,ok:c.ok});VG.reviews=VG.reviews.slice(0,30);
   vgSave();renderVigie();
 }
-// les reports « triche » en attente se résolvent (en ligne : quand la revue rend son verdict)
 function vgResolve(){
   let ch=false;const now=Date.now();
   VG.sent.forEach(s=>{
@@ -135,7 +123,6 @@ function vgResolve(){
 }
 setInterval(vgResolve,15e3);
 
-// branche le formulaire de report existant : on note le report + son poids
 (()=>{const btn=$('#repSend'),orig=btn.onclick;btn.onclick=function(e){
   const p=repTarget,r=repReason,before=p&&REPLOG.by[p.name];
   const res=orig.call(this,e);
@@ -223,10 +210,6 @@ $('#vigie').addEventListener('click',async e=>{
 (()=>{const sv=setView;setView=function(v,k){const r=sv.call(this,v,k);if(v==='vigie')renderVigie();else clearInterval(vgTick);return r}})();
 applyStatic();
 
-/* =====================================================
-   v5 : curseurs stylés, textes page Jouer/profil, présentation Vigie
-   ===================================================== */
-// curseurs : remplissage jusqu'au pouce (--p), mis à jour à chaque rendu
 function paintRange(r){const mn=+r.min||0,mx=+r.max||100,v=+r.value;r.style.setProperty('--p',((v-mn)/((mx-mn)||1)*100)+'%')}
 document.addEventListener('input',e=>{if(e.target.matches&&e.target.matches('input[type=range]'))paintRange(e.target)},true);
 new MutationObserver(ms=>{for(const m of ms)for(const n of m.addedNodes){if(n.nodeType!==1)continue;if(n.matches('input[type=range]'))paintRange(n);n.querySelectorAll&&n.querySelectorAll('input[type=range]').forEach(paintRange)}}).observe(document.body,{childList:true,subtree:true});
@@ -352,7 +335,7 @@ function vigieAboutHTML(){
     if(vgTab==='about'){clearInterval(vgTick);el.innerHTML=`<div class="cp-head"><h1 class="h1">${t('vg_title')}</h1><p class="vg-tag">${t('vg_tag')}</p></div>${tabs}${vigieAboutHTML()}`;return}
     orig();
     const head=el.querySelector('.cp-head');if(head)head.insertAdjacentHTML('afterend',tabs);
-    const st=el.querySelector('.vg-steps');if(st)st.remove();   // déjà expliqué dans « Présentation »
+    const st=el.querySelector('.vg-steps');if(st)st.remove();
   };
   $('#vigie').addEventListener('click',e=>{
     const b=e.target.closest('[data-vgtab]');if(!b)return;

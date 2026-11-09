@@ -26,3 +26,9 @@ th{color:var(--muted);font-weight:600;font-size:12px;text-transform:uppercase;le
 [data-lang-block]{display:none}
 [data-lang-block].active{display:block}
 footer{margin-top:40px;padding-top:16px;border-top:1px solid var(--line);color:var(--muted);font-size:13px}
+
+/* ---------- même ambiance que l'application ---------- */
+@keyframes iosEnter{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+@media(prefers-reduced-motion:no-preference){.lg{animation:iosEnter .46s cubic-bezier(.32,.72,0,1) backwards}}
+.lg-lang-btn{border-radius:8px}
+table{border-radius:14px;overflow:hidden}

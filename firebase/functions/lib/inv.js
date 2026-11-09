@@ -1,14 +1,7 @@
-// =====================================================================
-//  Inventaire et pièces côté serveur : le site n'en garde qu'une copie, chaque changement passe par ici.
-//  inventory/<uid>/items|cases, pending/<uid>, wallet/<uid>/coins   (voir eco.js)
-//  inventory/<uid>/_imported        date de l'import depuis le navigateur (une seule fois, plafonné)
-//  shopOwned/<uid>                  { skins: { 'ak-47:180': true }, agents: { 4613: true }, passPrem }
-//  npcBought/<uid>/<jour>/<offre>   offres du marché simulé déjà achetées par ce joueur
-// =====================================================================
 const crypto = require('crypto');
 const EC = require('./eco-core');
 const DB = require('../data/cases.json');
-const PRICES = require('./shop-prices.json');      // boutique : prix des skins (« arme:paint ») et des agents
+const PRICES = require('./shop-prices.json');
 const { addCoins } = require('./eco');
 const rewards = require('./rewards');
 const containers = require('./containers');
@@ -17,7 +10,7 @@ const rnd = () => crypto.randomInt(0, 2 ** 32) / 2 ** 32;
 const int = (v, a, b) => Math.min(b, Math.max(a, Math.round(Number(v) || 0)));
 const slug = n => String(n).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
 
-const CAP = { items: 300, cases: 100, pending: 50, coins: 50000, skins: 200, agents: 63, cards: 50, bgs: 30 };   // import unique
+const CAP = { items: 300, cases: 100, pending: 50, coins: 50000, skins: 200, agents: 63, cards: 50, bgs: 30 };
 const PASS_PRICE = 950;
 const CARD_PRICES = {
   carbon: 600,
@@ -73,13 +66,9 @@ const BG_PRICES = {
   black_hole_event: 3500,
   glitch_dimension: 3900
 };
-// l'inventaire est sur le serveur depuis le 1er novembre 2026 : seuls les comptes plus anciens importent (une fois) ce que
-// leur navigateur gardait. Un compte créé après n'importe rien : sinon il récupérerait l'inventaire du compte précédent
-// utilisé dans le même navigateur (et on pourrait multiplier objets et pièces en créant des comptes)
 const IMPORT_BEFORE = Date.parse('2026-11-01T00:00:00Z');
 const TU_MAX = 10;
 
-// ---------- état complet ----------
 async function fixBadImport(db, uid) {
   const [inv, pend, created] = await Promise.all([val(db.ref(`inventory/${uid}`)), val(db.ref(`pending/${uid}`)), val(db.ref(`profiles/${uid}/createdAt`))]);
   if (!inv || !inv._imported || inv._importFixed || !created || created < IMPORT_BEFORE) return;
@@ -135,16 +124,14 @@ async function state(db, uid) {
     cards: Object.keys((own && own.cards) || {}),
     bgs: Object.keys((own && own.bgs) || {}),
     dev: isDev, beta: !!(prof && prof.beta), plan: (prof && prof.plan) || 'free', influencer: (prof && prof.influencer) || null,
-    passPrem: !!(own && own.passPrem), imported: !!(inv && inv._imported), stattrak: stc || {}, ...rw   // stattrak : kills par exemplaire (clé = id de l'objet)
+    passPrem: !!(own && own.passPrem), imported: !!(inv && inv._imported), stattrak: stc || {}, ...rw
   };
 }
 
-// ---------- import unique depuis le navigateur (plafonné, valeurs vérifiées) ----------
-// renvoie map : ancien id -> nouvel id (le site recolle ses équipements et ses personnalisations)
 async function importLocal(db, uid, data = {}, now = Date.now()) {
   if (await val(db.ref(`inventory/${uid}/_imported`))) return { ...(await state(db, uid)), map: {} };
   const created = await val(db.ref(`profiles/${uid}/createdAt`));
-  if (!created || created >= IMPORT_BEFORE) {                         // compte récent : rien à importer
+  if (!created || created >= IMPORT_BEFORE) {
     await db.ref(`inventory/${uid}/_imported`).set(now);
     return { ...(await state(db, uid)), map: {} };
   }
@@ -172,13 +159,11 @@ async function importLocal(db, uid, data = {}, now = Date.now()) {
   for (const bid of arr(data.bgs, CAP.bgs)) if (typeof bid === 'string' && BG_PRICES[bid]) upd[`shopOwned/${uid}/bgs/${bid}`] = true;
   if (data.passPrem) upd[`shopOwned/${uid}/passPrem`] = true;
   await db.ref().update(upd);
-  // pièces : le portefeuille serveur (drops, achats Stripe) n'est jamais réduit
   const local = int(data.coins, 0, CAP.coins);
   await db.ref(`wallet/${uid}/coins`).transaction(c => Math.max(c || 0, local));
   return { ...(await state(db, uid)), map };
 }
 
-// ---------- caisses de la boutique : même prix que le site (valeur moyenne d'une ouverture + 15 %) ----------
 const CASE_PRICE = {};
 function casePrice(cid) {
   if (CASE_PRICE[cid]) return CASE_PRICE[cid];
@@ -197,7 +182,6 @@ async function buyCase(db, uid, cid, now = Date.now()) {
   return { ok: true, caseId: id, price };
 }
 
-// ---------- contrat d'échange : 10 objets de même rareté et même StatTrak -> 1 objet de la rareté au-dessus ----------
 const caseOf = x => (x.c && DB.cases.some(c => c.id === x.c) ? x.c : (DB.cases.find(c => (c.c || []).includes(x.k)) || {}).id || null);
 function tradeUpOdds(items) {
   const out = {}, t0 = DB.items[items[0].k].t;
@@ -225,7 +209,6 @@ async function tradeUp(db, uid, ids, now = Date.now(), r = rnd) {
   const wear = items.reduce((s, x) => { const it = DB.items[x.k], d = (it.mx - it.mn) || 1; return s + Math.min(1, Math.max(0, (x.f - it.mn) / d)); }, 0) / items.length;
   const out = DB.items[k], id = db.ref().push().key;
   const item = { k, f: +(out.mn + wear * (out.mx - out.mn)).toFixed(6), s: Math.floor(r() * 1000), st: st0, src: 'tradeup', at: now, c: (DB.cases.find(c => (c.c || []).includes(k)) || {}).id || null };
-  // chaque objet est retiré par transaction : s'il a été vendu, mis en vente ou échangé entre-temps, on rend les autres
   const taken = [];
   for (const x of items) {
     let got = null;
@@ -240,11 +223,10 @@ async function tradeUp(db, uid, ids, now = Date.now(), r = rnd) {
   return { ok: true, item: { id, ...item } };
 }
 
-// ---------- boutique : skins (« arme:paint »), agents, pass premium ----------
 function skinPrice(key) {
   if (PRICES.skins[key]) return PRICES.skins[key];
   const [w, p] = key.split(':');
-  const it = Object.values(DB.items).find(x => slug(x.w) === w && x.p === +p);   // skin d'une caisse
+  const it = Object.values(DB.items).find(x => slug(x.w) === w && x.p === +p);
   if (!it) return 0;
   return it.t === 4 ? (it.g ? 3500 : 4000) : [150, 300, 600, 1200][it.t] || 300;
 }
@@ -264,7 +246,6 @@ async function buyShop(db, uid, kind, ref) {
   return { ok: true, price: isDev ? 0 : price, isDev };
 }
 
-// ---------- marché simulé du jour : mêmes offres que le site (tirage déterministe), achat vérifié ici ----------
 function npcList(day) {
   const r = EC.mulberry(day * 131 + 7), out = [];
   for (let n = 0; n < 54; n++) {
@@ -273,7 +254,7 @@ function npcList(day) {
     if (!pool.length) continue;
     const it = EC.makeItem(DB, pool[Math.floor(r() * pool.length)], r), v = EC.price(DB, it).v;
     const price = Math.max(5, Math.round(v * (0.92 + r() * 0.3)));
-    r(); r();                                          // pseudo du vendeur sur le site : même nombre de tirages
+    r(); r();
     out.push({ id: 'm' + day + '_' + n, ...it, price });
   }
   return out;
@@ -293,8 +274,6 @@ async function buyNpc(db, uid, offerId, now = Date.now()) {
   return { ok: true, itemId: id, price: x.price };
 }
 
-// ---------- compte dev : régler l'usure, le pattern et le StatTrak d'un de ses objets (tests en jeu) ----------
-// l'usure reste dans la plage du skin (min-max, comme dans le jeu) ; StatTrak seulement si le skin existe en StatTrak
 async function devEdit(db, uid, data = {}) {
   if (!(await require('./influencer').isDev(db, uid))) return { error: 'forbidden' };
   const id = String(data.id || '').replace(/[.#$/[\]]/g, '_').slice(0, 64), ref = db.ref(`inventory/${uid}/items/${id}`);

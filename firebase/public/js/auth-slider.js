@@ -1,9 +1,3 @@
-/* =====================================================
- * TICKRATE - Slider de Présentation Vertical Descendant (auth-slider.js)
- * Présentation fluide & animée : 128 Tick, Vigie, Ranked ELO, Skins & Lobbies
- * Navigation descendante par scroll, swipe ou boutons avec environnement vivant
- * ===================================================== */
-
 (function(){
   'use strict';
 
@@ -278,7 +272,7 @@
   let touchStartY = 0;
   let lastWheelTime = 0;
   let isTransitioning = false;
-  const SLIDE_DURATION = 7500; // 7.5s par slide en auto-play
+  const SLIDE_DURATION = 7500;
 
   function getCurrentLang(){
     if (typeof lang !== 'undefined' && (lang === 'en' || lang === 'ru' || lang === 'fr')) {
@@ -357,7 +351,6 @@
 
     const thumb = document.getElementById('authVRailThumb');
     if (thumb && btns.length) {
-      // barre de progression : part du 01 et s'arrête pile sur la page en cours (ne dépasse jamais la dernière)
       const pct = (currentIndex / (AUTH_SLIDES.length - 1)) * 100;
       thumb.style.height = `${pct}%`;
     }
@@ -386,10 +379,8 @@
     currentIndex = (index + AUTH_SLIDES.length) % AUTH_SLIDES.length;
     const data = getSlideData(currentIndex);
 
-    // Cross-fade fluide de la map en arrière-plan
     crossfadeBg(data.map);
 
-    // Animation descendante ou ascendante
     const animClass = direction === 'up' ? 'slide-ascending' : 'slide-descending';
 
     viewport.innerHTML = `
@@ -430,8 +421,8 @@
 
   function handleWheel(e){
     const now = Date.now();
-    if (now - lastWheelTime < 450) return; // Throttling fluide pour éviter les sauts multiples
-    if (Math.abs(e.deltaY) < 18) return; // Ignore les petits bruits de touchpad
+    if (now - lastWheelTime < 450) return;
+    if (Math.abs(e.deltaY) < 18) return;
 
     if (e.deltaY > 0) {
       lastWheelTime = now;
@@ -447,7 +438,6 @@
     const authEl = document.getElementById('auth');
     if (!authArt) return;
 
-    // Initialisation première couche de map
     const layerA = document.getElementById('authBgLayerA');
     if (layerA) {
       layerA.style.backgroundImage = `url('${AUTH_SLIDES[0].map}')`;
@@ -459,7 +449,6 @@
     updateScrollPromptText();
     renderSlide(0, 'down');
 
-    // Clic sur le bouton de scroll descendant
     const scrollDownBtn = document.getElementById('authScrollDown');
     if (scrollDownBtn) {
       scrollDownBtn.onclick = (e) => {
@@ -468,7 +457,6 @@
       };
     }
 
-    // Clic sur les étapes du rail vertical
     const rail = document.getElementById('authVRail');
     if (rail) {
       rail.onclick = (e) => {
@@ -483,14 +471,11 @@
       };
     }
 
-    // Détection du scroll souris (Wheel) descendant / ascendant
     authArt.addEventListener('wheel', handleWheel, { passive: true });
 
-    // Pause au survol de la souris pour confort de lecture
     authArt.addEventListener('mouseenter', () => { isPaused = true; });
     authArt.addEventListener('mouseleave', () => { isPaused = false; });
 
-    // Support tactile (swipe vertical)
     authArt.addEventListener('touchstart', (e) => {
       if (e.touches && e.touches[0]) {
         touchStartY = e.touches[0].clientY;
@@ -502,14 +487,13 @@
         const touchEndY = e.changedTouches[0].clientY;
         const diff = touchEndY - touchStartY;
         if (diff > 45) {
-          prevSlide(); // glissé vers le bas -> slide précédent
+          prevSlide();
         } else if (diff < -45) {
-          nextSlide(); // glissé vers le haut -> slide suivant descendant
+          nextSlide();
         }
       }
     }, { passive: true });
 
-    // Navigation au clavier quand la page auth est active
     document.addEventListener('keydown', (e) => {
       if (!authEl || authEl.hidden) return;
       if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
@@ -524,14 +508,12 @@
     });
   }
 
-  // Hook appelé lorsque la langue du site change
   window.updateAuthSliderLang = function(){
     renderVRail();
     updateScrollPromptText();
     renderSlide(currentIndex, 'down');
   };
 
-  // Démarrage automatique
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', initSlider);
   } else {

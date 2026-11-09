@@ -1,11 +1,3 @@
-/* =====================================================
- * TICKRATE - Rangs façon CS:GO (ranks.js)
- * 18 rangs de Silver I à The Global Elite, calculés depuis l'ELO.
- * Ils servent à la fois de ligues (familles) et de badge de niveau.
- * Emblèmes : vraies images des rangs CS:GO (ranks/skillgroupN.png) ; la Pro League garde son SVG.
- * ===================================================== */
-// familles = ligues de la page Compétition (pc = part des joueurs, tc = récompense de fin de saison)
-// noms officiels de CS:GO dans chaque langue ; « name » / « n » suivent la langue du site (variable lang)
 const RK_T=o=>({get(){return o[typeof lang==='string'?lang:'fr']||o.en}});
 const RANK_FAM=[
   ['silver', {fr:'Argent',en:'Silver',ru:'Серебро'},                              0,   '#c3ccd6','#5d6773','chev', 22, 100],
@@ -38,7 +30,6 @@ const RANKS=[
   return Object.defineProperty({i,min,fam,step:sib.findIndex(r=>r[1]===n)+1,steps:sib.length},'name',RK_T(n))});
 const rankOf=elo=>[...RANKS].reverse().find(r=>(elo||0)>=r.min)||RANKS[0];
 
-// ---------- emblèmes ----------
 const RK_ICON={
   chev:c=>`<path d="M21 22.5l11 7 11-7M21 30.5l11 7 11-7" fill="none" stroke="${c}" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round"/>`,
   star:c=>`<path d="M32 18.5l3.9 8 8.8 1.2-6.4 6.1 1.6 8.7L32 38.4l-7.9 4.1 1.6-8.7-6.4-6.1 8.8-1.2z" fill="${c}"/>`,
@@ -50,7 +41,6 @@ const RK_ICON={
 };
 const RK_SHIELD='M32 3.5L58 12.5V32c0 15-11.5 24.8-26 29.5C17.5 56.8 6 47 6 32V12.5z';
 const RK_INNER='M32 8.5L53.5 16v16c0 12.2-9.3 20.4-21.5 24.6C19.8 52.4 10.5 44.2 10.5 32V16z';
-// f : famille (ou PRO) ; step/steps : position du sous-rang (repères sous l'icône)
 function rankSVGDrawn(f,step=0,steps=0){
   const g='rkg-'+f.id,pips=steps>1?Array.from({length:steps},(_,k)=>{const x=32+(k-(steps-1)/2)*5.2;
     return `<path d="M${x} 47.2l1.8 1.8-1.8 1.8-1.8-1.8z" fill="${k<step?f.c:'#3a3d45'}"/>`}).join(''):'';
@@ -60,27 +50,22 @@ function rankSVGDrawn(f,step=0,steps=0){
     <path d="${RK_INNER}" fill="none" stroke="${f.c}" stroke-opacity=".28" stroke-width="1"/>
     ${RK_ICON[f.icon](f.c)}${pips}</svg>`;
 }
-// Vrais emblèmes des rangs CS:GO (skillgroup1.png … skillgroup18.png, fichiers du jeu).
-// f = famille ; step = sous-rang (1…n). Sans step (emblème de ligue) : le plus haut rang de la famille.
 function rankImgIndex(f,step=0){
   const fam=RANKS.filter(r=>r.fam.id===f.id);
   if(!fam.length)return 18;
   const r=step?fam.find(x=>x.step===step)||fam[fam.length-1]:fam[fam.length-1];
   return r.i+1;
 }
-// ---------- Pro League : plaque dorée au format des rangs (5:2), laurier + couronne + reflet ----------
-// rank : place mondiale (1…20) affichée sous « PRO » ; sans rank : « LEAGUE »
 const PRO_LAUREL=(()=>{
-  const pt=(t,a,b,c)=>(1-t)*(1-t)*a+2*(1-t)*t*b+t*t*c;   // courbe de Bézier quadratique
-  const P0=[48,68],P1=[12,54],P2=[30,14],leaf='M0 0Q4.5-3.2 9.5 0Q4.5 3.2 0 0Z';   // feuille pointue, base à l'origine
+  const pt=(t,a,b,c)=>(1-t)*(1-t)*a+2*(1-t)*t*b+t*t*c;
+  const P0=[48,68],P1=[12,54],P2=[30,14],leaf='M0 0Q4.5-3.2 9.5 0Q4.5 3.2 0 0Z';
   let out='';
   for(let k=0;k<8;k++){
     const t=.06+k*.12,x=pt(t,P0[0],P1[0],P2[0]),y=pt(t,P0[1],P1[1],P2[1]);
     const ang=Math.atan2(2*(1-t)*(P1[1]-P0[1])+2*t*(P2[1]-P1[1]),2*(1-t)*(P1[0]-P0[0])+2*t*(P2[0]-P1[0]))*180/Math.PI,s=(1.05-k*.055).toFixed(2);
-    // une paire de feuilles à chaque nœud, inclinées vers le haut de la branche
     for(const side of [-42,42])out+=`<path d="${leaf}" transform="translate(${x.toFixed(1)} ${y.toFixed(1)}) rotate(${(ang+side).toFixed(0)}) scale(${s})"/>`;
   }
-  out+=`<path d="${leaf}" transform="translate(${P2[0]} ${P2[1]}) rotate(-75) scale(.85)"/>`;      // feuille du bout
+  out+=`<path d="${leaf}" transform="translate(${P2[0]} ${P2[1]}) rotate(-75) scale(.85)"/>`;
   return `<path d="M${P0}Q${P1} ${P2}" fill="none" stroke="url(#pro-gold)" stroke-width="1.6" stroke-linecap="round"/><g fill="url(#pro-gold)">${out}</g>`;
 })();
 const _PRO_SVG_CACHE=new Map();

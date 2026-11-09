@@ -1,19 +1,9 @@
-// =====================================================================
-//  Inventaire visible sur les profils + échanges entre joueurs (tout se passe sur le serveur).
-//  trades/<id>        { from, to, fromName, toName, give:[objet], want:[objet], status, at, doneAt? }
-//                     status : pending | done | declined | cancelled | failed
-//  tradesBy/<uid>/<id> = true   (les deux joueurs)
-//  Échange accepté : chaque objet est retiré de l'inventaire de son propriétaire par une transaction
-//  (il doit encore exister, ne pas être en vente et être le même skin) ; si un seul manque, tout est remis
-//  en place et l'échange échoue. Aucun objet ne peut donc être dupliqué ni perdu.
-// =====================================================================
 const val = async ref => (await ref.get()).val();
 const DB = require('../data/cases.json');
 const MAX_SIDE = 10, MAX_OPEN = 5;
 const key = x => String(x || '').replace(/[.#$/[\]]/g, '_').slice(0, 64);
 const pub = (id, x) => ({ id, k: x.k, f: x.f, s: x.s, st: !!x.st, c: x.c || null });
 
-// objets d'un joueur visibles par les autres (pas ceux en vente)
 async function publicInv(db, viewer, uid) {
   uid = key(uid);
   const [items, name] = await Promise.all([val(db.ref(`inventory/${uid}/items`)), val(db.ref(`profiles/${uid}/name`))]);
@@ -48,13 +38,12 @@ async function offer(db, from, d = {}, now = Date.now()) {
   return { ok: true, id };
 }
 
-// retire un objet (transaction) : il doit toujours être là, pas en vente, même skin
 async function take(db, uid, it) {
   let got = null;
   const tx = await db.ref(`inventory/${uid}/items/${it.id}`).transaction(x => {
     got = null;
-    if (x === null) return null;                         // 1er passage sans cache : Firebase relance avec la vraie valeur
-    if (x.listed || x.k !== it.k) return undefined;      // abandon
+    if (x === null) return null;
+    if (x.listed || x.k !== it.k) return undefined;
     got = x; return null;
   });
   return tx.committed && got ? got : null;
@@ -67,13 +56,12 @@ async function respond(db, uid, d = {}, now = Date.now()) {
   if (act === 'cancel' && t.from !== uid) return { error: 'forbidden' };
   if ((act === 'accept' || act === 'decline') && t.to !== uid) return { error: 'forbidden' };
   if (!['accept', 'decline', 'cancel'].includes(act)) return { error: 'tr_bad_action' };
-  // un seul traitement : pending -> processing (ou refus / annulation)
   let ok = false;
-  await db.ref(`trades/${id}/status`).transaction(s => { ok = s === 'pending'; if (s === null) return null; return ok ? (act === 'accept' ? 'processing' : act === 'decline' ? 'declined' : 'cancelled') : undefined; });   // null : 1er passage sans cache
+  await db.ref(`trades/${id}/status`).transaction(s => { ok = s === 'pending'; if (s === null) return null; return ok ? (act === 'accept' ? 'processing' : act === 'decline' ? 'declined' : 'cancelled') : undefined; });
   if (!ok) return { error: 'tr_closed' };
   if (act !== 'accept') { await db.ref(`trades/${id}/doneAt`).set(now); return { ok: true, status: act === 'decline' ? 'declined' : 'cancelled' }; }
 
-  const taken = [];                                      // [owner, objet retiré] pour tout remettre en cas d'échec
+  const taken = [];
   const all = [...(t.give || []).map(it => [t.from, it]), ...(t.want || []).map(it => [t.to, it])];
   for (const [owner, it] of all) {
     const x = await take(db, owner, it);
@@ -84,7 +72,6 @@ async function respond(db, uid, d = {}, now = Date.now()) {
     }
     taken.push([owner, it, x]);
   }
-  // chaque objet change de propriétaire avec un nouvel identifiant ; son compteur StatTrak le suit
   const upd = { [`trades/${id}/status`]: 'done', [`trades/${id}/doneAt`]: now };
   for (const [owner, it, x] of taken) {
     const dest = owner === t.from ? t.to : t.from, nid = db.ref().push().key;
@@ -104,7 +91,6 @@ async function list(db, uid) {
   return { ok: true, trades: all.map(x => ({ ...x, mine: x.from === uid })).sort((a, b) => b.at - a.at) };
 }
 
-// identifiant d'un joueur d'après son pseudo ; les anciens comptes sans entrée usernames/ sont retrouvés et complétés
 async function lookup(db, name) {
   name = String(name || '').trim().slice(0, 25);
   if (!name) return { error: 'player_not_found' };
@@ -117,7 +103,6 @@ async function lookup(db, name) {
   }
   return uid ? { ok: true, uid } : { error: 'player_not_found' };
 }
-// à la connexion : le pseudo du joueur est réservé à son compte s'il ne l'était pas encore (anciens comptes)
 async function claimOwnName(db, uid) {
   const name = await val(db.ref(`profiles/${uid}/name`));
   if (!name) return { error: 'no_profile' };

@@ -1,9 +1,3 @@
-/* =====================================================
- * TICKRATE - Rooms privées (rooms.js)
- * Un compte dev crée une room, invite des joueurs par pseudo, choisit le mode (5v5 / Wingman / 1v1), la map, le nombre
- * de rounds, les équipes, et lance avec autant de joueurs qu'il veut (places vides : bots, au choix).
- * Les invités voient l'invitation sur la page Jouer. Tout passe par la Cloud Function « room » (functions/lib/rooms.js).
- * ===================================================== */
 Object.assign(I18N.fr,{ro_title:'Room privée',ro_create:'Créer une room privée',ro_create_t:'Invite qui tu veux, choisis la map et lance même à 2 (les places vides sont complétées par des bots).',
   ro_of:'Room de {n}',ro_mode:'Mode',ro_map:'Map',ro_rounds:'Rounds',ro_bots:'Compléter avec des bots',ro_real:'Fin réelle (ELO + drops)',ro_invite_ph:'Pseudo du joueur',ro_invite:'Inviter',
   ro_team:'Équipe {x}',ro_empty_team:'Personne',ro_bots_fill:'+ {n} bot(s)',ro_pending:'Invités en attente',ro_start:'Lancer la partie',ro_leave:'Quitter',ro_close:'Fermer la room',ro_kick:'Retirer',ro_swap:'Changer d’équipe',
@@ -38,7 +32,7 @@ async function roCall(action,data={}){
 }
 function roRender(){
   const el=$('#rmRoom');if(!el)return;
-  const sig=JSON.stringify([RO.room,RO.invites,RO.dev,lang,roOn()]);if(sig===RO.sig)return;RO.sig=sig;   // rien n'a changé : on ne redessine pas (menus ouverts)
+  const sig=JSON.stringify([RO.room,RO.invites,RO.dev,lang,roOn()]);if(sig===RO.sig)return;RO.sig=sig;
   const R=RO.room,inv=RO.invites||[];
   if(!roOn()||(!R&&!inv.length&&!RO.dev)){el.hidden=true;return}
   el.hidden=false;
@@ -82,7 +76,6 @@ document.addEventListener('change',e=>{
 });
 document.addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target.id==='roName')$('#rmRoom [data-ro="invite"]')?.click()});
 
-// suivi : lecture directe (peu coûteuse) de ma room et de mes invitations ; détails par la fonction si besoin
 async function roSync(force){
   if(!roOn()){RO.room=null;RO.invites=[];return roRender()}
   if(typeof amDev==='function')RO.dev=!!(await amDev());

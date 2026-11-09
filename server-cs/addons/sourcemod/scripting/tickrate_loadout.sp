@@ -1,18 +1,3 @@
-/*
- * TICKRATE — armes du slot CT choisies sur le site
- * ------------------------------------------------
- * Sur le site (page Inventaire > Équipement), chaque joueur choisit, comme dans le casier de CS:GO :
- *   M4A4 ou M4A1-S, USP-S ou P2000, Desert Eagle ou R8 Revolver, Five-SeveN / Tec-9 ou CZ75-Auto, MP7 ou MP5-SD.
- * Ce plugin applique ce choix en jeu :
- *   - menu d'achat : acheter l'une des deux armes d'un même emplacement donne celle choisie (prix de l'arme donnée) ;
- *   - spawn côté CT : le pistolet de départ est l'USP-S ou le P2000 choisi ;
- *   - !ws (ou sm_ws) : recharge les choix après une modification sur le site.
- *
- * Dépendances : SourceMod 1.11+, REST in Pawn (ripext), cstrike.
- * ConVars (cfg/sourcemod/tickrate_loadout.cfg) :
- *   tr_loadout_url  URL de gameApi, ex. https://europe-west1-tickratecsgo.cloudfunctions.net/gameApi
- *   tr_loadout_key  SERVER_KEY du back-end
- */
 #include <sourcemod>
 #include <sdktools>
 #include <cstrike>
@@ -27,11 +12,11 @@
 public Plugin myinfo = { name = "TICKRATE loadout", author = "TICKRATE", description = "Armes interchangeables (M4, USP, R8, CZ75, MP5-SD) choisies sur le site", version = "1.1.0", url = "" };
 
 ConVar g_cvUrl, g_cvKey;
-bool g_wantSilencedM4[MAXPLAYERS + 1];   // true = M4A1-S, false = M4A4
-bool g_wantUsp[MAXPLAYERS + 1] = { true, ... };   // true = USP-S, false = P2000
-bool g_wantR8[MAXPLAYERS + 1];           // true = R8 Revolver, false = Desert Eagle
-bool g_wantCz[MAXPLAYERS + 1];           // true = CZ75-Auto à la place du Five-SeveN (CT) / Tec-9 (T)
-bool g_wantMp5[MAXPLAYERS + 1];          // true = MP5-SD, false = MP7
+bool g_wantSilencedM4[MAXPLAYERS + 1];
+bool g_wantUsp[MAXPLAYERS + 1] = { true, ... };
+bool g_wantR8[MAXPLAYERS + 1];
+bool g_wantCz[MAXPLAYERS + 1];
+bool g_wantMp5[MAXPLAYERS + 1];
 
 public void OnPluginStart() {
 	LoadTranslations("tickrate.phrases");
@@ -77,7 +62,6 @@ public void OnLoadout(HTTPResponse r, any userid, const char[] err) {
 	g_wantMp5[client] = j.HasKey("mp5") && j.GetBool("mp5");
 }
 
-// ---------- menu d'achat ----------
 public Action CS_OnBuyCommand(int client, const char[] weapon) {
 	char want[32];
 	if (StrEqual(weapon, "m4a1") || StrEqual(weapon, "m4a1_silencer"))
@@ -91,11 +75,10 @@ public Action CS_OnBuyCommand(int client, const char[] weapon) {
 	else if (StrEqual(weapon, "mp7") || StrEqual(weapon, "mp5sd"))
 		strcopy(want, sizeof want, g_wantMp5[client] ? "mp5sd" : "mp7");
 	else return Plugin_Continue;
-	if (StrEqual(weapon, want)) return Plugin_Continue;    // déjà la bonne arme : achat normal
+	if (StrEqual(weapon, want)) return Plugin_Continue;
 	return BuyInstead(client, want) ? Plugin_Handled : Plugin_Continue;
 }
 
-// achète « want » à la place (mêmes règles que le jeu : zone d'achat, temps d'achat, argent)
 bool BuyInstead(int client, const char[] want) {
 	if (!IsPlayerAlive(client) || !GetEntProp(client, Prop_Send, "m_bInBuyZone")) return false;
 	int team = GetClientTeam(client);
@@ -106,26 +89,24 @@ bool BuyInstead(int client, const char[] want) {
 	if (money < price) { PrintCenterText(client, "%t", "No money"); return true; }
 	bool primary = StrContains(want, "m4a1") == 0 || StrEqual(want, "mp5sd") || StrEqual(want, "mp7");
 	int old = GetPlayerWeaponSlot(client, primary ? CS_SLOT_PRIMARY : CS_SLOT_SECONDARY);
-	if (old != -1) CS_DropWeapon(client, old, true, false);   // comme un achat normal : l'ancienne arme tombe au sol
+	if (old != -1) CS_DropWeapon(client, old, true, false);
 	SetEntProp(client, Prop_Send, "m_iAccount", money - price);
 	char cls[40]; Format(cls, sizeof cls, "weapon_%s", want);
 	GivePlayerItem(client, cls);
 	return true;
 }
 
-// ---------- pistolet de départ CT ----------
 public void OnPlayerSpawn(Event e, const char[] name, bool dontBroadcast) {
 	int userid = e.GetInt("userid");
-	CreateTimer(0.2, Timer_FixPistol, userid, TIMER_FLAG_NO_MAPCHANGE);   // laisse le jeu donner l'équipement d'abord
+	CreateTimer(0.2, Timer_FixPistol, userid, TIMER_FLAG_NO_MAPCHANGE);
 }
 public Action Timer_FixPistol(Handle t, any userid) {
 	int client = GetClientOfUserId(userid);
 	if (client < 1 || !IsPlayerAlive(client) || GetClientTeam(client) != CS_TEAM_CT) return Plugin_Stop;
 	int w = GetPlayerWeaponSlot(client, CS_SLOT_SECONDARY);
 	if (w == -1) return Plugin_Stop;
-	// USP-S et P2000 ont la même classe (weapon_hkp2000) : on les distingue par l'index d'objet
 	int def = GetEntProp(w, Prop_Send, "m_iItemDefinitionIndex");
-	if (def != DEF_P2000 && def != DEF_USP) return Plugin_Stop;   // pistolet acheté (Five-SeveN, Deagle…) : on n'y touche pas
+	if (def != DEF_P2000 && def != DEF_USP) return Plugin_Stop;
 	if ((def == DEF_USP) == g_wantUsp[client]) return Plugin_Stop;
 	RemovePlayerItem(client, w);
 	AcceptEntityInput(w, "Kill");

@@ -1,10 +1,4 @@
-/* =====================================================
- * TICKRATE - Support : tickets et lien Discord (support.js)
- * - formulaire : catégorie + message -> Cloud Function ticketSend (feedback/ dans la base, lu par les devs)
- * - « Mes tickets » : statut et réponse de l'équipe (ticketMine), y compris les !feedback envoyés en jeu
- * - bouton Discord (barre de gauche et page Support) : lien dans DISCORD_URL
- * ===================================================== */
-const DISCORD_URL='https://discord.gg/KNXbGrTDj';   // lien d'invitation du serveur Discord TICKRATE (vide = boutons masqués)
+const DISCORD_URL='https://discord.gg/KNXbGrTDj';
 const TK_CATS=['bug','idea','payment','report','account','other'];
 Object.assign(I18N.fr,{nav_support:'Support',sp_title:'Support',sp_sub:'Un bug, une idée, un souci de paiement ? Écris-nous : un membre de l’équipe te répond ici.',
   sp_new:'Nouveau ticket',sp_ph:'Explique ce qui se passe (ce que tu faisais, ce que tu as vu, sur quelle page ou quelle map)…',sp_send:'Envoyer',sp_sent:'Ticket envoyé : on te répond ici.',sp_mine:'Mes tickets',sp_none:'Tu n’as encore envoyé aucun ticket.',
@@ -72,9 +66,7 @@ $('#support').addEventListener('click',async e=>{
 });
 $('#support').addEventListener('input',e=>{if(e.target.id==='tkText')$('#tkCount').textContent=`${e.target.value.length} / 1500`});
 (()=>{const sv=setView;setView=function(v,k,h){const r=sv.call(this,v,k,h);if(v==='support')renderSupport();return r}})();
-// changement de langue : la page Support se redessine dans la nouvelle langue
 (()=>{const o=setLang;setLang=function(){const r=o.apply(this,arguments);if(!$('#support').hidden)renderSupport();return r}})();
 
-// bouton Discord de la barre de gauche : masqué tant qu'il n'y a pas de lien
 $$('[data-discord]').forEach(a=>{if(DISCORD_URL)a.href=DISCORD_URL;else a.hidden=true});
 $$('[data-i18n="nav_support"]').forEach(e=>e.textContent=t('nav_support'));

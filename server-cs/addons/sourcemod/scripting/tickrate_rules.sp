@@ -1,23 +1,3 @@
-/*
- * TICKRATE — règles de match
- * --------------------------
- *  - anti-triche côté serveur : toutes les 15 s, vérifie chez chaque joueur des réglages protégés par
- *    sv_cheats (rendu des modèles, fumées, éclairage…). Une valeur anormale veut dire qu'un cheat a
- *    débloqué la commande : le joueur est déconnecté et c'est noté dans le log ;
- *  - anti-spam : un joueur qui envoie trop de commandes par seconde (exploit pour faire laguer
- *    ou planter le serveur) est déconnecté ;
- *  - pause technique : !pause (n'importe quel joueur), elle commence au prochain freeze time ;
- *    !unpause : la partie reprend quand un joueur de CHAQUE équipe l'a tapé ;
- *  - temps mort tactique : !tac lance le vote de temps mort du jeu (3 par équipe, 30 s, voir match.cfg) ;
- *  - rapport de dégâts à la fin de chaque round : pour chaque adversaire, dégâts infligés et reçus
- *    (nombre de coups) et ses PV restants.
- * Un plugin serveur ne remplace pas un anti-cheat installé chez le joueur : il bloque les triches
- * grossières et les exploits connus. Le reste : VAC, Vigie, signalements et demos.
- *
- * ConVars (cfg/sourcemod/tickrate_rules.cfg) :
- *   tr_rules_cvarcheck  1 = vérifier les réglages des joueurs
- *   tr_rules_maxcmd     commandes par seconde avant déconnexion (0 = pas de limite)
- */
 #include <sourcemod>
 #include <sdktools>
 #include <cstrike>
@@ -27,15 +7,13 @@
 
 public Plugin myinfo = { name = "TICKRATE rules", author = "TICKRATE", description = "Anti-triche serveur, pause technique, temps morts", version = "1.2.0", url = "" };
 
-// réglages client protégés par sv_cheats et la valeur qu'ils doivent avoir
 static const char CHECK_CVAR[][] = { "r_drawothermodels", "mat_wireframe", "mat_fullbright", "r_drawparticles", "cl_particles_show_bbox", "r_drawrenderboxes", "fog_enable", "mat_drawgray" };
 static const float CHECK_VALUE[] = { 1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0 };
 
 ConVar g_cvCheck, g_cvMaxCmd;
 int g_cmdCount[MAXPLAYERS + 1];
 bool g_kicked[MAXPLAYERS + 1];
-bool g_unpause[4];                 // index = équipe (2 = T, 3 = CT)
-// dégâts du round : [attaquant][victime]
+bool g_unpause[4];
 int g_dmg[MAXPLAYERS + 1][MAXPLAYERS + 1], g_hits[MAXPLAYERS + 1][MAXPLAYERS + 1], g_hp[MAXPLAYERS + 1];
 
 public void OnPluginStart() {
@@ -56,7 +34,6 @@ public void OnPluginStart() {
 }
 public void OnClientConnected(int client) { g_cmdCount[client] = 0; g_kicked[client] = false; }
 
-// ---------- réglages protégés ----------
 public Action Timer_Check(Handle t) {
 	if (!g_cvCheck.BoolValue) return Plugin_Continue;
 	for (int c = 1; c <= MaxClients; c++) {
@@ -76,7 +53,6 @@ public void OnCvarValue(QueryCookie cookie, int client, ConVarQueryResult result
 	KickClient(client, "%T", "Kick cvar", client, name);
 }
 
-// ---------- anti-spam de commandes ----------
 public Action OnClientCommand(int client, int args) {
 	int max = g_cvMaxCmd.IntValue;
 	if (client < 1 || max <= 0 || g_kicked[client]) return Plugin_Continue;
@@ -93,7 +69,6 @@ public Action Timer_ResetCmd(Handle t) {
 	return Plugin_Continue;
 }
 
-// ---------- pause technique ----------
 bool IsPlayer(int client) { return client > 0 && IsClientInGame(client) && (GetClientTeam(client) == CS_TEAM_T || GetClientTeam(client) == CS_TEAM_CT); }
 bool Paused() { return GameRules_GetProp("m_bMatchWaitingForResume") != 0; }
 
@@ -123,14 +98,12 @@ public Action Cmd_ForceUnpause(int client, int args) {
 	return Plugin_Handled;
 }
 
-// ---------- temps mort tactique ----------
 public Action Cmd_Tac(int client, int args) {
 	if (!IsPlayer(client)) return Plugin_Handled;
-	FakeClientCommand(client, "callvote StartTimeOut");    // vote de l'équipe, compté par le jeu (mp_team_timeout_max)
+	FakeClientCommand(client, "callvote StartTimeOut");
 	return Plugin_Handled;
 }
 
-// ---------- rapport de dégâts en fin de round ----------
 public void Ev_RoundStart(Event e, const char[] name, bool dontBroadcast) {
 	for (int a = 0; a <= MaxClients; a++) for (int v = 0; v <= MaxClients; v++) { g_dmg[a][v] = 0; g_hits[a][v] = 0; }
 }
@@ -142,7 +115,7 @@ public void Ev_Hurt(Event e, const char[] name, bool dontBroadcast) {
 	int v = GetClientOfUserId(e.GetInt("userid")), a = GetClientOfUserId(e.GetInt("attacker"));
 	if (v < 1) return;
 	int dmg = e.GetInt("dmg_health");
-	if (dmg > g_hp[v]) dmg = g_hp[v];                    // dégâts réels, pas l'excédent
+	if (dmg > g_hp[v]) dmg = g_hp[v];
 	g_hp[v] = e.GetInt("health");
 	if (a < 1 || a == v) return;
 	g_dmg[a][v] += dmg;

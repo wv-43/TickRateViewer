@@ -1,19 +1,10 @@
-// =====================================================================
-//  Rooms privées (comptes dev) : le dev invite qui il veut, choisit le mode (5v5 / Wingman), la map, le nombre
-//  de rounds, les équipes, et lance avec le nombre de joueurs qu'il veut (places vides : bots, au choix).
-//  Le match lancé est un match « de test » (pas d'ELO, sauf « fin réelle »), donc sans ban ni file d'attente.
-//  rooms/<rid>        { owner, ownerName, mode, map, rounds, real, bots, status:'open'|'started', matchId?,
-//                       members: { uid: { name, team:'A'|'B', lang, at } }, invited: { uid: name }, at }
-//  roomOf/<uid>       rid de la room du joueur (lisible par lui)
-//  roomInv/<uid>/<rid> { from, at }   invitations reçues (lisibles par lui)
-// =====================================================================
 const val = async ref => (await ref.get()).val();
 const { COMP_CANDIDATES, WINGMAN_POOL, DUEL_POOL, rid } = require('./core');
 const { isDev } = require('./influencer');
 const trades = require('./trades');
 const key = x => String(x || '').replace(/[.#$/[\]]/g, '_').slice(0, 64);
 const SIZE = { ranked: 5, wingman: 2, duel: 1 };
-const pool = mode => (mode === 'duel' ? DUEL_POOL : mode === 'wingman' ? WINGMAN_POOL : COMP_CANDIDATES);   // salons de test : toutes les maps 5v5 du jeu
+const pool = mode => (mode === 'duel' ? DUEL_POOL : mode === 'wingman' ? WINGMAN_POOL : COMP_CANDIDATES);
 const langOf = l => (['fr', 'en', 'ru'].includes(l) ? l : null);
 
 async function load(db, id) { const r = id && (await val(db.ref(`rooms/${key(id)}`))); return r ? { id: key(id), ...r } : null; }
@@ -31,7 +22,6 @@ async function create(db, uid, d = {}, now = Date.now()) {
   return get(db, uid);
 }
 
-// réglages (propriétaire, room pas encore lancée)
 async function settings(db, uid, d = {}) {
   const r = await load(db, d.rid), e = ownerOnly(r, uid); if (e) return e;
   if (r.status !== 'open') return { error: 'room_started' };
@@ -78,7 +68,6 @@ async function decline(db, uid, d = {}) {
   return { ok: true };
 }
 
-// quitter : le propriétaire ferme la room pour tout le monde
 async function leave(db, uid, d = {}) {
   const r = await load(db, d.rid || (await val(db.ref(`roomOf/${uid}`))));
   if (!r) { await db.ref(`roomOf/${uid}`).remove(); return { ok: true }; }
@@ -105,7 +94,6 @@ async function team(db, uid, d = {}) {
   return get(db, uid);
 }
 
-// lancer : un match « de test » avec les membres de la room, leurs équipes, la map et les rounds choisis
 async function start(db, uid, d = {}, now = Date.now()) {
   const mm = require('./mm');
   const r = await load(db, d.rid), e = ownerOnly(r, uid); if (e) return e;
@@ -130,7 +118,6 @@ async function start(db, uid, d = {}, now = Date.now()) {
   return { ok: true, matchId: mid };
 }
 
-// état pour le site : ma room (si j'en ai une) et mes invitations ; une room dont le match est fini se rouvre
 async function get(db, uid) {
   const [cur, inv] = await Promise.all([val(db.ref(`roomOf/${uid}`)), val(db.ref(`roomInv/${uid}`))]);
   let r = await load(db, cur);

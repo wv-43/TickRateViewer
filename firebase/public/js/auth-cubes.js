@@ -1,13 +1,7 @@
-/* =====================================================
- * TICKRATE - cubes en fondu sur la page de connexion (auth-cubes.js)
- * Grille de carrés noir et blanc qui part du coin en haut à gauche du panneau : nets dans le coin, de plus en plus
- * effacés en s'en éloignant (fondu en arc de cercle). Chaque carré a sa nuance et scintille doucement. Dessiné seulement quand la page de connexion
- * est affichée, à 30 images/s au plus ; sans scintillement si l'utilisateur a réduit les animations.
- * ===================================================== */
 (function(){
   const cv=document.getElementById('authCubes');if(!cv||!cv.getContext)return;
   const ctx=cv.getContext('2d'),still=matchMedia('(prefers-reduced-motion: reduce)').matches;
-  const SIZE=30,GAP=4,STEP=SIZE+GAP,FADE=.62;       // FADE : distance au coin (part de la diagonale) où les carrés ont disparu
+  const SIZE=30,GAP=4,STEP=SIZE+GAP,FADE=.62;
   let W=0,H=0,R=0,cols=0,rows=0,tiles=[],last=0,raf=0;
 
   function layout(){
@@ -25,7 +19,7 @@
       const tw=still?1:.75+.25*Math.sin(t/1000*c.s+c.p);
       const a=Math.pow(f,1.7)*c.b*tw*.2;if(a<.004)continue;
       ctx.fillStyle=`rgba(255,255,255,${a.toFixed(3)})`;ctx.fillRect(px,py,SIZE,SIZE);
-      ctx.fillStyle=`rgba(255,255,255,${(a*1.6).toFixed(3)})`;ctx.fillRect(px,py,SIZE,1);       // arête claire : effet cube
+      ctx.fillStyle=`rgba(255,255,255,${(a*1.6).toFixed(3)})`;ctx.fillRect(px,py,SIZE,1);
     }
   }
   const visible=()=>{const a=document.getElementById('auth');return a&&!a.hidden&&cv.offsetParent!==null};
@@ -36,7 +30,6 @@
   }
   function start(){if(raf||!visible())return;if(!W&&!layout())return;raf=requestAnimationFrame(loop)}
   addEventListener('resize',()=>{if(visible()&&layout()){draw(performance.now());start()}});
-  // la page de connexion s'affiche / se cache en changeant l'attribut hidden de #auth
   const auth=document.getElementById('auth');
   if(auth)new MutationObserver(()=>{if(visible()){layout();start()}}).observe(auth,{attributes:true,attributeFilter:['hidden']});
   document.addEventListener('visibilitychange',()=>{if(!document.hidden)start()});

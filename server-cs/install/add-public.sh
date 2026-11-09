@@ -1,20 +1,4 @@
 #!/bin/bash
-# =====================================================
-# TICKRATE - serveur public permanent : deathmatch 128 tick, ouvert à tous
-# Usage (root, sur le VPS) :  bash /root/server-cs/install/add-public.sh
-#
-# But : apparaître dans le navigateur de serveurs du jeu et sur les listes publiques (GS4u, GameTracker…)
-# avec un nom qui mène au site : « TICKRATE.EU | DM 128 tick | tickrate.eu ».
-#
-# Ce serveur ne sert PAS au matchmaking : il n'est pas déclaré dans Firebase, et il tourne SANS les plugins
-# TICKRATE (le plugin de match expulse tous ceux qui ne sont pas dans un match). Pour ça, il utilise sa
-# propre copie du serveur, /home/csgo/csgo-public, faite de liens durs vers /home/csgo/csgo-ds : elle ne
-# prend presque pas de place disque. Seuls les dossiers csgo/addons et csgo/cfg sont de vraies copies,
-# pour que les mises à jour des plugins de match (update.sh) ne la touchent pas.
-#
-# Après une mise à jour du jeu (steamcmd), relance ce script : il refait la copie et redémarre le serveur.
-# Il demande un jeton Steam (GSLT) de plus, à créer sur https://steamcommunity.com/dev/managegameservers (App ID 4465480).
-# =====================================================
 set -euo pipefail
 HOME_DIR=/home/csgo
 GAME=$HOME_DIR/csgo-ds
@@ -27,14 +11,12 @@ fail() { printf '\n\033[1;31mERREUR : %s\033[0m\n' "$*"; exit 1; }
 [ "$(id -u)" = 0 ] || fail "lance ce script en root"
 [ -x "$GAME/srcds_run" ] || fail "serveur introuvable : lance d'abord install.sh"
 
-# mémoire : un serveur de 16 joueurs en deathmatch prend environ 1 à 1,5 Go
 FREE=$(awk '/MemAvailable/ {print int($2/1024)}' /proc/meminfo)
 if [ "$FREE" -lt 1200 ] && ! systemctl is-active --quiet csgo-public; then
   echo "Attention : seulement ${FREE} Mo de mémoire libre. Le serveur public risque de faire ramer les serveurs de match."
   read -rp "Continuer quand même ? (o/N) " OK; [ "$OK" = o ] || [ "$OK" = O ] || exit 1
 fi
 
-# jeton Steam : demandé une fois, gardé ensuite
 G=""
 [ -f "$ENVF" ] && G=$(grep '^GSLT=' "$ENVF" | cut -d= -f2-)
 if [ -z "$G" ]; then
@@ -49,7 +31,6 @@ cp -al "$GAME" "$PUB"
 rm -rf "$PUB/csgo/addons" "$PUB/csgo/cfg"
 cp -a "$GAME/csgo/addons" "$PUB/csgo/addons"
 cp -a "$GAME/csgo/cfg" "$PUB/csgo/cfg"
-# sans les plugins TICKRATE (match, règles, skins, vigie, vocal…) ; Metamod et SourceMod restent
 rm -f "$PUB"/csgo/addons/sourcemod/plugins/tickrate_*.smx "$PUB"/csgo/addons/sourcemod/plugins/nolobbyreservation.smx
 rm -f "$PUB"/csgo/cfg/sourcemod/tickrate_*.cfg
 rm -rf "$PUB/csgo/cfg/tickrate"

@@ -1,6 +1,3 @@
-/* =====================================================
- * TICKRATE - textes de la page Clans (FR / EN / RU), chargés tôt (le menu affiche « Clans » dès le départ)
- * ===================================================== */
 Object.assign(I18N.fr,{nav_clans:'Clans',cl_title:'Clans',cl_lead:'Rejoins une communauté, porte son tag en jeu et fais grimper ton clan au classement.',
   cl_none_t:'Tu n’es dans aucun clan',cl_none_s:'Crée le tien ou rejoins-en un ci-dessous. Le tag de ton clan s’affiche devant ton nom en jeu.',
   cl_create:'Créer un clan',cl_name:'Nom du clan',cl_tag:'Tag (2 à 5 lettres ou chiffres)',cl_desc:'Description (facultatif)',cl_open:'Recrutement ouvert (entrée directe)',

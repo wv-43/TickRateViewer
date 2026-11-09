@@ -1,9 +1,3 @@
-/* =====================================================
- * TICKRATE - Navigation, Modales, Langues & Authentification / Calibration (nav-auth.js)
- * ===================================================== */
-/* =====================================================
-   MODALES / NAVIGATION SPA / ROUTING D'HISTORIQUE & PAGING
-   ===================================================== */
 function currentViewName(){
   const views=['play','lobby','result','profile','friends','ranking','loadout','premium','shop','compet','settings','vigie','influencer','support','duel','mapvote','clans'];
   return views.find(id=>$('#'+id)&&!$('#'+id).hidden)||'play';
@@ -57,7 +51,6 @@ function setView(v,keepTarget,skipHistory){
   if(v==='play'){renderParty();renderStats()}
   window.scrollTo({top:0});
 
-  // Paging navigateur et mise à jour de l'URL
   if(!skipHistory){
     const targetHash='#/'+v;
     if(location.hash!==targetHash){
@@ -68,15 +61,12 @@ function setView(v,keepTarget,skipHistory){
   }
 }
 
-// Gestion des boutons Retour / Suivant du navigateur et souris
 window.addEventListener('popstate',e=>{
-  // 1. Si une modale est ouverte, le bouton Retour la ferme
   const openOverlay=document.querySelector('.overlay.on');
   if(openOverlay){
     openOverlay.classList.remove('on');
     return;
   }
-  // 2. Navigation vers la page d'historique précédente
   const hashView=(location.hash.replace(/^#\/?/, '').split('/')[0] || '').trim();
   const views=['play','lobby','result','profile','friends','ranking','loadout','premium','shop','compet','settings','vigie','influencer','support','inventory','duel','mapvote','clans'];
   let targetView=(e.state&&e.state.view)||hashView||'play';
@@ -152,12 +142,6 @@ document.addEventListener('click',e=>{
   if(tg)tg.closest('[data-lang-root]').classList.toggle('open');
 });
 
-/* =====================================================
-   COMPTES : connexion / inscription
-   - mode SERVEUR : si le site est servi par le back-end Node (/api/auth/*)
-   - mode DÉMO : ouvert en fichier ou via Live Server -> comptes stockés
-     dans ce navigateur (mot de passe haché PBKDF2), pour montrer le parcours
-   ===================================================== */
 const AUTH={mode:'demo',session:null,fails:{}};
 const RE_USER=/^[A-Za-z0-9_.-]{3,16}$/,RE_MAIL=/^[^\s@]{1,64}@[^\s@]{1,190}\.[a-z]{2,24}$/i;
 const pwErr=pw=>!pw||pw.length<8?'pw_short':pw.length>128?'pw_long':(!/[A-Za-z]/.test(pw)||!/\d/.test(pw))?'pw_weak':null;
@@ -166,7 +150,6 @@ async function api(path,body){
   let r;try{r=await fetch(path,{method:body?'POST':'GET',headers:body?{'Content-Type':'application/json'}:{},body:body?JSON.stringify(body):undefined,credentials:'same-origin'})}catch(e){return {error:'network'}}
   try{return await r.json()}catch(e){return {error:'server_error'}}
 }
-// ---------- stockage démo ----------
 const dAcc=()=>{try{return JSON.parse(localStorage.getItem('tr_accounts')||'[]')}catch(e){return []}};
 const dSave=a=>{try{localStorage.setItem('tr_accounts',JSON.stringify(a))}catch(e){}};
 const toHex=b=>[...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,'0')).join('');
@@ -182,7 +165,6 @@ const dUpdate=(id,fn)=>{const all=dAcc(),a=all.find(x=>x.id===id);if(a){fn(a);dS
 const fakeSteam64=()=>'7656119'+String(Math.floor(Math.random()*1e10)).padStart(10,'0');
 const steam2=id=>{if(!id)return null;try{const n=BigInt(id)-76561197960265728n;return `STEAM_1:${n%2n}:${n/2n}`}catch(e){return id}};
 
-// ---------- actions (même interface pour les 2 modes) ----------
 async function doRegister(f){
   if(AUTH.mode==='server')return api('/api/auth/register',f);
   const all=dAcc();
@@ -215,8 +197,6 @@ function steamOpenIdUrl(ret){
 }
 async function doSteam(){
   if(AUTH.mode==='server'){location.href='/auth/steam';return new Promise(()=>{})}
-  // Hors serveur Node : on ouvre quand même la VRAIE page de connexion Steam (OpenID).
-  // Steam ne peut renvoyer que vers une adresse http(s) : en file:// on prévient.
   if(!/^https?:/.test(location.protocol)){toast(t('au_steam_need_http'));return {error:'need_http'}}
   const cur=(AUTH.session&&AUTH.session.account) || (typeof dSessionGet==='function'&&dSessionGet()&&dSessionGet().account);
   const linkId=cur?cur.id:null;
@@ -239,7 +219,6 @@ async function doGoogleAuth(){
   dSessionSet(a.id,true);const sess=dSessionGet();
   return {ok:true,session:sess};
 }
-// Retour de Steam (OpenID). Vérification du SteamID et affiliation au compte actif.
 function steamReturnDemo(q){
   if(!q.has('steam_oid') && q.get('openid.mode')!=='id_res')return null;
   let pend=null;
@@ -261,7 +240,6 @@ function steamReturnDemo(q){
 
   if(linkId){
     if(owner&&String(owner.id)!==String(linkId)){
-      // Si l'ancien propriétaire était un profil jetable "SteamXXXX" sans email ni mot de passe, on réassigne au vrai compte
       if((!owner.email&&!owner.hash)||String(owner.username).startsWith('Steam')){
         owner.steam_id=null;
         dSave(all);
@@ -349,7 +327,6 @@ async function doUnlinkSteam(){
   dUpdate(a.id,x=>x.steam_id=null);return {ok:true,session:dSessionGet()};
 }
 
-// ---------- écran ----------
 let authTab='login';
 let verifyPollTimer=null;
 let verifyResendTimer=null;
@@ -519,7 +496,6 @@ function applySession(sess){
   const old=ME.name;
   const uKey=(typeof FBA!=='undefined'&&FBA&&FBA.uid)?FBA.uid:(typeof fbUserKey==='function'?fbUserKey():String(a.id));
 
-  // Re-initialiser ME aux valeurs par défaut pour éviter tout résidu d'un autre compte
   ME.avatar=null;
   ME.steamAvatar=null;
   ME.banner={type:'map',slug:'mirage'};
@@ -606,7 +582,6 @@ $('#fLogin').addEventListener('submit',async e=>{
 $('#fReg').addEventListener('submit',async e=>{
   e.preventDefault();const f=e.target,btn=f.querySelector('.af-go');
   const body={username:$('#reUser').value.trim(),email:$('#reMail').value.trim().toLowerCase(),password:$('#rePass').value,accept:$('#reCgu').checked};
-  // vérifs côté navigateur (le serveur revérifie TOUT de son côté)
   const pe=pwErr(body.password);
   const err=!RE_USER.test(body.username)?{error:'bad_username',field:'username'}:!RE_MAIL.test(body.email)?{error:'bad_email',field:'email'}
     :pe?{error:pe,field:'password'}:body.password!==$('#rePass2').value?{error:'pw_mismatch',field:null}:!body.accept?{error:'must_accept',field:'accept'}:null;
@@ -657,7 +632,6 @@ async function submitManualVerification(){
 $('#btnVerifyManual')?.addEventListener('click',()=>submitManualVerification());
 $('#verifyManualCode')?.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();submitManualVerification();}});
 
-// ---------- menu utilisateur ----------
 function toggleUmenu(force){
   const m=$('#umenu'),open=force!=null?force:m.hidden;m.hidden=!open;
   if(open){
@@ -719,9 +693,7 @@ function openAccount(){
   openModal('accModal');
 }
 
-// ---------- démarrage ----------
 async function authInit(){
-  // l'ancien back-end Node (/api/auth) n'existe pas sur l'hébergement Firebase : pas d'appel inutile (404) sur tickrate.eu
   if(/^https?:/.test(location.protocol)&&!/(^|\.)tickrate\.eu$|\.web\.app$|\.firebaseapp\.com$/.test(location.hostname)){
     const r=await api('/api/auth/session');
     if(r&&r.ok){AUTH.mode='server';AUTH.session=r.session}

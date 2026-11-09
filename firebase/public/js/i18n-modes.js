@@ -1,8 +1,3 @@
-/* =====================================================
- * TICKRATE - textes du vote des maps et de l'arène 1v1 (FR / EN / RU)
- * Chargé juste après core.js : la page Jouer s'affiche avant que mapvote.js et duel.js soient lus,
- * leurs textes doivent donc exister plus tôt (sinon les clés brutes « mv_rot_now »… apparaissent).
- * ===================================================== */
 Object.assign(I18N.fr,{nav_mapvote:'Vote des maps',mv_title:'Vote de la rotation',mv_lead:'Choisis jusqu\'à 7 maps. Le 1er de chaque mois, les 7 maps les plus votées deviennent le pool du 5v5 compétitif.',
   mv_ends:'Fin du vote du mois de {m} dans {d}',mv_cur:'Rotation en cours',mv_last:'Dernier vote ({m}) : {v} votants',mv_last_keep:'Dernier vote ({m}) : {v} votants, pas assez pour changer le pool (3 minimum)',
   mv_pick:'{n} / 7 maps choisies',mv_save:'Enregistrer mon vote',mv_saved:'Vote enregistré, tu peux le changer jusqu\'à la fin du mois',mv_mine:'Ton vote est enregistré',
@@ -48,7 +43,6 @@ Object.assign(I18N.ru,{nav_duel:'Арена 1v1',du_open:'Открыть зал 
   du_you:'ты',du_empty:'Пока нет игроков с рейтингом 1v1.',du_err:'Рейтинг сейчас недоступен.',du_load:'Загрузка…',
   du_rules:'Правила',du_r1:'До 5 побед в раундах (MR9), без ножевого раунда',du_r2:'Freezetime 2 с, бомба 10 с',du_r3:'Выделенные серверы 128 tick во Франкфурте',
   du_maps:'Карты'});
-// rotation : compte à rebours, autres maps, carte Wingman
 Object.assign(I18N.fr,{mv_rot_t:'{n} maps choisies par le vote des joueurs',mv_next:'Prochaine rotation dans {d}',mv_dh:'{d} j {h} h',mv_h:'{h} h {m} min',
   maps_more:'Voir les autres maps ({n}, hors rotation)',wm_pool:'Pool Wingman 2v2 · CS:GO legacy',wm_pool_t:'{n} maps 2v2 ({l}) · MR8 (9 rounds gagnants)',wm_build:'Version CS:GO'});
 Object.assign(I18N.en,{mv_rot_t:'{n} maps chosen by the players’ vote',mv_next:'Next rotation in {d}',mv_dh:'{d} d {h} h',mv_h:'{h} h {m} min',
@@ -56,11 +50,9 @@ Object.assign(I18N.en,{mv_rot_t:'{n} maps chosen by the players’ vote',mv_next
 Object.assign(I18N.ru,{mv_rot_t:'{n} карт выбрано голосованием игроков',mv_next:'Следующая ротация через {d}',mv_dh:'{d} д {h} ч',mv_h:'{h} ч {m} мин',
   maps_more:'Другие карты ({n}, вне ротации)',wm_pool:'Пул Wingman 2v2 · CS:GO legacy',wm_pool_t:'{n} карт 2v2 ({l}) · MR8 (до 9 побед)',wm_build:'Версия CS:GO'});
 
-// temps avant la prochaine rotation : le 1er du mois suivant à 00:05 UTC (fonction mapRotate)
 function mvNextAt(now=new Date()){return Date.UTC(now.getUTCFullYear(),now.getUTCMonth()+1,1,0,5)}
 function mvNextIn(now=new Date()){
   const ms=Math.max(0,mvNextAt(now)-now.getTime()),d=Math.floor(ms/864e5),h=Math.floor(ms%864e5/36e5),m=Math.floor(ms%36e5/6e4);
   return d>=1?t('mv_dh',{d,h}):t('mv_h',{h,m});
 }
-// compte à rebours affiché sur la page Jouer (.rot-next) : mis à jour chaque minute
 setInterval(()=>{document.querySelectorAll('.rot-next').forEach(e=>e.textContent=t('mv_next',{d:mvNextIn()}))},60000);

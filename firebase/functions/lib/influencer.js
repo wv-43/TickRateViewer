@@ -1,10 +1,8 @@
-// Programme Influenceur : demande du joueur -> validation manuelle par un dev (roles/<uid> = "dev")
-// Une demande acceptée donne le plan PREMIUM gratuit (planSource = "influencer") + le badge INFLUENCEUR.
 const RULES = {
-  minFollowers: 1000,      // abonnés sur la plateforme principale
-  minAvgViews: 200,        // vues moyennes par vidéo / spectateurs cumulés par live
-  minAccountDays: 7,       // ancienneté du compte TICKRATE
-  rejectCooldownDays: 14   // délai avant de refaire une demande refusée
+  minFollowers: 1000,
+  minAvgViews: 200,
+  minAccountDays: 7,
+  rejectCooldownDays: 14
 };
 const PLATFORMS = {
   twitch: /^https:\/\/(www\.)?twitch\.tv\/[A-Za-z0-9_]{3,25}\/?$/,
@@ -46,7 +44,6 @@ async function apply(db, uid, d) {
   return { ok: true, request: req };
 }
 
-// decision : approve | reject | revoke
 async function review(db, devUid, d) {
   if (!(await isDev(db, devUid))) return { error: 'forbidden' };
   const uid = str(d.uid, 128), decision = str(d.decision, 10), note = str(d.note, 300);
@@ -63,7 +60,6 @@ async function review(db, devUid, d) {
     if (req.status !== 'pending') return { error: 'inf_not_pending' };
     stamp('approved');
     upd[`profiles/${uid}/influencer`] = { platform: req.platform, handle: req.handle, url: req.url, since: now };
-    // un abonnement payant déjà actif reste prioritaire sur le plan offert
     if (prof.plan !== 'premium' || prof.planSource === 'influencer') {
       upd[`profiles/${uid}/plan`] = 'premium';
       upd[`profiles/${uid}/planSource`] = 'influencer';
@@ -85,14 +81,12 @@ async function review(db, devUid, d) {
   return { ok: true };
 }
 
-// un dev donne directement le statut (sans demande ni conditions) : d = { name, platform?, url?, note? }
-// le joueur est retrouvé par son pseudo ; on écrit une fiche « approved » pour pouvoir retirer le statut ensuite
 async function grant(db, devUid, d) {
   if (!(await isDev(db, devUid))) return { error: 'forbidden' };
   const name = str(d.name, 25);
   if (!name && !d.uid) return { error: 'player_not_found' };
   let uid = d.uid ? str(d.uid, 128) : await val(db.ref(`usernames/${name.toLowerCase().replace(/[.#$/[\]]/g, '_')}`));
-  if (!uid) {   // anciens comptes sans entrée usernames/
+  if (!uid) {
     const all = (await val(db.ref('profiles'))) || {};
     uid = Object.keys(all).find(k => String(all[k]?.name || '').toLowerCase() === name.toLowerCase()) || null;
   }
